@@ -110,6 +110,7 @@ GLuint gl::createProgram(GLuint shaders[], unsigned int shaderCount)
 		delete[] strInfoLog;
 	}
 
+	// Shaders can be detached (and deleted) after the program has been linked
 	for(unsigned int i = 0; i < shaderCount; ++i)
 		glDetachShader(program, shaders[i]);
 

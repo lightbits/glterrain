@@ -1,7 +1,7 @@
 #ifndef SLGL_GRAPHICS_FONT_H
 #define SLGL_GRAPHICS_FONT_H
 #include <graphics/texture.h>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 namespace graphics
@@ -32,6 +32,8 @@ public:
 	of the texture.
 	*/
 	Glyph getGlyph(char c) const;
+
+	/* Calculate the width (TODO: and height) of the string, in pixel units */
 	int measureString(const std::string &str) const;
 	const Texture *getTexture() const;
 
@@ -39,7 +41,7 @@ public:
 		" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 private:
 	Texture *texture;
-	std::map<char, Glyph> glyphs;
+	std::unordered_map<char, Glyph> glyphs;
 };
 
 }

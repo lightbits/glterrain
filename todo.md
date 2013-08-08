@@ -19,6 +19,10 @@ http://gamedev.stackexchange.com/questions/37423/sprite-batching-seems-slow
 http://www.opengl.org/discussion_boards/showthread.php/176176-Fast-Sprites-and-VBOs
 https://bitbucket.org/rude/love/src/edd946442f86d77fac8da437f9c12431738727e6/src/modules/graphics/opengl/Image.cpp?at=default
 http://stackoverflow.com/questions/11706433/opengl-tile-rendering-most-efficient-way
+http://gamedev.stackexchange.com/questions/19315/efficient-sprite-batching
+
+Seperate buffers for attributes?
+http://devmaster.net/forums/topic/15692-vertex-buffers-interleaved-or-separate/
 
 *	Consider lessening the usage of glBufferSubData in SpriteBatch, and instead store vertex information in application memory,
 before doing uploading it to the GPU when it's time to draw.

@@ -34,9 +34,7 @@ int Font::measureString(const std::string &str) const
 {
 	int width = 0;
 	for(unsigned int i = 0; i < str.size(); ++i)
-	{
 		width += getGlyph(str[i]).width;
-	}
 	return width;
 }
 
@@ -71,6 +69,9 @@ for the array of pixels
 */
 bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 {
+	// Clear glyph data
+	glyphs.clear();
+
 	// Dispose previous texture, if any
 	dispose();
 
