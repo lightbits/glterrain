@@ -31,28 +31,6 @@ void shutdown(const char *error = "")
 	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-ShaderLayout getShaderLayout(const Program &program)
-{
-	ShaderLayout layout;
-	layout.positionAttribIndex	= program.getAttribLocation("position");
-	layout.colorAttribIndex		= program.getAttribLocation("color");
-	layout.texelAttribIndex		= program.getAttribLocation("texel");
-	layout.normalAttribIndex	= program.getAttribLocation("normal");
-
-	layout.projectionUniform	= program.getUniformLocation("projection");
-	layout.viewUniform			= program.getUniformLocation("view");
-	layout.modelUniform			= program.getUniformLocation("model");
-	layout.texBlendUniform		= program.getUniformLocation("texBlend");
-	return layout;
-}
-
-vec3 bezierPatchPoints[4][4] = {
-	{ vec3(-1.0f, 0.0f, -1.0f),		vec3(-0.25f, 0.0f, -1.0f),	vec3(0.25f, 0.0f, -1.0f),	vec3(1.0f, 0.0f, -1.0f) },
-	{ vec3(-1.0f, 0.0f, -0.25f),	vec3(-0.25f, 0.0f, -0.25f), vec3(0.25f, 0.0f, -0.25f),	vec3(1.0f, 0.0f, -0.25f) },
-	{ vec3(-1.0f, 0.0f, 0.25f),		vec3(-0.25f, 0.0f, 0.25f),	vec3(0.25f, 0.0f, 0.25f),	vec3(1.0f, 0.0f, 0.25f) },
-	{ vec3(-1.0f, 0.0f, 1.0f),		vec3(-0.25f, 0.0f, 1.0f),	vec3(0.25f, 0.0f, 1.0f),	vec3(1.0f, 0.0f, 1.0f) }
-};
-
 int main()
 {
 	if(!gl::createContext("Terrain", 300, 100, 640, 480, 24, 8, 8, false))
@@ -85,13 +63,29 @@ int main()
 
 	Program program0;
 	program0.compile(default_vert_src, default_frag_src);
-	ShaderLayout program0Layout = getShaderLayout(program0);
+
+	ShaderLayout program0Layout;
+	program0Layout.positionAttribIndex	= program0.getAttribLocation("position");
+	program0Layout.colorAttribIndex		= program0.getAttribLocation("color");
+	program0Layout.texelAttribIndex		= program0.getAttribLocation("texel");
+	program0Layout.normalAttribIndex	= program0.getAttribLocation("normal");
+	program0Layout.projectionUniform	= program0.getUniformLocation("projection");
+	program0Layout.viewUniform			= program0.getUniformLocation("view");
+	program0Layout.modelUniform			= program0.getUniformLocation("model");
+	program0Layout.texBlendUniform		= program0.getUniformLocation("texBlend");
 
 	Program program1;
 	program1.compile(spritebatch_vert_src, sprite_batch_frag_src);
 
 	DynamicRenderModel model0;
 	model0.create(mesh0, program0Layout);
+
+	const vec3 bezierPatchPoints[4][4] = {
+		{ vec3(-1.0f, 0.0f, -1.0f),		vec3(-0.25f, 0.0f, -1.0f),	vec3(0.25f, 0.0f, -1.0f),	vec3(1.0f, 0.0f, -1.0f) },
+		{ vec3(-1.0f, 0.0f, -0.25f),	vec3(-0.25f, 0.0f, -0.25f), vec3(0.25f, 0.0f, -0.25f),	vec3(1.0f, 0.0f, -0.25f) },
+		{ vec3(-1.0f, 0.0f, 0.25f),		vec3(-0.25f, 0.0f, 0.25f),	vec3(0.25f, 0.0f, 0.25f),	vec3(1.0f, 0.0f, 0.25f) },
+		{ vec3(-1.0f, 0.0f, 1.0f),		vec3(-0.25f, 0.0f, 1.0f),	vec3(0.25f, 0.0f, 1.0f),	vec3(1.0f, 0.0f, 1.0f) }
+	};
 
 	DynamicRenderModel model1;
 	model1.create(TriMesh::genBezierPatch(bezierPatchPoints, 5, 5), program0Layout);
@@ -138,6 +132,7 @@ int main()
 		viewMatrix.rotateX(30.0f);
 		MatrixStack modelMatrix;
 
+		// Draw 3D stuff
 		program0.use();
 		program0.uniform(program0Layout.projectionUniform, perspectiveMatrix);
 		program0.uniform(program0Layout.viewUniform, viewMatrix.top());
@@ -169,6 +164,7 @@ int main()
 		Text debugText;
 		debugText<<"render: "<<renderTime * 1000<<"ms";
 
+		// Draw 2D stuff
 		program1.use();
 		spriteBatch0.begin();
 		spriteBatch0.drawString(debugText.getString(), 5.0f, 5.0f, Colors::White);
