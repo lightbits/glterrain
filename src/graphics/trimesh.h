@@ -19,7 +19,7 @@ public:
 	std::vector<vec3> positions;
 	std::vector<vec3> normals;
 	std::vector<vec4> colors;
-	std::vector<vec2> texCoords;
+	std::vector<vec2> texels;
 	std::vector<unsigned short> indices;
 
 	// Loads data from a .obj model file
@@ -28,7 +28,7 @@ public:
 	void clear()
 	{ 
 		positions.clear(); normals.clear();
-		colors.clear(); texCoords.clear();
+		colors.clear(); texels.clear();
 		indices.clear();
 	}
 
@@ -41,8 +41,8 @@ public:
 	void addColor(const Color &color) { colors.push_back(vec4(color.r, color.g, color.b, color.a)); }
 	void addColor(float r, float g, float b, float a) { colors.push_back(vec4(r, g, b, a)); }
 
-	void addTexCoord(const vec2 &uv) { texCoords.push_back(uv); }
-	void addTexCoord(float u, float v) { addTexCoord(vec2(u, v)); }
+	void addTexel(const vec2 &uv) { texels.push_back(uv); }
+	void addTexel(float u, float v) { addTexel(vec2(u, v)); }
 
 	void addTriangle(unsigned short i0, unsigned short i1, unsigned short i2)
 	{
@@ -55,20 +55,20 @@ public:
 	unsigned int getPositionCount()		const { return positions.size(); }
 	unsigned int getNormalCount()		const { return normals.size(); }
 	unsigned int getColorCount()		const { return colors.size(); }
-	unsigned int getTexCoordCount()		const { return texCoords.size(); }
+	unsigned int getTexCoordCount()		const { return texels.size(); }
 	unsigned int getIndexCount()		const { return indices.size(); }
 
 	unsigned int getPositionsByteSize() const { return positions.size() * sizeof(vec3); }
 	unsigned int getNormalsByteSize()	const { return normals.size() * sizeof(vec3); }
 	unsigned int getColorsByteSize()	const { return colors.size() * sizeof(vec4); }
-	unsigned int getTexCoordsByteSize() const { return texCoords.size() * sizeof(vec2); }
+	unsigned int getTexCoordsByteSize() const { return texels.size() * sizeof(vec2); }
 
 	unsigned int getByteSize() const 
 	{
 		return positions.size() * sizeof(vec3) + 
 			normals.size() * sizeof(vec3) + 
 			colors.size() * sizeof(vec4) + 
-			texCoords.size() * sizeof(vec2); 
+			texels.size() * sizeof(vec2);
 	}
 };
 

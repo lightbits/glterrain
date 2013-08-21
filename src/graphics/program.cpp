@@ -4,7 +4,7 @@ using namespace graphics;
 
 Program::Program() : program(0), vertexShader(0), fragmentShader(0)
 {
-
+	
 }
 
 void Program::dispose() const

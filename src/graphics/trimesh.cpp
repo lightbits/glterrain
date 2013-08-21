@@ -65,7 +65,7 @@ bool TriMesh::loadFromFile(const char *filename, bool flipWindingOrder)
 				addPosition(vertices[indices[0] - 1]);
 
 				if(hasTexCoords)
-					addTexCoord(texCoords[indices[1] - 1]);
+					addTexel(texCoords[indices[1] - 1]);
 
 				if(hasNormals)
 					addNormal(normals[indices[2] - 1]);

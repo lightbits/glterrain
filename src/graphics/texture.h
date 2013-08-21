@@ -25,6 +25,7 @@ public:
 	void setRepeat(bool enabled);
 
 	void bind() const;
+	void unbind() const;
 
 	bool loadFromFile(const std::string &filename);
 private:
