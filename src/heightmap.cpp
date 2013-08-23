@@ -35,12 +35,6 @@ void shutdown(const char *error = "")
 	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-const int primes[] = { 543855877, 431689729, 284866381, 620586229, 935802211, 599684249, 684019249,
-500702051, 727501183, 865744549, 988132547, 873958313, 171469003, 318296159, 138157961, 135935707,
-480874481, 752454797, 28117273, 323094347, 382719373, 993123553, 881534189, 776528111, 847851293,
-497201447, 295567373, 444275963, 695887807, 125496409, 483408553, 695661907, 87703277, 478290947,
-412270487, 830931029, 212264167, 831290149, 240976871, 782920781 };
-
 // Returns a smoothed value between 0 and 1, for t between 0 and 1
 inline float smoothstep(float t) { return t * t * (3.0f - 2.0f * t); }
 
@@ -121,19 +115,58 @@ float fractalNoise(const Noisemap &noisemap, float x, float y)
 	return noise / max;
 }
 
-void generateTerrainMesh(TriMesh &mesh)
+// Generates a terrain mesh using the noisemap as source for a heightmap
+void generateTerrainMesh(TriMesh &mesh, const Noisemap &noisemap, unsigned int resX, unsigned int resY, float scale)
 {
-	unsigned int i = mesh.getPositionCount();
-	mesh.addPosition(-0.5f, -0.5f, 0.5f);
-	mesh.addPosition(-0.5f,  0.5f, 0.5f);
-	mesh.addPosition( 0.5f,  0.5f, 0.5f);
-	mesh.addPosition( 0.5f, -0.5f, 0.5f);
-	mesh.addNormal(0.0f, 0.0f, 1.0f);
-	mesh.addNormal(0.0f, 0.0f, 1.0f);
-	mesh.addNormal(0.0f, 0.0f, 1.0f);
-	mesh.addNormal(0.0f, 0.0f, 1.0f);
-	mesh.addTriangle(i + 0, i + 1, i + 2);
-	mesh.addTriangle(i + 2, i + 3, i + 0);
+	std::vector<float> heights(resX * resY);
+	for(unsigned int i = 0; i < heights.size(); ++i)
+	{
+		unsigned int xi = i % resX;
+		unsigned int yi = i / resX;
+		float xf = scale * xi / float(resX);
+		float yf = scale * yi / float(resY);
+		heights[i] = fractalNoise(noisemap, xf, yf);
+	}	
+
+	mesh.clear();
+	for(int y = 0; y < resY - 1; ++y)
+	{
+		for(int x = 0; x < resX - 1; ++x)
+		{
+			float x0 = scale * x / float(resX);
+			float x1 = scale * (x + 1) / float(resX);
+			float y0 = scale * y / float(resY);
+			float y1 = scale * (y + 1) / float(resY);
+			float h00 = heights[y * resX + x];
+			float h10 = heights[y * resX + x + 1];
+			float h01 = heights[(y + 1) * resX + x];
+			float h11 = heights[(y + 1) * resX + x + 1];
+			float ox = scale / 2.0f;
+			float oy = scale / 2.0f;
+			unsigned int i = mesh.getPositionCount();
+			mesh.addPosition(x0 - ox, h00, y0 - oy);
+			mesh.addPosition(x1 - ox, h10, y0 - oy);
+			mesh.addPosition(x1 - ox, h11, y1 - oy);
+			mesh.addTriangle(i + 0, i + 1, i + 2);
+
+			mesh.addPosition(x1 - ox, h11, y1 - oy);
+			mesh.addPosition(x0 - ox, h01, y1 - oy);
+			mesh.addPosition(x0 - ox, h00, y0 - oy);
+			mesh.addTriangle(i + 3, i + 4, i + 5);
+		}
+	}
+
+	// Compute normals
+	for(int i = 0; i < mesh.indices.size(); i += 3)
+	{
+		vec3 v0 = mesh.positions[mesh.indices[i + 0]];
+		vec3 v1 = mesh.positions[mesh.indices[i + 1]];
+		vec3 v2 = mesh.positions[mesh.indices[i + 2]];
+		vec3 n = glm::normalize(glm::cross((v2 - v0), (v1 - v0)));
+		mesh.addNormal(n);
+		mesh.addNormal(n);
+		mesh.addNormal(n);
+	}
 }
 
 void generateHeightmapTexture(GLuint &texture, const Noisemap &noisemap, unsigned int width, unsigned int height, float scale)
@@ -159,6 +192,51 @@ void generateHeightmapTexture(GLuint &texture, const Noisemap &noisemap, unsigne
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+double time0 = 0.0;
+int lastMouseX = 320;
+int lastMouseY = 240;
+float rotationSpeedX = 0.0f;
+float rotationSpeedY = 0.0f;
+float rotationX = 0.0f;
+float rotationY = 0.0f;
+float zoom = 0.0f;
+bool keydown = false;
+bool wireframe = true;
+void update(double time)
+{
+	double dt = time - time0;
+
+	if(glfwGetKey(GLFW_KEY_SPACE) && !keydown)
+	{
+		wireframe = !wireframe;
+		keydown = true;
+	}
+	else if(!glfwGetKey(GLFW_KEY_SPACE))
+	{
+		keydown = false;
+	}
+
+	int mouseX, mouseY;
+	glfwGetMousePos(&mouseX, &mouseY);
+	if(glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT))
+	{
+		int dx = mouseX - lastMouseX;
+		int dy = mouseY - lastMouseY;
+		rotationSpeedY += float(dx) * 0.0005f;
+		rotationSpeedX += float(dy) * 0.0005f;
+	}
+
+	rotationSpeedX = 0.95f * rotationSpeedX;
+	rotationSpeedY = 0.95f * rotationSpeedY;
+	rotationX += rotationSpeedX;
+	rotationY += rotationSpeedY;
+	lastMouseX = mouseX;
+	lastMouseY = mouseY;
+	zoom = float(glfwGetMouseWheel()) * 0.05f;
+
+	time0 = time;
 }
 
 int main()
@@ -196,21 +274,15 @@ int main()
 	program1Layout.attribs["position"] = program1.getAttribLocation("position");
 	program1Layout.attribs["texel"] = program1.getAttribLocation("texel");
 
-	TriMesh terrainMesh;
-	generateTerrainMesh(terrainMesh);
-
-	BufferedMesh terrainBuffer;
-	terrainBuffer.create(terrainMesh, program0Layout);
-
+	// A quad mesh to display the noisemap texture
 	TriMesh quadMesh;
+	BufferedMesh quadBuffer;
 	quadMesh.addPosition(-0.5f, -0.5f, 0.0f); quadMesh.addTexel(0.0f, 0.0f);
 	quadMesh.addPosition(-0.5f,  0.5f, 0.0f); quadMesh.addTexel(0.0f, 1.0f);
 	quadMesh.addPosition( 0.5f,  0.5f, 0.0f); quadMesh.addTexel(1.0f, 1.0f);
 	quadMesh.addPosition( 0.5f, -0.5f, 0.0f); quadMesh.addTexel(1.0f, 0.0f);
 	quadMesh.addTriangle(0, 1, 2);
 	quadMesh.addTriangle(2, 3, 0);
-
-	BufferedMesh quadBuffer;
 	quadBuffer.create(quadMesh, program1Layout);
 
 	// Whatever-array-object
@@ -225,6 +297,7 @@ int main()
 	glDepthRange(0.0, 1.0);
 	glClearDepth(1.0);
 
+	glFrontFace(GL_CW);
 	glEnable(GL_TEXTURE_2D);
 
 	Noisemap noisemap;
@@ -233,7 +306,12 @@ int main()
 	GLuint heightmapTexture;
 	generateHeightmapTexture(heightmapTexture, noisemap, 512, 512, 10.0f);
 
-	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 1.0f, 100.0f);
+	TriMesh terrainMesh;
+	BufferedMesh terrainBuffer;
+	generateTerrainMesh(terrainMesh, noisemap, 48, 48, 8.0f);
+	terrainBuffer.create(terrainMesh, program0Layout);
+
+	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 0.1f, 50.0f);
 
 	Timer timer;
 	timer.start();
@@ -243,14 +321,15 @@ int main()
 	{
 		timer.step();
 
-		double renderStart = timer.getElapsedTime();
+		update(timer.getElapsedTime());
 
-		glClearColor(0.33f, 0.33f, 0.33f, 1.0f);
+		double renderStart = timer.getElapsedTime();
+		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		MatrixStack viewMatrix;
 		viewMatrix.push();
-		viewMatrix.translate(0.0f, 0.0f, -3.0f);
+		viewMatrix.translate(0.0f, 0.0f, -4.0f + zoom);
 		MatrixStack modelMatrix;
 
 		program0.use();
@@ -259,23 +338,37 @@ int main()
 
 		// Draw terrain
 			modelMatrix.push();
-			modelMatrix.rotateX(22.0f);
+			modelMatrix.rotateX(rotationX * 180.0f / 3.1415f);
+			modelMatrix.rotateY(rotationY * 180.0f / 3.1415f);
 			program0.uniform(program0Layout.getUniformLoc("model"), modelMatrix.top());
 			program0.uniform(program0Layout.getUniformLoc("white"), 0.0f);
 			terrainBuffer.draw();
+
+			if(wireframe)
+			{
+				program0.uniform(program0Layout.getUniformLoc("white"), 1.0f);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				terrainBuffer.draw();
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
+			
 			modelMatrix.pop();
 
+			
 		program0.unuse();
 		viewMatrix.pop();
 
-		// Draw heightmap texture
-		program1.use();
-		program1.uniform(program1Layout.getUniformLoc("tex"), 0);
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, heightmapTexture);
-		quadBuffer.draw();
-		glBindTexture(GL_TEXTURE_2D, 0);
-		program1.unuse();
+		
+		//program1.use();
+
+		//// Draw heightmap texture
+		//	program1.uniform(program1Layout.getUniformLoc("tex"), 0);
+		//	glActiveTexture(GL_TEXTURE0 + 0);
+		//	glBindTexture(GL_TEXTURE_2D, heightmapTexture);
+		//	quadBuffer.draw();
+		//	glBindTexture(GL_TEXTURE_2D, 0);
+
+		//program1.unuse();
 
 		glfwSwapBuffers();
 		renderTime = timer.getElapsedTime() - renderStart;
