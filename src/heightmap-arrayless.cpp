@@ -43,79 +43,50 @@ void shutdown(const char *error = "")
 	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
-// Returns a smoothed value between 0 and 1, for t between 0 and 1
-inline float smoothstep(float t) { return t * t * (3.0f - 2.0f * t); }
-
-class Noisemap
+// Returns a random floating point between 0 and 1
+float noise2f(int x, int y)
 {
-public:
-	Noisemap() : grid(NULL) { }
-	~Noisemap() { if(grid) delete[] grid; }
+	int n = x + y * 57;
+	n = (n<<13) ^ n;
+    return 0.5f * (1.0f - ( (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0f) + 0.5f;
+}
 
-	void create(unsigned int seed = 2011)
-	{
-		grid = new float[size * size];
-		srand(seed);
-		for(unsigned int i = 0; i < size * size; ++i)
-			grid[i] = rand() / float(RAND_MAX);
-	}
+float smoothstep(float t) { return t * t * (3.0f - 2.0f * t); }
 
-	float eval(float x, float y) const
-	{
-		// The grid-snapped coordinates
-		int xi = floor(x);
-		int yi = floor(y);
-
-		// The fractional parts of x and y
-		float xf = x - xi;
-		float yf = y - yi;
-
-		// Get the grid-snapped coordinates of the square containing (x, y),
-		// taking the modulo of the grid-size if we go outside.
-		// (Note that a & b = a mod b when (b+1) is a power of two)
-		int rx0 = xi & (size - 1);
-		int ry0 = yi & (size - 1);
-		int rx1 = (xi + 1) & (size - 1);
-		int ry1 = (yi + 1) & (size - 1);
-
-		// Retrieve the noise values at the square corners
-		const float &c00 = grid[ry0 * size + rx0]; // top-left
-		const float &c10 = grid[ry0 * size + rx1]; // top-right
-		const float &c01 = grid[ry1 * size + rx0]; // bottom-left
-		const float &c11 = grid[ry1 * size + rx1]; // bottom-right
-
-		// Remap the fractional parts for smoothing purposes
-		float tx = smoothstep(xf);
-		float ty = smoothstep(yf);
-
-		// Linearly interpolate values along the x-axis
-		float nx0 = lerp(c00, c10, tx);
-		float nx1 = lerp(c01, c11, tx);
-
-		// Linearly interpolate on y-axis and return the final value
-		return lerp(nx0, nx1, ty);
-	}
-private:
-	float *grid;
-	static const unsigned int size = 256; // Must be power of two (due to modulo operations)
-};
-
-// Computes a fractal-based noise value at the point (x, y),
-// by summing contributions of noise layers with double frequency
-// and half amplitude of the previous
-// http://www.scratchapixel.com/lessons/3d-advanced-lessons/noise-part-1/pattern-examples/
-// These functions are often called fBm (fractional brownian motion)
-float fractalNoise(const Noisemap &noisemap, float x, float y)
+// Returns the smoothed bilinear interpolation of the noise values in the square containing (x, y)
+float snoise(float x, float y)
 {
-	static const unsigned int layerCount = 5;
-	float frequency = 1.0f;
+	float xi = floor(x);
+	float yi = floor(y);
+	float xf = x - xi;
+	float yf = y - yi;
+
+	float h00 = noise2f(xi, yi);
+	float h10 = noise2f(xi + 1, yi);
+	float h01 = noise2f(xi, yi + 1);
+	float h11 = noise2f(xi + 1, yi + 1);
+
+	float u = smoothstep(xf);
+	float v = smoothstep(yf);
+
+	float x0 = lerp(h00, h10, u);
+	float x1 = lerp(h01, h11, u);
+
+	return lerp(x0, x1, v);
+}
+
+// Computes a fractal-based noise value at the point (x, y) by summing noise
+// of different frequencies and amplitudes
+float fBm(float x, float y)
+{
 	float amplitude = 1.0f;
+	float frequency = 1.0f;
 	float noise = 0.0f;
 	float max = 0.0f;
-	for(unsigned int i = 0; i < layerCount; ++i)
+	for(int i = 0; i < 5; ++i)
 	{
 		max += amplitude;
-		noise += noisemap.eval(frequency * x, frequency * y) * amplitude;
+		noise += snoise(x * frequency, y * frequency) * amplitude;
 		amplitude *= 0.5f;
 		frequency *= 2.0f;
 	}
@@ -124,33 +95,18 @@ float fractalNoise(const Noisemap &noisemap, float x, float y)
 	return noise / max;
 }
 
-float fBm(const Noisemap &noise2f, float x, float y)
-{
-	vec2 p = vec2(x, y);
-	float sum = 0.0f;
-	float amplitude = 1.0f;
-	for(int i = 0; i < 8; ++i)
-	{
-		sum += noise2f.eval(p.x, p.y) * amplitude;
-		amplitude *= 0.5f;
-		p = mat2(1.6f, -1.2f, 1.2f, 1.6f) * p;
-	}
-
-	return sum;
-}
-
 // Generates a terrain mesh using the noisemap as source for a heightmap
-void generateTerrainMesh(TriMesh &mesh, const Noisemap &noisemap, unsigned int resX, unsigned int resY, float scale)
+void generateTerrainMesh(TriMesh &mesh, int resX, int resY, float scale)
 {
 	std::vector<float> heights(resX * resY);
-	for(unsigned int i = 0; i < heights.size(); ++i)
+	for(int i = 0; i < heights.size(); ++i)
 	{
-		unsigned int xi = i % resX;
-		unsigned int yi = i / resX;
+		int xi = i % resX;
+		int yi = i / resX;
 		float xf = scale * xi / float(resX);
 		float yf = scale * yi / float(resY);
-		heights[i] = glm::min(fBm(noisemap, xf, yf), 1.2f);
-	}	
+		heights[i] = glm::min(fBm(xf, yf), 1.2f);
+	}
 
 	mesh.clear();
 	for(int y = 0; y < resY - 1; ++y)
@@ -168,19 +124,6 @@ void generateTerrainMesh(TriMesh &mesh, const Noisemap &noisemap, unsigned int r
 			float ox = scale / 2.0f;
 			float oy = scale / 2.0f;
 			unsigned int i = mesh.getPositionCount();
-			//vec3 v0 = vec3(x0 - ox, h00, y0 - oy);
-			//vec3 v1 = vec3(x1 - ox, h10, y0 - oy);
-			//vec3 v2 = vec3(x1 - ox, h11, y1 - oy);
-			//vec3 v3 = vec3(x0 - ox, h01, y1 - oy);
-			//vec3 n0 = glm::normalize(glm::cross(v2 - v0, v1 - v0)); // Normal of triangle v0v1v2
-			//vec3 n1 = glm::normalize(glm::cross(v0 - v2, v3 - v2)); // Normal of triangle v2v3v0
-			//vec3 navg = 0.5f * (n0 + n1); // Average normal on the border
-			//mesh.addPosition(v0); mesh.addNormal(navg);
-			//mesh.addPosition(v1); mesh.addNormal(n0);
-			//mesh.addPosition(v2); mesh.addNormal(navg);
-			//mesh.addPosition(v3); mesh.addNormal(n1);
-			//mesh.addTriangle(i + 0, i + 1, i + 2);
-			//mesh.addTriangle(i + 2, i + 3, i + 0);
 			mesh.addPosition(x0 - ox, h00, y0 - oy);
 			mesh.addPosition(x1 - ox, h10, y0 - oy);
 			mesh.addPosition(x1 - ox, h11, y1 - oy);
@@ -190,6 +133,12 @@ void generateTerrainMesh(TriMesh &mesh, const Noisemap &noisemap, unsigned int r
 			mesh.addPosition(x0 - ox, h01, y1 - oy);
 			mesh.addPosition(x0 - ox, h00, y0 - oy);
 			mesh.addTriangle(i + 3, i + 4, i + 5);
+			/*mesh.addPosition(x0 - ox, h00, y0 - oy);
+			mesh.addPosition(x1 - ox, h10, y0 - oy);
+			mesh.addPosition(x1 - ox, h11, y1 - oy);
+			mesh.addPosition(x0 - ox, h01, y1 - oy);
+			mesh.addTriangle(i + 0, i + 1, i + 2);
+			mesh.addTriangle(i + 2, i + 3, i + 0);*/
 		}
 	}
 
@@ -208,14 +157,14 @@ void generateTerrainMesh(TriMesh &mesh, const Noisemap &noisemap, unsigned int r
 	std::cout<<"Generated terrain ("<<mesh.positions.size()<<" vertices)"<<std::endl;
 }
 
-void generateHeightmapTexture(GLuint &texture, const Noisemap &noisemap, unsigned int width, unsigned int height, float scale)
+void generateHeightmapTexture(GLuint &texture, unsigned int width, unsigned int height, float scale)
 {
 	std::vector<GLfloat> pixels(width*height*3);
 	for(unsigned int y = 0; y < height; ++y)
 	{
 		for(unsigned int x = 0; x < width; ++x)
 		{
-			float s = fractalNoise(noisemap, scale * x / float(width), scale * y / float(height));
+			float s = fBm(scale * x / float(width), scale * y / float(height));
 			pixels[3 * (y * width + x) + 0] = s;
 			pixels[3 * (y * width + x) + 1] = s;
 			pixels[3 * (y * width + x) + 2] = s;
@@ -280,7 +229,7 @@ void update(double time)
 
 int main()
 {
-	if(!gl::createContext("Terrain", 300, 100, 640, 480, 24, 8, 8, false))
+	if(!gl::createContext("Terrain", 300, 100, 720, 480, 24, 8, 8, false))
 		shutdown("Failed to create context");
 
 	std::string 
@@ -339,18 +288,15 @@ int main()
 	glFrontFace(GL_CW);
 	glEnable(GL_TEXTURE_2D);
 
-	Noisemap noisemap;
-	noisemap.create(9172);
-
 	GLuint heightmapTexture;
-	generateHeightmapTexture(heightmapTexture, noisemap, 96, 96, 6.0f);
+	generateHeightmapTexture(heightmapTexture, 96, 96, 6.0f);
 
 	TriMesh terrainMesh;
 	BufferedMesh terrainBuffer;
-	generateTerrainMesh(terrainMesh, noisemap, 96, 96, 6.0f);
+	generateTerrainMesh(terrainMesh, 96, 96, 4.0f);
 	terrainBuffer.create(terrainMesh, program0Layout);
 
-	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 0.1f, 50.0f);
+	mat4 perspectiveMatrix = glm::perspective(45.0f, 720.0f / 480.0f, 0.1f, 50.0f);
 
 	Timer timer;
 	timer.start();
@@ -363,12 +309,12 @@ int main()
 		update(timer.getElapsedTime());
 
 		double renderStart = timer.getElapsedTime();
-		glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		MatrixStack viewMatrix;
 		viewMatrix.push();
-		viewMatrix.translate(0.0f, 0.0f, -4.0f + zoom);
+		viewMatrix.translate(0.0f, -0.5f, -4.0f + zoom);
 		MatrixStack modelMatrix;
 
 		program0.use();

@@ -1,5 +1,8 @@
 General
 ====
+*	https://github.com/amongpixels/tripping-archer
+*	http://www.reddit.com/r/gamedev/comments/1lv2s9/trippingarcher_my_procedural_terrain_design/
+
 *	Move mesh generators out from TriMesh class
 *	Centralize rendering code to a Renderer class
 *	Move bufferData(const TriMesh &mesh) out of BufferObject. This makes no sense if we are handling a target that isn't GL_ARRAY_BUFFER.

@@ -9,10 +9,15 @@ uniform mat4 projection;
 
 out vec4 worldNormal;
 out vec4 worldPos;
+out float distToCamera;
+out float height;
 
 void main()
 {
 	worldPos = model * vec4(position, 1.0);
-	gl_Position = projection * view * worldPos;
+	vec4 viewPos = view * worldPos;
+	gl_Position = projection * viewPos;
 	worldNormal = normalize(model * vec4(normal, 0.0));
+	distToCamera = length(viewPos);
+	height = position.y;
 }
