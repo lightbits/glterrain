@@ -1,8 +1,18 @@
+Resources
+====
+https://github.com/amongpixels/tripping-archer
+http://www.reddit.com/r/gamedev/comments/1lv2s9/trippingarcher_my_procedural_terrain_design/
+http://vacuumflowers.com/weblog/?p=347
+http://oddlabs.com/download/terrain_generation.pdf
+http://www.gamasutra.com/view/feature/3434/continuous_lod_terrain_meshing_.php
+https://github.com/rohitnirmal/Procedural-Terrain/blob/master/src/main.cpp
+http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html
+http://procworld.blogspot.co.uk/
+http://gamedev.stackexchange.com/questions/53478/how-to-do-triplanar-texturing
+http://blog.ccoder.co.uk/?page=6
+
 General
 ====
-*	https://github.com/amongpixels/tripping-archer
-*	http://www.reddit.com/r/gamedev/comments/1lv2s9/trippingarcher_my_procedural_terrain_design/
-
 *	Move mesh generators out from TriMesh class
 *	Centralize rendering code to a Renderer class
 *	Move bufferData(const TriMesh &mesh) out of BufferObject. This makes no sense if we are handling a target that isn't GL_ARRAY_BUFFER.

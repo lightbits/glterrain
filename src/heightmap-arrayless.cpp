@@ -79,7 +79,7 @@ float snoise(float x, float y)
 // of different frequencies and amplitudes
 float fBm(float x, float y)
 {
-	float amplitude = 1.0f;
+	float amplitude = 1.0f; // 2.0f
 	float frequency = 1.0f;
 	float noise = 0.0f;
 	float max = 0.0f;
@@ -87,25 +87,26 @@ float fBm(float x, float y)
 	{
 		max += amplitude;
 		noise += snoise(x * frequency, y * frequency) * amplitude;
-		amplitude *= 0.5f;
+		amplitude *= 0.5f; // 0.43f
 		frequency *= 2.0f;
 	}
 
+	return noise;
 	// Normalize the result
-	return noise / max;
+	//return noise / max;
 }
 
 // Generates a terrain mesh using the noisemap as source for a heightmap
-void generateTerrainMesh(TriMesh &mesh, int resX, int resY, float scale)
+void generateTerrainMesh(TriMesh &mesh, int resX, int resY, int sampleScale, float meshScale)
 {
 	std::vector<float> heights(resX * resY);
 	for(int i = 0; i < heights.size(); ++i)
 	{
 		int xi = i % resX;
 		int yi = i / resX;
-		float xf = scale * xi / float(resX);
-		float yf = scale * yi / float(resY);
-		heights[i] = glm::min(fBm(xf, yf), 1.2f);
+		float xf = sampleScale * xi / float(resX);
+		float yf = sampleScale * yi / float(resY);
+		heights[i] = fBm(xf, yf);
 	}
 
 	mesh.clear();
@@ -113,32 +114,29 @@ void generateTerrainMesh(TriMesh &mesh, int resX, int resY, float scale)
 	{
 		for(int x = 0; x < resX - 1; ++x)
 		{
-			float x0 = scale * x / float(resX);
-			float x1 = scale * (x + 1) / float(resX);
-			float y0 = scale * y / float(resY);
-			float y1 = scale * (y + 1) / float(resY);
+			float x0 = sampleScale * x / float(resX);
+			float x1 = sampleScale * (x + 1) / float(resX);
+			float y0 = sampleScale * y / float(resY);
+			float y1 = sampleScale * (y + 1) / float(resY);
 			float h00 = heights[y * resX + x];
 			float h10 = heights[y * resX + x + 1];
 			float h01 = heights[(y + 1) * resX + x];
 			float h11 = heights[(y + 1) * resX + x + 1];
-			float ox = scale / 2.0f;
-			float oy = scale / 2.0f;
+
+			float mx0 = (x / float(resX) - 0.5f) * meshScale;
+			float mx1 = ((x + 1) / float(resX) - 0.5f) * meshScale;
+			float my0 = (y / float(resY) - 0.5f) * meshScale;
+			float my1 = ((y + 1) / float(resY) - 0.5f) * meshScale;
 			unsigned int i = mesh.getPositionCount();
-			mesh.addPosition(x0 - ox, h00, y0 - oy);
-			mesh.addPosition(x1 - ox, h10, y0 - oy);
-			mesh.addPosition(x1 - ox, h11, y1 - oy);
+			mesh.addPosition(mx0, h00, my0);
+			mesh.addPosition(mx1, h10, my0);
+			mesh.addPosition(mx1, h11, my1);
 			mesh.addTriangle(i + 0, i + 1, i + 2);
 
-			mesh.addPosition(x1 - ox, h11, y1 - oy);
-			mesh.addPosition(x0 - ox, h01, y1 - oy);
-			mesh.addPosition(x0 - ox, h00, y0 - oy);
+			mesh.addPosition(mx1, h11, my1);
+			mesh.addPosition(mx0, h01, my1);
+			mesh.addPosition(mx0, h00, my0);
 			mesh.addTriangle(i + 3, i + 4, i + 5);
-			/*mesh.addPosition(x0 - ox, h00, y0 - oy);
-			mesh.addPosition(x1 - ox, h10, y0 - oy);
-			mesh.addPosition(x1 - ox, h11, y1 - oy);
-			mesh.addPosition(x0 - ox, h01, y1 - oy);
-			mesh.addTriangle(i + 0, i + 1, i + 2);
-			mesh.addTriangle(i + 2, i + 3, i + 0);*/
 		}
 	}
 
@@ -289,14 +287,14 @@ int main()
 	glEnable(GL_TEXTURE_2D);
 
 	GLuint heightmapTexture;
-	generateHeightmapTexture(heightmapTexture, 96, 96, 6.0f);
+	generateHeightmapTexture(heightmapTexture, 96, 96, 4.0f);
 
 	TriMesh terrainMesh;
 	BufferedMesh terrainBuffer;
-	generateTerrainMesh(terrainMesh, 96, 96, 4.0f);
+	generateTerrainMesh(terrainMesh, 96, 96, 24.0f, 24.0f);
 	terrainBuffer.create(terrainMesh, program0Layout);
 
-	mat4 perspectiveMatrix = glm::perspective(45.0f, 720.0f / 480.0f, 0.1f, 50.0f);
+	mat4 perspectiveMatrix = glm::perspective(45.0f, 720.0f / 480.0f, 0.05f, 50.0f);
 
 	Timer timer;
 	timer.start();
@@ -309,12 +307,13 @@ int main()
 		update(timer.getElapsedTime());
 
 		double renderStart = timer.getElapsedTime();
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(0.55f, 0.45f, 0.45f, 1.0f);
+		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		MatrixStack viewMatrix;
 		viewMatrix.push();
-		viewMatrix.translate(0.0f, -0.5f, -4.0f + zoom);
+		viewMatrix.translate(0.0f, -0.7f, -4.0f + zoom);
 		MatrixStack modelMatrix;
 
 		program0.use();
