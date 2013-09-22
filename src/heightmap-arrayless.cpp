@@ -99,6 +99,7 @@ float fBm(float x, float y)
 // Generates a terrain mesh using the noisemap as source for a heightmap
 void generateTerrainMesh(TriMesh &mesh, int resX, int resY, int sampleScale, float meshScale)
 {
+	// http://www.ridgenet.net/~jslayton/FunWithWilburVol6/
 	std::vector<float> heights(resX * resY);
 	for(int i = 0; i < heights.size(); ++i)
 	{
@@ -106,7 +107,18 @@ void generateTerrainMesh(TriMesh &mesh, int resX, int resY, int sampleScale, flo
 		int yi = i / resX;
 		float xf = sampleScale * xi / float(resX);
 		float yf = sampleScale * yi / float(resY);
+
+		float rx = xf - sampleScale * 0.5f;
+		float ry = yf - sampleScale * 0.5f;
+		float rSqrd = rx * rx + ry * ry;
 		heights[i] = fBm(xf, yf);
+		/*
+		float h = fBm(xf, yf);
+		float hmod = h * exp(-rSqrd / 16.0f) - rSqrd;
+		if(hmod < 0.0f)
+			heights[i] = 0.0f;
+		else
+			heights[i] = powf(hmod, 3.0f);*/
 	}
 
 	mesh.clear();
@@ -291,7 +303,7 @@ int main()
 
 	TriMesh terrainMesh;
 	BufferedMesh terrainBuffer;
-	generateTerrainMesh(terrainMesh, 96, 96, 24.0f, 24.0f);
+	generateTerrainMesh(terrainMesh, 96, 96, 6.0f, 16.0f);
 	terrainBuffer.create(terrainMesh, program0Layout);
 
 	mat4 perspectiveMatrix = glm::perspective(45.0f, 720.0f / 480.0f, 0.05f, 50.0f);
