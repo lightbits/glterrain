@@ -2,7 +2,29 @@
 #include <iostream>
 using namespace graphics;
 
-Program::Program() : program(0), vertexShader(0), fragmentShader(0)
+void ProgramLayout::setAttrib(const std::string &name, GLint attrib)
+{
+	attribs[name] = attrib;
+}
+
+void ProgramLayout::setUniform(const std::string &name, GLint uniform)
+{
+	uniforms[name] = uniform;
+}
+
+GLint ProgramLayout::getAttribLoc(const std::string &name) const
+{
+	std::unordered_map<std::string, GLint>::const_iterator i = attribs.find(name);
+	return i != attribs.end() ? i->second : -1;
+}
+
+GLint ProgramLayout::getUniformLoc(const std::string &name) const
+{
+	std::unordered_map<std::string, GLint>::const_iterator i = uniforms.find(name);
+	return i != uniforms.end() ? i->second : -1;
+}
+
+Program::Program() : program(0)
 {
 	
 }
@@ -10,8 +32,6 @@ Program::Program() : program(0), vertexShader(0), fragmentShader(0)
 void Program::dispose() const
 {
 	unuse();
-	glDeleteShader(fragmentShader);
-	glDeleteShader(vertexShader);
 	glDeleteProgram(program); // OpenGL will silently ignore a value of 0 for program
 }
 
@@ -25,14 +45,45 @@ void Program::unuse() const
 	glUseProgram(0);
 }
 
-void Program::compile(const std::string &vertexSrc, const std::string &fragmentSrc)
+void Program::create()
 {
 	dispose();
+	program = glCreateProgram();
+}
 
-	vertexShader = gl::compileShader(GL_VERTEX_SHADER, 1, vertexSrc.c_str());
-	fragmentShader = gl::compileShader(GL_FRAGMENT_SHADER, 1, fragmentSrc.c_str());
-	GLuint shaders[] = {fragmentShader, vertexShader};
-	program = gl::createProgram(shaders, 2);
+bool Program::linkAndCheckStatus(const std::vector<Shader> &shaders)
+{
+	for(unsigned int i = 0; i < shaders.size(); ++i)
+		glAttachShader(program, shaders[i].getHandle());
+
+	glLinkProgram(program);
+
+	// Shaders can be detached after the program has been linked
+	for(unsigned int i = 0; i < shaders.size(); ++i)
+		glDetachShader(program, shaders[i].getHandle());
+
+	// Check for and print errors
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	if(status == GL_FALSE)
+	{
+		GLint length;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+		std::vector<GLchar> log(length);
+		glGetProgramInfoLog(program, length, NULL, &log[0]);
+		std::cerr<<"Linker failure: "<<std::endl<<&log[0]<<std::endl;
+		return false;
+	}
+
+	return true;	
+}
+
+bool Program::linkAndCheckStatus(const Shader &vertexShader, const Shader &fragmentShader)
+{
+	std::vector<Shader> shaders;
+	shaders.push_back(vertexShader);
+	shaders.push_back(fragmentShader);
+	return linkAndCheckStatus(shaders);
 }
 
 GLuint Program::getHandle() const

@@ -17,9 +17,7 @@ const char *getErrorMessage(GLenum code);
 
 bool createContext(const char *title, int x, int y, int w, int h, int depthbits, int stencilbits, int fsaa, bool fullscreen);
 void destroyContext();
-
-GLuint compileShader(GLenum shaderType, GLsizei count, const char *shaderSrc);
-GLuint createProgram(GLuint shaders[], unsigned int shaderCount);
+void shutdown(const char *error = "");
 
 }
 }

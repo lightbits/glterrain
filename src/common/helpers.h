@@ -1,6 +1,7 @@
 #ifndef SLGL_COMMON_HELPERS_H
 #define SLGL_COMMON_HELPERS_H
 #define M_PI 3.14159265359f
+#define M_TWO_PI 6.28318530718f
 #include <vector>
 #include <string>
 #include <sstream>
@@ -14,7 +15,7 @@ float lerp(float a, float b, float t);
 float bezier(float v0, float v1, float v2, float v3, float t);
 
 // I/O
-bool readFile(const char *filename, std::string &dest);
+bool readFile(const std::string &filename, std::string &dest);
 
 template <class T>
 std::vector<T> split(const std::string &s, char delimiter)

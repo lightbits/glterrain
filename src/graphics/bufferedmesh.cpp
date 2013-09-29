@@ -12,7 +12,7 @@ void BufferedMesh::dispose()
 	ibo.dispose();
 }
 
-void BufferedMesh::create(const TriMesh &mesh, const ShaderLayout &layout)
+void BufferedMesh::create(const TriMesh &mesh, const ProgramLayout &layout)
 {
 	dispose();
 

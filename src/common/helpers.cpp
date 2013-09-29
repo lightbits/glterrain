@@ -30,7 +30,7 @@ float bezier(float v0, float v1, float v2, float v3, float t)
 	return lerp(q0, q1, t);
 }
 
-bool readFile(const char *filename, std::string &dest)
+bool readFile(const std::string &filename, std::string &dest)
 {
 	std::ifstream in(filename, std::ios::in | std::ios::binary);
 	if(!in.is_open())

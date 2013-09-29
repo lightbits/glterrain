@@ -65,54 +65,13 @@ void gl::destroyContext()
 	glfwTerminate();
 }
 
-GLuint gl::compileShader(GLenum shaderType, GLsizei count, const char *shaderSrc)
+void gl::shutdown(const char *error)
 {
-	GLuint shader = glCreateShader(shaderType);
-	glShaderSource(shader, count, &shaderSrc, NULL);
-	glCompileShader(shader);
-
-	// Check status
-	GLint status;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-	if(status == GL_FALSE)
+	if(error != "")
 	{
-		GLint infoLogLength;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-		GLchar *infoLog = new GLchar[infoLogLength + 1];
-		glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog);
-		std::cerr<<"Compile failure: "<<infoLog<<std::endl;
-		delete[] infoLog;
+		std::cerr<<error<<std::endl;
+		std::cin.get();
 	}
-
-	return shader;
-}
-
-GLuint gl::createProgram(GLuint shaders[], unsigned int shaderCount)
-{
-	GLuint program = glCreateProgram();
-
-	for(unsigned int i = 0; i < shaderCount; ++i)
-		glAttachShader(program, shaders[i]);
-
-	glLinkProgram(program);
-
-	// Check for (and print) errors
-	GLint status;
-	glGetProgramiv(program, GL_LINK_STATUS, &status);
-	if(status == GL_FALSE)
-	{
-		GLint infoLogLength;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
-
-		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
-		glGetProgramInfoLog(program, infoLogLength, NULL, strInfoLog);
-		std::cerr<<"Linker failure: "<<std::endl<<strInfoLog<<std::endl;
-		delete[] strInfoLog;
-	}
-
-	// Shaders can be detached (and deleted) after the program has been linked
-	for(unsigned int i = 0; i < shaderCount; ++i)
-		glDetachShader(program, shaders[i]);
-
-	return program;
+	gl::destroyContext();
+	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
 }

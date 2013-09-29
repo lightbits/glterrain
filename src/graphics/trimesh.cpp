@@ -101,50 +101,50 @@ TriMesh TriMesh::genUnitColoredCube()
 	// All faces are oriented counter-clockwise outwards
 	
 	// Front face
-	mesh.addPosition(-halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.3f, 0.3f, 1.0f); 
-	mesh.addPosition( halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.3f, 0.3f, 1.0f); 
-	mesh.addPosition( halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.3f, 0.3f, 1.0f); 
-	mesh.addPosition(-halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.3f, 0.3f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
+	mesh.addPosition( halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
+	mesh.addPosition( halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
+	mesh.addPosition(-halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
 	mesh.addTriangle(0, 1, 2);
 	mesh.addTriangle(2, 3, 0);
 
 	// Back face
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
+	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
 	mesh.addTriangle(4, 5, 6);
 	mesh.addTriangle(6, 7, 4);
 
 	// Left face
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 0.3f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(0.3f, 0.3f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(0.3f, 0.3f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 0.3f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
 	mesh.addTriangle(8, 9, 10);
 	mesh.addTriangle(10, 11, 8);
 
 	// Right face
-	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
+	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
 	mesh.addTriangle(12, 13, 14);
 	mesh.addTriangle(14, 15, 12);
 
 	// Top face
-	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
+	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
 	mesh.addTriangle(16, 17, 18);
 	mesh.addTriangle(18, 19, 16);
 
-	// Top face
-	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.3f, 1.0f, 0.3f, 1.0f);
+	// Bottom face
+	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
 	mesh.addTriangle(20, 21, 22);
 	mesh.addTriangle(22, 23, 20);
 

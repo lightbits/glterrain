@@ -53,53 +53,35 @@ public:
 	}
 
 	// Applies a rotation transformation to the current matrix
-	void rotateX(float angle)
+	void rotateX(float rad)
 	{
-		float rad = angle * 3.14159f / 180.0f;
-		float fCos = cosf(rad);
-		float fSin = sinf(rad);
-
-		mat3 rotation(1.0f);
-		rotation[1].y = fCos; rotation[2].y = -fSin;
-		rotation[1].z = fSin; rotation[2].z = fCos;
-		
-		current = current * mat4(rotation);
+		float co = cosf(rad); float si = sinf(rad);
+		mat4 m(1.0f);
+		m[1][1] = co; m[1][2] = -si; m[2][1] = si; m[2][2] = co;
+		current = current * m;
 	}
 
-	void rotateY(float angle)
+	void rotateY(float rad)
 	{
-		float rad = angle * 3.14159f / 180.0f;
-		float fCos = cosf(rad);
-		float fSin = sinf(rad);
-
-		mat3 rotation(1.0f);
-		rotation[0].x = fCos; rotation[2].x = fSin;
-		rotation[0].z = -fSin; rotation[2].z = fCos;
-		
-		current = current * mat4(rotation);
+		float co = cosf(rad); float si = sinf(rad);
+		mat4 m(1.0f);
+		m[0][0] = co; m[0][2] = si; m[2][0] = -si; m[2][2] = co;
+		current = current * m;
 	}
 
-	void rotateZ(float angle)
+	void rotateZ(float rad)
 	{
-		float rad = angle * 3.14159f / 180.0f;
-		float fCos = cosf(rad);
-		float fSin = sinf(rad);
-
-		mat3 rotation(1.0f);
-		rotation[0].x = fCos; rotation[1].x = -fSin;
-		rotation[0].y = fSin; rotation[1].y = fCos;
-		
-		current = current * mat4(rotation);
+		float co = cosf(rad); float si = sinf(rad);
+		mat4 m(1.0f);
+		m[0][0] = co; m[1][0] = -si; m[0][1] = si; m[1][1] = co;		
+		current = current * m;
 	}
 
 	void translate(float x, float y, float z)
 	{
-		mat4 mat(1.0f);
-		mat[3][0] = x;
-		mat[3][1] = y;
-		mat[3][2] = z;
-		mat[3][3] = 1.0f;
-		current = current * mat;
+		mat4 m(1.0f);
+		m[3][0] = x; m[3][1] = y; m[3][2] = z; m[3][3] = 1.0f;
+		current = current * m;
 	}
 
 	void translate(const vec3 &v)

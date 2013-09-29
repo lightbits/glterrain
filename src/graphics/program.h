@@ -1,26 +1,41 @@
 #ifndef SLGL_GRAPHICS_PROGRAM_H
 #define SLGL_GRAPHICS_PROGRAM_H
 #include <graphics/opengl.h>
+#include <graphics/shader.h>
 #include <common/matrix.h>
 #include <common/vec.h>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace graphics
 {
+
+// Holds precomputed attrib/uniform locations
+class ProgramLayout
+{
+public:
+	void setAttrib(const std::string &name, GLint attrib);
+	void setUniform(const std::string &name, GLint uniform);
+	GLint getAttribLoc(const std::string &name) const;
+	GLint getUniformLoc(const std::string &name) const;
+private:
+	std::unordered_map<std::string, GLint> attribs;
+	std::unordered_map<std::string, GLint> uniforms;
+};
 
 class Program
 {
 public:
 	Program();
 
-	// Delete program and shader objects
 	void dispose() const;
+	void create();
+	bool linkAndCheckStatus(const std::vector<Shader> &shaders);
+	bool linkAndCheckStatus(const Shader &vertexShader, const Shader &fragmentShader);
 
 	void use() const;
 	void unuse() const;
-
-	// Creates a program using the given shaders
-	void compile(const std::string &vertexSrc, const std::string &fragmentSrc);
 
 	GLuint getHandle() const;
 	GLint getAttribLocation(const GLchar *name) const;
@@ -69,8 +84,6 @@ public:
 	void uniform(const GLchar *name, GLint i) const;
 private:
 	GLuint program;
-	GLuint vertexShader;
-	GLuint fragmentShader;
 
 	//std::map<const GLchar*, GLint> shaderIndices;
 };
