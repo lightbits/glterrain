@@ -18,7 +18,6 @@ public:
 
 	void dispose();
 	void create(const TriMesh &mesh, const ProgramLayout &layout);
-
 	void draw();
 private:
 	BufferObject vbo;

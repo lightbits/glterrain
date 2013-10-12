@@ -204,7 +204,10 @@ void SpriteBatch::drawQuad(const Color &color, float x, float y, float w, float 
 void SpriteBatch::drawString(const std::string &text, float x, float y, const Color &color)
 {
 	if(currentFont == nullptr)
+	{
+		std::cerr<<"Error: No font is set."<<std::endl;
 		return;
+	}
 
 	std::stringstream stream(text);
 	std::vector<std::string> lines;

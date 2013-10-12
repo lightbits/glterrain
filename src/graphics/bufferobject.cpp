@@ -34,7 +34,7 @@ void BufferObject::bind()
 	glBindBuffer(target, handle);
 }
 
-//void BufferObject::unbind()
-//{
-//	glBindBuffer(target, 0); // Deprecated? (0 is a non-application generated buffer object)
-//}
+void BufferObject::unbind()
+{
+	glBindBuffer(target, 0); // Deprecated? (0 is a non-application generated buffer object)
+}

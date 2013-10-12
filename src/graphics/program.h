@@ -73,19 +73,8 @@ public:
 	void uniform(GLint location, const vec2 &vec) const;
 	void uniform(GLint location, GLfloat f) const;
 	void uniform(GLint location, GLint i) const;
-
-	void uniform(const GLchar *name, const mat4 &mat) const;
-	void uniform(const GLchar *name, const mat3 &mat) const;
-	void uniform(const GLchar *name, const mat2 &mat) const;
-	void uniform(const GLchar *name, const vec4 &vec) const;
-	void uniform(const GLchar *name, const vec3 &vec) const;
-	void uniform(const GLchar *name, const vec2 &vec) const;
-	void uniform(const GLchar *name, GLfloat f) const;
-	void uniform(const GLchar *name, GLint i) const;
 private:
 	GLuint program;
-
-	//std::map<const GLchar*, GLint> shaderIndices;
 };
 
 }

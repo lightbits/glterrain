@@ -1,6 +1,7 @@
 #include <graphics/shader.h>
 #include <common/helpers.h> // for readFile
 #include <iostream> // for cerr
+using namespace graphics;
 
 Shader::Shader(GLenum shaderType_) : shader(0), shaderType(shaderType_)
 {

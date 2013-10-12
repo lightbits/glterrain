@@ -127,12 +127,3 @@ void Program::uniform(GLint location, const vec3 &vec) const { glUniform3f(locat
 void Program::uniform(GLint location, const vec2 &vec) const { glUniform2f(location, vec.x, vec.y); }
 void Program::uniform(GLint location, GLfloat f) const { glUniform1f(location, f); }
 void Program::uniform(GLint location, GLint i) const { glUniform1i(location, i); }
-
-void Program::uniform(const GLchar *name, const mat4 &mat) const { uniform(glGetUniformLocation(program, name), mat); }
-void Program::uniform(const GLchar *name, const mat3 &mat) const { uniform(glGetUniformLocation(program, name), mat); }
-void Program::uniform(const GLchar *name, const mat2 &mat) const { uniform(glGetUniformLocation(program, name), mat); }
-void Program::uniform(const GLchar *name, const vec4 &vec) const { uniform(glGetUniformLocation(program, name), vec); }
-void Program::uniform(const GLchar *name, const vec3 &vec) const { uniform(glGetUniformLocation(program, name), vec); }
-void Program::uniform(const GLchar *name, const vec2 &vec) const { uniform(glGetUniformLocation(program, name), vec); }
-void Program::uniform(const GLchar *name, GLfloat f) const { uniform(glGetUniformLocation(program, name), f); }
-void Program::uniform(const GLchar *name, GLint i) const { uniform(glGetUniformLocation(program, name), i); }

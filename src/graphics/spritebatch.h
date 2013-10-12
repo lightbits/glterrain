@@ -48,6 +48,8 @@ public:
 	void begin();
 	void end();
 
+	// Include depth value?
+
 	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH, float ul, float ur, float vb, float vt);
 	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH, int srcX, int srcY, int srcW, int srcH);
 	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH);

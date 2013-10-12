@@ -3,6 +3,9 @@
 #include <graphics/opengl.h>
 #include <string>
 
+namespace graphics
+{
+
 class Shader
 {
 public:
@@ -17,5 +20,7 @@ private:
 	GLuint shader;
 	GLenum shaderType;
 };
+
+}
 
 #endif

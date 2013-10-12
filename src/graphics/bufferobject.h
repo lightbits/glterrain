@@ -35,6 +35,9 @@ public:
 	void bufferSubData(GLintptr offset, GLsizeiptr size, const void *data);
 
 	void bind();
+
+	// Binds the default (0) buffer for the set target buffer
+	void unbind();
 private:
 	GLenum usage;
 	GLenum target;
