@@ -1,9 +1,6 @@
 #ifndef VERTEX_ARRAY_H
 #define VERTEX_ARRAY_H
-#include <graphics/opengl.h>
-
-namespace graphics
-{
+#include <gl/opengl.h>
 
 class VertexArray
 {
@@ -16,7 +13,5 @@ public:
 private:
 	GLuint vao;
 };
-
-}
 
 #endif

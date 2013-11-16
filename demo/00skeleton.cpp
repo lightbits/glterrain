@@ -9,47 +9,42 @@
 #include <common/matrix.h>
 #include <common/matrixstack.h>
 
-#include <graphics/opengl.h>
-#include <graphics/color.h>
-#include <graphics/texture.h>
-#include <graphics/trimesh.h>
-#include <graphics/program.h>
-#include <graphics/bufferobject.h>
-#include <graphics/vertexformat.h>
+#include <gl/opengl.h>
+#include <gl/texture.h>
+#include <gl/program.h>
+#include <gl/bufferobject.h>
+#include <gl/vertexformat.h>
+#include <gl/bufferedmesh.h>
 #include <graphics/spritebatch.h>
-#include <graphics/bufferedmesh.h>
-using namespace graphics;
-
-void shutdown(const char *error = "")
-{
-	if(error != "")
-	{
-		std::cerr<<error<<std::endl;
-		std::cin.get();
-	}
-	gl::destroyContext();
-	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
-}
+#include <graphics/trimesh.h>
+#include <graphics/color.h>
+#include <graphics/renderer.h>
+#include <app/glcontext.h>
 
 int main()
 {
-	if(!gl::createContext("Skeleton", 300, 100, 640, 480, 24, 8, 8, false))
-		shutdown("Failed to create context");
+	GLContext context;
+	if(!context.create("Skeleton", VideoMode(640, 480, 24, 8, 8, false)))
+		return -1;
 
-	while(glfwGetWindowParam(GLFW_OPENED) == GL_TRUE)
+	Renderer renderer;
+	renderer.init();
+	renderer.setClearColor(Color(0.55f, 0.45f, 0.45f, 1.0f));
+
+	while(context.isOpen())
 	{
-		glClearColor(0.55f, 0.45f, 0.45f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderer.clearColorBuffer();
 
-		glfwSwapBuffers();
+		context.display();
 		GLenum error = glGetError();
 		if(error != GL_NO_ERROR)
 		{
-			std::cerr<<gl::getErrorMessage(error)<<"...";
+			std::cerr<<getErrorMessage(error)<<"...";
 			std::cin.get();
-			glfwCloseWindow();
+			context.close();
 		}
 	}
 
+	renderer.dispose();
 	shutdown();
 }

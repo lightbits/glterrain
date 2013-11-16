@@ -1,10 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
-#include <graphics/opengl.h>
+#include <gl/opengl.h>
 #include <string>
-
-namespace graphics
-{
 
 class Shader
 {
@@ -20,7 +17,5 @@ private:
 	GLuint shader;
 	GLenum shaderType;
 };
-
-}
 
 #endif

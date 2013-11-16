@@ -1,6 +1,5 @@
-#include <graphics/program.h>
+#include <gl/program.h>
 #include <iostream>
-using namespace graphics;
 
 void ProgramLayout::setAttrib(const std::string &name, GLint attrib)
 {

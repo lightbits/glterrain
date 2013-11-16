@@ -3,10 +3,7 @@
 #include <common/vec.h>
 #include <common/matrix.h>
 #include <graphics/color.h>
-#include <graphics/texture.h>
-
-namespace graphics
-{
+#include <gl/texture.h>
 
 class Sprite
 {
@@ -33,7 +30,5 @@ private:
 	mat4 transform;
 	bool transformOld;
 };
-
-}
 
 #endif

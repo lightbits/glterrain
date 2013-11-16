@@ -1,7 +1,6 @@
 #include <graphics/spritebatch.h>
 #include <sstream>
 #include <iostream>
-using namespace graphics;
 
 SpriteBatch::SpriteBatch() : 
 vbo(),

@@ -1,6 +1,5 @@
-#include <graphics/bufferobject.h>
+#include <gl/bufferobject.h>
 #include <iostream>
-using namespace graphics;
 
 BufferObject::BufferObject() : handle(0), target(GL_ARRAY_BUFFER), usage(GL_STATIC_DRAW)
 {

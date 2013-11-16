@@ -1,9 +1,8 @@
-#include <graphics/texture.h>
+#include <gl/texture.h>
 #include <glimg/glimg.h>
 #include <iostream> // for cerr
 #include <string>
 #include <memory> // for unique_ptr
-using namespace graphics;
 
 Texture::Texture() : width_(0), height_(0), handle_(0), target_(GL_TEXTURE_2D)
 {

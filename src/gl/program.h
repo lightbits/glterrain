@@ -1,15 +1,12 @@
-#ifndef SLGL_GRAPHICS_PROGRAM_H
-#define SLGL_GRAPHICS_PROGRAM_H
-#include <graphics/opengl.h>
-#include <graphics/shader.h>
+#ifndef PROGRAM_H
+#define PROGRAM_H
+#include <gl/opengl.h>
+#include <gl/shader.h>
 #include <common/matrix.h>
 #include <common/vec.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-namespace graphics
-{
 
 // Holds precomputed attrib/uniform locations
 class ProgramLayout
@@ -76,7 +73,5 @@ public:
 private:
 	GLuint program;
 };
-
-}
 
 #endif

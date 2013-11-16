@@ -4,11 +4,8 @@ http://www.songho.ca/opengl/gl_fbo.html
 
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
-#include <graphics/opengl.h>
-#include <graphics/texture.h>
-
-namespace graphics
-{
+#include <gl/opengl.h>
+#include <gl/texture.h>
 
 /*
 Allows to render a scene directly to a renderbuffer object, instead of rendering to a texture object. Renderbuffer is simply a data storage object containing a single image of a renderable internal format. It is used to store OpenGL logical buffers that do not have corresponding texture format, such as stencil or depth buffer.
@@ -175,7 +172,5 @@ public:
 private:
 	GLuint handle;	
 };
-
-}
 
 #endif

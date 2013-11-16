@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-using namespace graphics;
 
 bool TriMesh::loadFromFile(const char *filename, bool flipWindingOrder)
 {

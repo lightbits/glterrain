@@ -1,11 +1,8 @@
 #ifndef RENDER_TEXTURE_H
 #define RENDER_TEXTUER_H
-#include <graphics/framebuffer.h>
-#include <graphics/texture.h>
-#include <engine/graphics.h>
-
-namespace graphics
-{
+#include <gl/framebuffer.h>
+#include <gl/texture.h>
+#include <graphics/graphics.h>
 
 class RenderTexture : public Graphics
 {
@@ -15,7 +12,5 @@ public:
 private:
 
 };
-
-}
 
 #endif

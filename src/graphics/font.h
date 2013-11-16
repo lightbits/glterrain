@@ -1,11 +1,8 @@
-#ifndef SLGL_GRAPHICS_FONT_H
-#define SLGL_GRAPHICS_FONT_H
-#include <graphics/texture.h>
+#ifndef FONT_H
+#define FONT_H
+#include <gl/texture.h>
 #include <unordered_map>
 #include <string>
-
-namespace graphics
-{
 
 struct Glyph
 {
@@ -43,7 +40,5 @@ private:
 	Texture *texture;
 	std::unordered_map<char, Glyph> glyphs;
 };
-
-}
 
 #endif

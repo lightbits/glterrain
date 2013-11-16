@@ -1,7 +1,6 @@
 #include <graphics/font.h>
 #include <graphics/color.h>
 #include <iostream>
-using namespace graphics;
 typedef unsigned char uint8;
 typedef unsigned int uint32;
 

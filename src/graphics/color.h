@@ -1,9 +1,6 @@
-#ifndef SLGL_GRAPHICS_COLOR_H
-#define SLGL_GRAPHICS_COLOR_H
+#ifndef COLOR_H
+#define COLOR_H
 #include <algorithm> // for std::min
-
-namespace graphics
-{
 
 struct Color
 {
@@ -50,8 +47,6 @@ namespace Colors
 	const Color Black = Color(0.0f, 0.0f, 0.0f, 1.0f);
 	const Color White = Color(1.0f, 1.0f, 1.0f, 1.0f);
 	const Color Transparent = Color(1.0f, 1.0f, 1.0f, 0.0f);
-}
-
 }
 
 #endif

@@ -1,24 +1,7 @@
-#include <graphics/opengl.h>
+#include <gl/opengl.h>
 #include <iostream>
-using namespace graphics;
 
-const char *gl::getErrorMessage(GLenum code)
-{
-	switch(code)
-	{
-	case 0: return "NO_ERROR";
-	case 0x0500: return "INVALID_ENUM";
-	case 0x0501: return "INVALID_VALUE";
-	case 0x0502: return "INVALID_OPERATION";
-	case 0x0503: return "STACK_OVERFLOW";
-	case 0x0504: return "STACK_UNDERFLOW";
-	case 0x0505: return "OUT_OF_MEMORY";
-	case 0x0506: return "INVALID_FRAMEBUFFER_OPERATION";
-	default: return "UNKNOWN";
-	}
-}
-
-bool gl::createContext(const char *title, int x, int y, int width, int height, 
+bool createContext(const char *title, int x, int y, int width, int height, 
 int depthbits, int stencilbits, int fsaa, bool fullscreen)
 {
 	if(glfwInit() != GL_TRUE)
@@ -59,18 +42,18 @@ int depthbits, int stencilbits, int fsaa, bool fullscreen)
 	return true;
 }
 
-void gl::destroyContext()
+void destroyContext()
 {
 	glfwTerminate();
 }
 
-void gl::shutdown(const char *error)
+void shutdown(const char *error)
 {
 	if(error != "")
 	{
 		std::cerr<<error<<std::endl;
 		std::cin.get();
 	}
-	gl::destroyContext();
+	destroyContext();
 	exit(error != "" ? EXIT_FAILURE : EXIT_SUCCESS);
 }

@@ -11,70 +11,51 @@
 
 #include <camera/camera.h>
 
-#include <graphics/opengl.h>
+#include <gl/opengl.h>
+#include <gl/texture.h>
+#include <gl/program.h>
+#include <gl/bufferobject.h>
+#include <gl/vertexformat.h>
+#include <gl/vertexarray.h>
+#include <gl/bufferedmesh.h>
+#include <gl/shaderprogram.h>
+#include <gl/framebuffer.h>
+#include <graphics/renderer.h>
 #include <graphics/color.h>
-#include <graphics/texture.h>
 #include <graphics/trimesh.h>
-#include <graphics/program.h>
-#include <graphics/bufferobject.h>
-#include <graphics/vertexformat.h>
-#include <graphics/vertexarray.h>
 #include <graphics/spritebatch.h>
-#include <graphics/bufferedmesh.h>
-#include <graphics/framebuffer.h>
-using namespace graphics;
+#include <app/glcontext.h>
 
 int main()
 {
 	const int windowWidth = 640;
 	const int windowHeight = 480;
-	if(!gl::createContext("Shapes", 300, 100, windowWidth, windowHeight, 24, 8, 8, false))
-		gl::shutdown("Failed to create context");
+	GLContext context;
+	if(!context.create("Shapes", VideoMode(windowWidth, windowHeight, 24, 8, 8, false)))
+		crash("Failed to create context");
 
-	Shader 
-		defaultVS(GL_VERTEX_SHADER),
-		defaultFS(GL_FRAGMENT_SHADER),
-		fboVS(GL_VERTEX_SHADER),
-		fboFS(GL_FRAGMENT_SHADER);
+	Renderer renderer;
+	renderer.init();
 
-	if(!defaultVS.loadFromFile("data/shaders/simple.vert") ||
-		!defaultFS.loadFromFile("data/shaders/simple.frag") ||
-		!fboVS.loadFromFile("data/shaders/fbopass.vert") ||
-		!fboFS.loadFromFile("data/shaders/fbopass.frag"))
-		gl::shutdown("Failed to load resources");
+	ShaderProgram 
+		defaultShader,
+		fboShader;
 
-	Program 
-		program0,
-		program1;
+	if(!defaultShader.loadFromFile("data/shaders/simple.vert", "data/shaders/simple.frag") ||
+		!fboShader.loadFromFile("data/shaders/fbopass.vert", "data/shaders/fbopass.frag"))
+		crash("Failed to load resources");
 
-	program0.create();
-	program0.linkAndCheckStatus(defaultVS, defaultFS);
-
-	program1.create();
-	program1.linkAndCheckStatus(fboVS, fboFS);
-
-	ProgramLayout program0Layout;
-	program0Layout.setAttrib("position",	program0.getAttribLocation("position"));
-	program0Layout.setAttrib("color",		program0.getAttribLocation("color"));
-	program0Layout.setUniform("projection", program0.getUniformLocation("projection"));
-	program0Layout.setUniform("model",		program0.getUniformLocation("model"));
-	program0Layout.setUniform("view",		program0.getUniformLocation("view"));
-
-	ProgramLayout program1Layout;
-	program1Layout.setAttrib("position",	program1.getAttribLocation("position"));
-	program1Layout.setAttrib("texel",		program1.getAttribLocation("texel"));
-	program1Layout.setUniform("tex",		program1.getUniformLocation("tex"));
-
-	TriMesh mesh0;
-	mesh0 = TriMesh::genUnitColoredCube();
+	defaultShader.linkAndCheckStatus();
+	fboShader.linkAndCheckStatus();
 
 	// Whatever-array-object
 	VertexArray vao;
 	vao.create();
 	vao.bind();
 
-	BufferedMesh mesh0Buffer;
-	mesh0Buffer.create(mesh0, program0Layout);
+	Mesh cubeMesh = Mesh::getUnitColoredCube();
+	MeshBuffer cubeBuffer;
+	cubeBuffer.create(cubeMesh);
 
 	// Data for a fullscreen quad
 	GLfloat postEffectVertexData[] = {
@@ -98,30 +79,10 @@ int main()
 	texture.create2d(0, GL_RGB, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	texture.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-	// Render buffer handle
-	//GLuint rbf;
-
-	//// Generate render buffer
-	//glGenRenderbuffers(1, &rbf);
-	//glBindRenderbuffer(GL_RENDERBUFFER, rbf);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, windowWidth, windowHeight);
-
-	//GLuint fbo;
-	//glGenFramebuffers(1, &fbo);
-	//glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LEQUAL);
-	glDepthRange(0.0, 1.0);
-	glClearDepth(1.0);
-
-	// Enable culling
-	/*glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);*/
+	renderer.enableDepthTest(GL_LEQUAL);
+	//renderer.enableCulling(GL_BACK, GL_CCW);
+	renderer.setClearDepth(1.0);
+	renderer.setClearColor(Color(0.55f, 0.45f, 0.45f, 1.0f));
 
 	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 0.05f, 50.0f);
 
@@ -135,46 +96,43 @@ int main()
 		float time = timer.getElapsedTime();
 
 		double renderStart = timer.getElapsedTime();
-		glClearColor(0.55f, 0.45f, 0.45f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderer.clearColorAndDepth();
 
 		MatrixStack viewMatrix;
 		MatrixStack modelMatrix;
 		viewMatrix.push();
 		viewMatrix.translate(0.0f, 0.0f, -3.0f);
 
-		program0.use();
-		program0.uniform(program0Layout.getUniformLoc("projection"), perspectiveMatrix);
-		program0.uniform(program0Layout.getUniformLoc("view"), viewMatrix.top());
+		defaultShader.begin();
+		defaultShader.setUniform("projection", perspectiveMatrix);
+		defaultShader.setUniform("view", viewMatrix.top());
 
 		modelMatrix.push();
 		modelMatrix.rotateY(time);
 		modelMatrix.rotateX(0.3f);
-		program0.uniform(program0Layout.getUniformLoc("model"), modelMatrix.top());
-		mesh0Buffer.draw();
+		defaultShader.setUniform("model", modelMatrix.top());
+		cubeBuffer.draw(GL_TRIANGLES);
 		modelMatrix.pop();
-
-		program0.unuse();
+		defaultShader.end();
 		viewMatrix.pop();
 
-		glfwSwapBuffers();
+		context.display();
 		renderTime = timer.getElapsedTime() - renderStart;
 		if(renderTime < 0.013)
-			glfwSleep(0.013 - renderTime);
+			context.sleep(0.013 - renderTime);
 
 		GLenum error = glGetError();
 		if(error != GL_NO_ERROR)
 		{
-			std::cerr<<gl::getErrorMessage(error)<<"...";
+			std::cerr<<getErrorMessage(error)<<"...";
 			std::cin.get();
-			glfwCloseWindow();
+			context.close();
 		}
 	}
 
-	defaultVS.dispose();
-	defaultFS.dispose();
-	program0.dispose();
-	mesh0Buffer.dispose();
+	defaultShader.dispose();
+	fboShader.dispose();
+	cubeBuffer.dispose();
 	vao.dispose();
-	gl::shutdown();
+	exit(EXIT_SUCCESS);
 }

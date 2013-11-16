@@ -1,10 +1,7 @@
-#ifndef SLGL_GRAPHICS_TEXTURE_H
-#define SLGL_GRAPHICS_TEXTURE_H
-#include <graphics/opengl.h>
+#ifndef TEXTURE_H
+#define TEXTURE_H
+#include <gl/opengl.h>
 #include <string>
-
-namespace graphics
-{
 
 class Texture
 {
@@ -49,7 +46,5 @@ private:
 	int width_;
 	int height_;
 };
-
-}
 
 #endif

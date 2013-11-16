@@ -1,10 +1,7 @@
-#ifndef SLGL_GRAPHICS_VERTEX_FORMAT_H
-#define SLGL_GRAPHICS_VERTEX_FORMAT_H
-#include <graphics/opengl.h>
+#ifndef VERTEX_FORMAT_H
+#define VERTEX_FORMAT_H
+#include <gl/opengl.h>
 #include <vector>
-
-namespace graphics
-{
 
 struct VertexAttrib
 {
@@ -77,7 +74,5 @@ struct VertexFormat
 
 	std::vector<VertexAttrib> attribs;
 };
-
-}
 
 #endif

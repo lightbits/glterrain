@@ -1,5 +1,4 @@
-#include <graphics/vertexarray.h>
-using namespace graphics;
+#include <gl/vertexarray.h>
 
 VertexArray::VertexArray() : vao(0)
 {

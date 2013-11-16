@@ -1,11 +1,8 @@
-#ifndef SLGL_GRAPHICS_TRIMESH_H
-#define SLGL_GRAPHICS_TRIMESH_H
+#ifndef TRIMESH_H
+#define TRIMESH_H
 #include <vector>
 #include <graphics/color.h>
 #include <common/vec.h>
-
-namespace graphics
-{
 
 class TriMesh
 {
@@ -73,7 +70,5 @@ public:
 			texels.size() * sizeof(vec2);
 	}
 };
-
-}
 
 #endif

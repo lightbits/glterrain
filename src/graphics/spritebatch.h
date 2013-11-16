@@ -1,15 +1,13 @@
-#ifndef SLGL_GRAPHICS_SPRITEBATCH_H
-#define SLGL_GRAPHICS_SPRITEBATCH_H
-#include <graphics/opengl.h>
-#include <graphics/bufferobject.h>
-#include <graphics/vertexformat.h>
-#include <graphics/program.h>
-#include <graphics/texture.h>
+#ifndef SPRITEBATCH_H
+#define SPRITEBATCH_H
+#include <gl/opengl.h>
+#include <gl/bufferobject.h>
+#include <gl/vertexformat.h>
+#include <gl/program.h>
+#include <gl/texture.h>
 #include <graphics/font.h>
+#include <graphics/color.h>
 #include <common/vec.h>
-
-namespace graphics
-{
 
 const int		SPRITE_BATCH_SPRITE_COUNT	= 512;
 const int		SPRITE_BATCH_VERTEX_SIZE	= 9 * sizeof(GLfloat);
@@ -85,7 +83,5 @@ private:
 	mat4 projectionMatrix;
 	mat4 viewMatrix;
 };
-
-}
 
 #endif

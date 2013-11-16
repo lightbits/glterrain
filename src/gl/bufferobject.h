@@ -1,10 +1,7 @@
-#ifndef SLGL_GRAPHICS_BUFFER_OBJECT_H
-#define SLGL_GRAPHICS_BUFFER_OBJECT_H
-#include <graphics/opengl.h>
-#include <graphics/trimesh.h>
-
-namespace graphics
-{
+#ifndef BUFFER_OBJECT_H
+#define BUFFER_OBJECT_H
+#include <gl/opengl.h>
+#include <vector>
 
 /*
 glBufferData(...) takes a usage hint for how to maintain the data on the GPU.
@@ -61,7 +58,5 @@ private:
 	GLenum target;
 	GLuint handle;
 };
-
-}
 
 #endif
