@@ -12,29 +12,42 @@ public:
 	Texture();
 
 	void dispose();
-	void create2d(int width, int height, const void *data, GLenum dataType, GLenum format);
+	void create(GLuint texture, GLenum target, int width, int height);
+	void create(GLenum target, int width, int height);
+
+	void create2d(GLint level,	// Level-of-detail number
+		GLint internalFormat,	// Color component type in the texture
+		GLsizei width,			// Width of the texture
+		GLsizei height,			// Height of the texture
+		GLenum format,			// The format of the pixel data
+		GLenum type,			// The data type of the pixel data
+		const GLvoid *data);	// A pointer to the pixel data in memory
+
 	bool loadFromFile(const std::string &filename);
-	bool loadFromFile(const std::string &filename, GLenum target, GLenum minFilter, 
-		GLenum magFilter, GLenum wrapS, GLenum wrapT);
 
 	int getWidth() const;
 	int getHeight() const;
 	void getInternalSize(int &width, int &height) const;
 	GLuint getHandle() const;
 
-	// Disable this to preserve pixel-perfect rendering of textures (Default is enabled)
-	// When disabled OpenGL will render the texture using NEAREST filtering
-	void setSmooth(bool enabled);
+	/*
+	wrapS, wrapT = GL_REPEAT: repeats the texture
+	wrapS, wrapT = GL_CLAMP_TO_EDGE: does not repeat
+	minFilter, magFilter = GL_LINEAR: smooths
+	minFilter, magFilter = GL_NEAREST: pixel perfect
+	*/
+	void setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT);
 
-	// Sets the appropriate texture parameters to repeat the texture
-	void setRepeat(bool enabled);
-
+	// Bind texture object to the active texture unit location
 	void bind() const;
+
+	// Binds null object to the target
 	void unbind() const;
 private:
-	GLuint handle;
-	int width;
-	int height;
+	GLenum target_;
+	GLuint handle_;
+	int width_;
+	int height_;
 };
 
 }

@@ -1,4 +1,5 @@
 #include <graphics/bufferedmesh.h>
+#include <iostream>
 using namespace graphics;
 
 BufferedMesh::BufferedMesh() : vbo(), ibo(), fmt(), indexCount(0)
@@ -61,6 +62,12 @@ void BufferedMesh::create(const TriMesh &mesh, const ProgramLayout &layout)
 
 void BufferedMesh::draw()
 {
+	if(indexCount == 0)
+	{
+		std::cerr<<"Error: Element array is empty"<<std::endl;
+		return;
+	}
+
 	vbo.bind();
 	ibo.bind();
 	fmt.enable(); // We would be able to skip alot of these if we used an interlaced vertex format and batched the models

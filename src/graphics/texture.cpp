@@ -5,25 +5,50 @@
 #include <memory> // for unique_ptr
 using namespace graphics;
 
-Texture::Texture() : handle(0), width(0), height(0)
+Texture::Texture() : width_(0), height_(0), handle_(0), target_(GL_TEXTURE_2D)
 {
-	//textureUnit = 0; // Default texture unit (corresponds to GL_TEXTURE0)
-	setRepeat(false);
-	setSmooth(false);
+
 }
 
 void Texture::dispose()
 {
-	glDeleteTextures(1, &handle);
+	glDeleteTextures(1, &handle_);
+	width_ = 0;
+	height_ = 0;
+	target_ = GL_TEXTURE_2D;
 }
 
-void Texture::create2d(int width, int height, const void *data, GLenum dataType, GLenum format)
+void Texture::create(GLuint handle, GLenum target, int width, int height)
 {
 	dispose();
-	glGenTextures(1, &handle);
-	glBindTexture(GL_TEXTURE_2D, handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, dataType, data);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	target_ = target;
+	handle_ = handle;
+	width_ = width;
+	height_ = height;
+}
+
+void Texture::create(GLenum target, int width, int height)
+{
+	dispose();
+	glGenTextures(1, &handle_);
+	target_ = target;
+	width_ = width;
+	height_ = height;
+}
+
+void Texture::create2d(GLint level,
+		GLint internalFormat, 
+		GLsizei width, 
+		GLsizei height, 
+		GLenum format, 
+		GLenum type, 
+		const GLvoid *data)
+{
+	dispose();
+	create(GL_TEXTURE_2D, width, height);
+	bind();
+	glTexImage2D(target_, level, internalFormat, width, height, 0, format, type, data);
+	unbind();
 }
 
 // Loads texture using the glimg library
@@ -31,93 +56,52 @@ void Texture::create2d(int width, int height, const void *data, GLenum dataType,
 // glimg does not convert to power-of-two textures, so be your GPU should support NPOT textures
 bool Texture::loadFromFile(const std::string &filename)
 {
-	dispose();
 	try
 	{
 		// Allocate data for images (deletes itself when no longer used)
 		std::unique_ptr<glimg::ImageSet> imgset(glimg::loaders::stb::LoadFromFile(filename));
-		handle = glimg::CreateTexture(imgset.get(), 0);
-		width = imgset.get()->GetDimensions().width;
-		height = imgset.get()->GetDimensions().height;
+
+		create(glimg::CreateTexture(imgset.get(), 0), 
+			GL_TEXTURE_2D,
+			imgset.get()->GetDimensions().width, 
+			imgset.get()->GetDimensions().height);
 	}
 	catch(glimg::loaders::stb::StbLoaderException &e)
 	{
-		handle = 0;
-		width = 0;
-		height = 0;
+		dispose();
 		std::cerr<<"Failure loading texture: "<<e.what()<<"("<<filename<<")"<<std::endl;
 		return false;
 	}
 
-	std::cout<<"Loaded texture: "<<filename<<" ("<<width<<", "<<height<<")"<<std::endl;
-
 	return true;
 }
 
-bool Texture::loadFromFile(const std::string &filename, GLenum target, GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT)
+void Texture::setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT)
 {
-	if(!loadFromFile(filename))
-		return false;
-
-	glBindTexture(target, handle);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(target, GL_TEXTURE_WRAP_S, wrapS);
-	glTexParameteri(target, GL_TEXTURE_WRAP_T, wrapT);
-	glBindTexture(target, 0);
-
-	return true;
+	//bind();
+	glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(target_, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(target_, GL_TEXTURE_WRAP_S, wrapS);
+	glTexParameteri(target_, GL_TEXTURE_WRAP_T, wrapT);
+	//unbind();
 }
 
-void Texture::getInternalSize(int &width_, int &height_) const
+void Texture::getInternalSize(int &width, int &height) const
 {
-	width_ = 0; 
-	height_ = 0;
-	glBindTexture(GL_TEXTURE_2D, handle);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width_);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &height_);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	width = 0; 
+	height = 0;
+	//bind();
+	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, &height);
+	//unbind();
 }
 
-int Texture::getWidth() const
-{
-	return width;
-}
+int Texture::getWidth() const { return width_; }
 
-int Texture::getHeight() const
-{
-	return height;
-}
+int Texture::getHeight() const { return height_; }
 
-GLuint Texture::getHandle() const
-{
-	return handle;
-}
+GLuint Texture::getHandle() const { return handle_; }
 
-void Texture::setRepeat(bool enabled)
-{
-	glBindTexture(GL_TEXTURE_2D, handle);
-	GLuint wrap = enabled ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
+void Texture::bind() const { glBindTexture(target_, handle_); }
 
-void Texture::setSmooth(bool enabled)
-{
-	glBindTexture(GL_TEXTURE_2D, handle);
-	GLuint filter = enabled ? GL_LINEAR : GL_NEAREST;
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Texture::bind() const
-{
-	glBindTexture(GL_TEXTURE_2D, handle); // Bind texture object to the active texture unit location
-}
-
-void Texture::unbind() const
-{
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
+void Texture::unbind() const { glBindTexture(target_, 0); }

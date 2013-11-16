@@ -25,6 +25,24 @@ public:
 	// See header for usage hints.
 	void create(GLenum target_, GLenum usage);
 
+	// Generate a new buffer object with the given data as initial data
+	template <typename T>
+	void create(GLenum target_, GLenum usage, const std::vector<T> &data) 
+	{
+		create(target_, usage);
+		bind();
+		bufferData(data.size() * sizeof(T), &data[0]);
+		unbind();
+	}
+
+	void create(GLenum target_, GLenum usage, GLsizeiptr size, const void *data)
+	{
+		create(target_, usage);
+		bind();
+		bufferData(size, data);
+		unbind();
+	}
+
 	// Create a new data store for the currently bound buffer object
 	void bufferData(GLsizeiptr size, const void *data);
 

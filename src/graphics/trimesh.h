@@ -27,8 +27,10 @@ public:
 
 	void clear()
 	{ 
-		positions.clear(); normals.clear();
-		colors.clear(); texels.clear();
+		positions.clear(); 
+		normals.clear();
+		colors.clear(); 
+		texels.clear();
 		indices.clear();
 	}
 

@@ -23,7 +23,7 @@ private:
 	BufferObject vbo;
 	BufferObject ibo;
 	VertexFormat fmt;
-	int indexCount;
+	unsigned int indexCount;
 };
 
 }

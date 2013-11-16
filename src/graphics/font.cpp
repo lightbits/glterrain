@@ -83,14 +83,15 @@ bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 	if(!texture->loadFromFile(filename))
 		return false;
 
+	texture->bind();
+
 	// We want our text to appear crisp and clear
-	texture->setSmooth(false);
+	texture->setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	// Get (actual) texture dimensions
-	glBindTexture(GL_TEXTURE_2D, texture->getHandle());
 	GLint textureWidth = 0;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &textureWidth);
 	GLint textureHeight = 0;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &textureWidth);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &textureHeight);
 
 	if(textureWidth == 0 || textureHeight == 0)
@@ -147,7 +148,7 @@ bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 	}
 
 	// Clean-up
-	glBindTexture(GL_TEXTURE_2D, 0);
+	texture->unbind();
 	delete[] pixels;
 
 	return true;
