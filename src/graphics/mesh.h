@@ -56,11 +56,14 @@ public:
 	int getTexelCount() const;
 	int getNormalCount() const;
 	int getIndexCount() const;
+	int getTangentsCount() const;
 
 	vec3 *getPositionPtr();
 	vec4 *getColorPtr();
 	vec2 *getTexelPtr();
 	vec3 *getNormalPtr();
+	vec3 *getTangentPtr();
+	vec3 *getBitangentPtr();
 	unsigned int *getIndexPtr();
 
 	GLenum getDrawMode() const;
@@ -71,10 +74,15 @@ public:
 	void clearTexels();
 	void clear();
 
+	void calculateTangentVectors();
+	void calculateNormalVectors();
+
 	static Mesh getUnitColoredCube();
 
 	//void draw() { getRenderer()->draw(*this, ...); }
 private:
+	std::vector<vec3> tangents;
+	std::vector<vec3> bitangents;
 	std::vector<vec3> positions;
 	std::vector<vec3> normals;
 	std::vector<vec4> colors;

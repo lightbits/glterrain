@@ -55,7 +55,7 @@ int main()
 
 	Mesh cubeMesh = Mesh::getUnitColoredCube();
 	MeshBuffer cubeBuffer;
-	cubeBuffer.create(cubeMesh);
+	cubeBuffer.create(cubeMesh, false);
 
 	// Data for a fullscreen quad
 	GLfloat postEffectVertexData[] = {

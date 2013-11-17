@@ -1,6 +1,11 @@
 #include <app/glcontext.h>
 #include <iostream>
 
+static GLContext *activeContext = nullptr;
+GLContext *getActiveContext() {
+	return activeContext;
+}
+
 void crash(const char *error )
 {
 	std::cerr<<error<<std::endl;
@@ -71,16 +76,19 @@ bool GLContext::create(const std::string &title, const VideoMode &vm, int major,
 	std::cout<<"GLSL ver.: "		<<glGetString(GL_SHADING_LANGUAGE_VERSION)<<std::endl;
 
 	return true;
+
+	setActive();
 }
 
 void GLContext::setActive()
 {
-	
+	activeContext = this;
 }
 
 void GLContext::close()
 {
 	glfwTerminate();
+	activeContext = nullptr;
 }
 
 void GLContext::pollEvents()
@@ -95,7 +103,10 @@ void GLContext::display()
 
 void GLContext::setCursorEnabled(bool cursor)
 {
-	
+	if(cursor)
+		glfwEnable(GLFW_MOUSE_CURSOR);
+	else
+		glfwDisable(GLFW_MOUSE_CURSOR);
 }
 
 void GLContext::setWindowTitle(const std::string &title)
@@ -113,17 +124,22 @@ void GLContext::setWindowSize(int w, int h)
 	glfwSetWindowSize(w, h);
 }
 
-void GLContext::setFullscreen(bool fullscreen)
-{
-	
-}
-
 void GLContext::setVerticalSync(bool vsync)
 {
 	if(vsync)
 		glfwSwapInterval(1); // Experimental
 	else
 		glfwSwapInterval(0);
+}
+
+void getSize(int *width, int *height)
+{
+	glfwGetWindowSize(width, height);
+}
+
+void getMousePos(int *x, int *y)
+{
+	glfwGetMousePos(x, y);
 }
 
 void GLContext::sleep(double time)

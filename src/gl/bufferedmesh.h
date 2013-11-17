@@ -1,3 +1,7 @@
+/*
+http://stackoverflow.com/questions/18853713/does-interleaving-in-vbos-speed-up-performance-when-using-vaos
+*/
+
 #ifndef BUFFERED_MESH_H
 #define BUFFERED_MESH_H
 #include <gl/opengl.h>
@@ -15,15 +19,18 @@ class MeshBuffer
 public:
 	MeshBuffer();
 	void dispose();
-	void create(Mesh &mesh);
+
+	void create(Mesh &mesh, bool interleaved=false);
+
 	void setupVao();
-	//void draw(GLenum drawMode, int first = 0);
+	bool hasVao() const { return vaoOk; }
 
 	void bind();
 	void unbind();
-	bool hasVao() const { return vaoOk; }
 	void draw(GLenum drawMode);
 private:
+	int stride;
+	bool interleavedVertexData;
 	bool vaoOk;
 	VertexArray vao;
 	BufferObject vbo;
@@ -31,7 +38,7 @@ private:
 	const Mesh *meshPtr;
 };
 
-// TODO: Add interlaced vertex format for batching possibilities (static buffered mesh)
+// TODO: Add intereaved vertex format for batching possibilities (static buffered mesh)
 // This class is more useful for run-time buffer generation, as we simply dump data in blocks
 class BufferedMesh
 {

@@ -2,13 +2,15 @@
 #include <iostream>
 #include <graphics/renderer.h>
 
-MeshBuffer::MeshBuffer() : vaoOk(false), vbo(), ibo(), meshPtr(nullptr)
+MeshBuffer::MeshBuffer() : vaoOk(false), interleavedVertexData(false), vbo(), ibo(), stride(0), meshPtr(nullptr)
 {
 
 }
 
 void MeshBuffer::dispose()
 {
+	stride = 0;
+	interleavedVertexData = false;
 	vaoOk = false;
 	vao.dispose();
 	vbo.dispose();
@@ -16,52 +18,99 @@ void MeshBuffer::dispose()
 	meshPtr = nullptr;
 }
 
-void MeshBuffer::create(Mesh &mesh)
+void MeshBuffer::create(Mesh &mesh, bool interleaved)
 {
 	if(mesh.getIndexCount() == 0 || mesh.getPositionCount() == 0)
-	{
-		std::cerr<<"Error: Invalid mesh"<<std::endl;
-		return;
-	}
+		throw std::exception("Mesh can not be empty");
 
 	dispose();
 	meshPtr = &mesh;
-	vbo.create(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
+
+	interleavedVertexData = interleaved;
 
 	int positionByteSize = mesh.getPositionCount() * sizeof(vec3);
 	int normalByteSize = mesh.getNormalCount() * sizeof(vec3);
 	int colorByteSize = mesh.getColorCount() * sizeof(vec4);
 	int texelByteSize = mesh.getTexelCount() * sizeof(vec2);
+	int tangentsByteSize = mesh.getTangentsCount() * sizeof(vec3);
 
+	// Assume that if data is interleaved, the mesh will not be updated often,
+	// while if it is not interleaved, it is updated regularly.
+	GLenum usage = interleaved ? GL_STATIC_DRAW : GL_STREAM_DRAW;
+	vbo.create(GL_ARRAY_BUFFER, usage);
 	vbo.bind();
 	vbo.bufferData(
 		positionByteSize + 
 		normalByteSize + 
 		colorByteSize + 
-		texelByteSize, NULL);
+		texelByteSize +
+		tangentsByteSize * 2, NULL);
 
-	int offset = 0;
-	vbo.bufferSubData(offset, positionByteSize, mesh.getPositionPtr());
-	offset += positionByteSize;
+	if(interleavedVertexData)
+	{
+		stride = 0;
+		if(positionByteSize) stride += 3;
+		if(normalByteSize) stride += 3;
+		if(colorByteSize) stride += 4;
+		if(texelByteSize) stride += 2;
+		if(tangentsByteSize) stride += 2 * 3;
 
-	if(mesh.getNormalCount() > 0)
-	{
-		vbo.bufferSubData(offset, normalByteSize, mesh.getNormalPtr());
-		offset += normalByteSize;
+		typedef struct VertexData
+		{
+			vec3 position;
+			vec3 normal;
+			vec4 color;
+			vec2 texel;
+			vec3 tangent;
+			vec3 bitangent;
+		} vertexData;
+
+		int vertexCount = mesh.getPositionCount();
+		vertexData *data = new vertexData[vertexCount];
+		for(int i = 0; i < vertexCount; ++i)
+		{
+			data[i].position = *(mesh.getPositionPtr() + i);
+			if(normalByteSize)
+				data[i].normal = *(mesh.getNormalPtr() + i);
+			if(colorByteSize)
+				data[i].color = *(mesh.getColorPtr() + i);
+			if(texelByteSize)
+				data[i].texel = *(mesh.getTexelPtr() + i);
+			if(tangentsByteSize)
+			{
+				data[i].tangent = *(mesh.getTangentPtr() + i);
+				data[i].bitangent = *(mesh.getBitangentPtr() + i);
+			}
+		}
+
+		vbo.bufferSubData(0, vertexCount * sizeof(vertexData), data);
+		delete[] data;
 	}
-	if(mesh.getColorCount() > 0)
+	else
 	{
-		vbo.bufferSubData(offset, colorByteSize, mesh.getColorPtr());
-		offset += colorByteSize;
-	}
-	if(mesh.getTexelCount() > 0)
-	{
-		vbo.bufferSubData(offset, texelByteSize, mesh.getTexelPtr());
+		int offset = 0;
+		vbo.bufferSubData(offset, positionByteSize, mesh.getPositionPtr());
+		offset += positionByteSize;
+
+		if(mesh.getNormalCount() > 0)
+		{
+			vbo.bufferSubData(offset, normalByteSize, mesh.getNormalPtr());
+			offset += normalByteSize;
+		}
+		if(mesh.getColorCount() > 0)
+		{
+			vbo.bufferSubData(offset, colorByteSize, mesh.getColorPtr());
+			offset += colorByteSize;
+		}
+		if(mesh.getTexelCount() > 0)
+		{
+			vbo.bufferSubData(offset, texelByteSize, mesh.getTexelPtr());
+		}
 	}
 
 	vbo.unbind();
 
-	ibo.create(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
+	ibo.create(GL_ELEMENT_ARRAY_BUFFER, usage);
 	ibo.bind();
 	ibo.bufferData(mesh.getIndexCount() * sizeof(unsigned int), mesh.getIndexPtr());
 	ibo.unbind();
@@ -70,22 +119,54 @@ void MeshBuffer::create(Mesh &mesh)
 void MeshBuffer::draw(GLenum drawMode)
 {
 	ShaderProgram *sp = getActiveShader();
-	if(sp == nullptr)
-	{
-		std::cerr<<"Error: No active shader"<<std::endl;
+	if(!sp)
+		throw std::exception("No active shader");
+	
+	if(meshPtr->getIndexCount() == 0)
 		return;
-	}
-	else if(meshPtr->getIndexCount() == 0)
-	{
-		std::cerr<<"Error: No indices to be drawn"<<std::endl;
-		return;
-	}
 		
 	if(hasVao())
 	{
 		vao.bind();
 		glDrawElements(drawMode, meshPtr->getIndexCount(), GL_UNSIGNED_INT, 0);
 		vao.unbind();
+	}
+	else if(interleavedVertexData)
+	{
+		vbo.bind();
+		ibo.bind();
+		int offset = 0;
+
+		// This can be moved outside, in a batched mesh renderer
+		if(meshPtr->getPositionCount())
+		{
+			sp->setAttributefv("position", 3, stride, offset); 
+			offset += 3;
+		}
+		if(meshPtr->getNormalCount())
+		{
+			sp->setAttributefv("normal", 3, stride, offset); 
+			offset += 3;
+		}
+		if(meshPtr->getColorCount())
+		{
+			sp->setAttributefv("color", 4, stride, offset); 
+			offset += 4;
+		}
+		if(meshPtr->getTexelCount())
+		{
+			sp->setAttributefv("texel", 2, stride, offset);
+			offset += 2;
+		}
+		if(meshPtr->getTangentsCount())
+		{
+			sp->setAttributefv("tangent", 3, stride, offset);
+			sp->setAttributefv("bitangent", 3, stride, offset + 3);
+		}
+
+		glDrawElements(drawMode, meshPtr->getIndexCount(), GL_UNSIGNED_INT, 0);
+		vbo.unbind();
+		ibo.unbind();
 	}
 	else
 	{
@@ -120,45 +201,41 @@ void MeshBuffer::draw(GLenum drawMode)
 
 void MeshBuffer::setupVao()
 {
-	/*vaoOk = true;
+	ShaderProgram *shader = getActiveShader();
+	if(!shader)
+		throw std::exception("No active shader");
+
+	vaoOk = true;
 	vao.create();
 	vao.bind();
 	vbo.bind();
-	ibo.bind();*/
+	ibo.bind();
 
-	/*ShaderProgram *shader = getActiveShader();
-	if(shader)
+	int offset = 0;
+	if(meshPtr->getPositionCount() > 0)
 	{
-		int offset = 0;
-		if(meshPtr->getPositionCount() > 0)
-		{
-			shader->setAttributefv("position", 3, 0, offset);
-			offset += 3;
-		}
-		if(meshPtr->getNormalCount() > 0)
-		{
-			shader->setAttributefv("normal", 3, 0, offset);
-			offset += 3;
-		}
-		if(meshPtr->getColorCount() > 0)
-		{
-			shader->setAttributefv("color", 4, 0, offset);
-			offset += 4;
-		}
-		if(meshPtr->getTexelCount() > 0)
-		{
-			shader->setAttributefv("texel", 2, 0, offset);
-			offset += 2;
-		}
+		shader->setAttributefv("position", 3, 0, offset);
+		offset += meshPtr->getPositionCount() * 3;
 	}
-	else
+	if(meshPtr->getNormalCount() > 0)
 	{
-		std::cerr<<"Error: No active shader"<<std::endl;
-	}*/
+		shader->setAttributefv("normal", 3, 0, offset);
+		offset += meshPtr->getNormalCount() * 3;
+	}
+	if(meshPtr->getColorCount() > 0)
+	{
+		shader->setAttributefv("color", 4, 0, offset);
+		offset += meshPtr->getColorCount() * 4;
+	}
+	if(meshPtr->getTexelCount() > 0)
+	{
+		shader->setAttributefv("texel", 2, 0, offset);
+		offset += meshPtr->getTexelCount() * 2;
+	}
 
-	/*vao.unbind();
+	vao.unbind();
 	vbo.unbind();
-	ibo.unbind();*/
+	ibo.unbind();
 }
 
 void MeshBuffer::bind()

@@ -43,8 +43,15 @@ public:
 	void setWindowPosition(int x, int y);
 	void setWindowSize(int w, int h);
 
-	void setFullscreen(bool fullscreen);
 	void setVerticalSync(bool vsync);
+
+	/* Retrieves the width and height of the window */
+	void getSize(int *width, int *height);
+
+	/* Returns the current mouse position. If the cursor is not hidden, the mouse
+	position is the cursor position, relative to the upper left corner of the window and
+	with the Y-axis down. */
+	void getMousePos(int *x, int *y);
 
 	/* Sets the context-thread to sleep for a given number of seconds */
 	void sleep(double time);
@@ -55,5 +62,7 @@ private:
 	GLContext(const GLContext &copy);
 	GLContext &operator=(const GLContext &rhs);
 };
+
+GLContext *getActiveContext();
 
 #endif
