@@ -53,7 +53,12 @@ public:
 
 	// Binds the default (0) buffer for the set target buffer
 	void unbind();
+
+	/* Returns true if bind() has been called on this object. 
+	(Though the actual buffer object can be unbound by external calls to glBindBuffer(0). */
+	bool isBound() const { return bound; }
 private:
+	bool bound;
 	GLenum usage;
 	GLenum target;
 	GLuint handle;

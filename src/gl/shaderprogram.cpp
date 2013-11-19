@@ -28,6 +28,7 @@ bool ShaderProgram::linkAndCheckStatus()
 
 void ShaderProgram::dispose()
 {
+	// if(inUse) throw std::exception...
 	uniformLocations.clear();
 	attribLocations.clear();
 	fragmentShader.dispose();

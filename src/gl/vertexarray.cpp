@@ -16,12 +16,12 @@ void VertexArray::create()
 	glGenVertexArrays(1, &vao);
 }
 
-void VertexArray::bind()
+void VertexArray::bind() const
 {
 	glBindVertexArray(vao);
 }
 
-void VertexArray::unbind()
+void VertexArray::unbind() const
 {
 	glBindVertexArray(0);
 }

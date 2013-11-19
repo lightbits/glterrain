@@ -7,6 +7,12 @@ MeshBuffer::MeshBuffer() : vaoOk(false), interleavedVertexData(false), vbo(), ib
 
 }
 
+MeshBuffer::MeshBuffer(Mesh &mesh) : vaoOk(false), 
+interleavedVertexData(false), vbo(), ibo(), stride(0), meshPtr(nullptr)
+{
+	create(mesh);
+}
+
 void MeshBuffer::dispose()
 {
 	stride = 0;
@@ -18,7 +24,7 @@ void MeshBuffer::dispose()
 	meshPtr = nullptr;
 }
 
-void MeshBuffer::create(Mesh &mesh, bool interleaved)
+void MeshBuffer::create(Mesh &mesh)
 {
 	if(mesh.getIndexCount() == 0 || mesh.getPositionCount() == 0)
 		throw std::exception("Mesh can not be empty");
@@ -26,94 +32,130 @@ void MeshBuffer::create(Mesh &mesh, bool interleaved)
 	dispose();
 	meshPtr = &mesh;
 
-	interleavedVertexData = interleaved;
-
-	int positionByteSize = mesh.getPositionCount() * sizeof(vec3);
-	int normalByteSize = mesh.getNormalCount() * sizeof(vec3);
-	int colorByteSize = mesh.getColorCount() * sizeof(vec4);
-	int texelByteSize = mesh.getTexelCount() * sizeof(vec2);
-	int tangentsByteSize = mesh.getTangentsCount() * sizeof(vec3);
+	//interleavedVertexData = interleaved;
 
 	// Assume that if data is interleaved, the mesh will not be updated often,
 	// while if it is not interleaved, it is updated regularly.
-	GLenum usage = interleaved ? GL_STATIC_DRAW : GL_STREAM_DRAW;
+	GLenum usage = interleavedVertexData ? GL_STATIC_DRAW : GL_STREAM_DRAW;
+
 	vbo.create(GL_ARRAY_BUFFER, usage);
 	vbo.bind();
-	vbo.bufferData(
-		positionByteSize + 
-		normalByteSize + 
-		colorByteSize + 
-		texelByteSize +
-		tangentsByteSize * 2, NULL);
-
-	if(interleavedVertexData)
-	{
-		stride = 0;
-		if(positionByteSize) stride += 3;
-		if(normalByteSize) stride += 3;
-		if(colorByteSize) stride += 4;
-		if(texelByteSize) stride += 2;
-		if(tangentsByteSize) stride += 2 * 3;
-
-		typedef struct VertexData
-		{
-			vec3 position;
-			vec3 normal;
-			vec4 color;
-			vec2 texel;
-			vec3 tangent;
-			vec3 bitangent;
-		} vertexData;
-
-		int vertexCount = mesh.getPositionCount();
-		vertexData *data = new vertexData[vertexCount];
-		for(int i = 0; i < vertexCount; ++i)
-		{
-			data[i].position = *(mesh.getPositionPtr() + i);
-			if(normalByteSize)
-				data[i].normal = *(mesh.getNormalPtr() + i);
-			if(colorByteSize)
-				data[i].color = *(mesh.getColorPtr() + i);
-			if(texelByteSize)
-				data[i].texel = *(mesh.getTexelPtr() + i);
-			if(tangentsByteSize)
-			{
-				data[i].tangent = *(mesh.getTangentPtr() + i);
-				data[i].bitangent = *(mesh.getBitangentPtr() + i);
-			}
-		}
-
-		vbo.bufferSubData(0, vertexCount * sizeof(vertexData), data);
-		delete[] data;
-	}
-	else
-	{
-		int offset = 0;
-		vbo.bufferSubData(offset, positionByteSize, mesh.getPositionPtr());
-		offset += positionByteSize;
-
-		if(mesh.getNormalCount() > 0)
-		{
-			vbo.bufferSubData(offset, normalByteSize, mesh.getNormalPtr());
-			offset += normalByteSize;
-		}
-		if(mesh.getColorCount() > 0)
-		{
-			vbo.bufferSubData(offset, colorByteSize, mesh.getColorPtr());
-			offset += colorByteSize;
-		}
-		if(mesh.getTexelCount() > 0)
-		{
-			vbo.bufferSubData(offset, texelByteSize, mesh.getTexelPtr());
-		}
-	}
-
+	vbo.bufferData(mesh.getByteSize(), NULL);
+	if(interleavedVertexData) 
+		bufferMeshInterleaved(mesh);
+	else 
+		bufferMeshBlock(mesh);
 	vbo.unbind();
 
 	ibo.create(GL_ELEMENT_ARRAY_BUFFER, usage);
 	ibo.bind();
 	ibo.bufferData(mesh.getIndexCount() * sizeof(unsigned int), mesh.getIndexPtr());
 	ibo.unbind();
+}
+
+void MeshBuffer::bufferMeshBlock(Mesh &mesh)
+{
+	int positionByteSize = mesh.getPositionByteSize();
+	int normalByteSize = mesh.getNormalByteSize();
+	int colorByteSize = mesh.getColorByteSize();
+	int texelByteSize = mesh.getTexelByteSize();
+	int tangentsByteSize = mesh.getTangentsByteSize();
+
+	int offset = 0;
+	vbo.bufferSubData(offset, positionByteSize, mesh.getPositionPtr());
+	offset += positionByteSize;
+
+	if(mesh.getNormalCount())
+	{
+		vbo.bufferSubData(offset, normalByteSize, mesh.getNormalPtr());
+		offset += normalByteSize;
+	}
+	if(mesh.getColorCount())
+	{
+		vbo.bufferSubData(offset, colorByteSize, mesh.getColorPtr());
+		offset += colorByteSize;
+	}
+	if(mesh.getTexelCount())
+	{
+		vbo.bufferSubData(offset, texelByteSize, mesh.getTexelPtr());
+		offset += texelByteSize;
+	}
+	if(mesh.getTangentsCount())
+	{
+		vbo.bufferSubData(offset, tangentsByteSize, mesh.getTangentPtr());
+		vbo.bufferSubData(offset, tangentsByteSize, mesh.getBitangentPtr());
+		offset += 2 * tangentsByteSize;
+	}
+}
+
+void MeshBuffer::bufferMeshInterleaved(Mesh &mesh)
+{
+	int positionByteSize = mesh.getPositionByteSize();
+	int normalByteSize = mesh.getNormalByteSize();
+	int colorByteSize = mesh.getColorByteSize();
+	int texelByteSize = mesh.getTexelByteSize();
+	int tangentsByteSize = mesh.getTangentsByteSize();
+
+	stride = 0;
+	if(positionByteSize) stride += 3;
+	if(normalByteSize) stride += 3;
+	if(colorByteSize) stride += 4;
+	if(texelByteSize) stride += 2;
+	if(tangentsByteSize) stride += 2 * 3;
+
+	typedef struct VertexData
+	{
+		vec3 position;
+		vec3 normal;
+		vec4 color;
+		vec2 texel;
+		vec3 tangent;
+		vec3 bitangent;
+	} vertexData;
+
+	int vertexCount = mesh.getPositionCount();
+	vertexData *data = new vertexData[vertexCount];
+	for(int i = 0; i < vertexCount; ++i)
+	{
+		data[i].position = *(mesh.getPositionPtr() + i);
+		if(normalByteSize)
+			data[i].normal = *(mesh.getNormalPtr() + i);
+		if(colorByteSize)
+			data[i].color = *(mesh.getColorPtr() + i);
+		if(texelByteSize)
+			data[i].texel = *(mesh.getTexelPtr() + i);
+		if(tangentsByteSize)
+		{
+			data[i].tangent = *(mesh.getTangentPtr() + i);
+			data[i].bitangent = *(mesh.getBitangentPtr() + i);
+		}
+	}
+
+	vbo.bufferSubData(0, vertexCount * sizeof(vertexData), data);
+	delete[] data;
+}
+
+void MeshBuffer::update(Mesh &mesh)	
+{
+	if(!isBound())
+		throw std::exception("Mesh not bound");
+
+	if(meshPtr->getByteSize() != mesh.getByteSize())
+		throw std::exception("Mesh must be of same size");
+
+	bufferMeshBlock(mesh);
+}
+
+void MeshBuffer::update(Mesh &mesh, int startIndex, int endIndex)
+{
+	if(!isBound())
+		throw std::exception("Mesh not bound");
+
+	if(meshPtr->getByteSize() != mesh.getByteSize())
+		throw std::exception("Mesh must be of same size");
+
+	// Todo: add index selection support
+	bufferMeshBlock(mesh);
 }
 
 void MeshBuffer::draw(GLenum drawMode)
@@ -201,6 +243,8 @@ void MeshBuffer::draw(GLenum drawMode)
 
 void MeshBuffer::setupVao()
 {
+	throw std::exception("VAO setup not done");
+
 	ShaderProgram *shader = getActiveShader();
 	if(!shader)
 		throw std::exception("No active shader");

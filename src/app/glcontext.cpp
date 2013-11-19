@@ -132,14 +132,19 @@ void GLContext::setVerticalSync(bool vsync)
 		glfwSwapInterval(0);
 }
 
-void getSize(int *width, int *height)
+void GLContext::getSize(int *width, int *height)
 {
 	glfwGetWindowSize(width, height);
 }
 
-void getMousePos(int *x, int *y)
+void GLContext::getMousePos(int *x, int *y)
 {
 	glfwGetMousePos(x, y);
+}
+
+double GLContext::getElapsedTime()
+{
+	return glfwGetTime();
 }
 
 void GLContext::sleep(double time)

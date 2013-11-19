@@ -8,8 +8,8 @@ public:
 	VertexArray();
 	void dispose();
 	void create();
-	void bind();
-	void unbind();
+	void bind() const;
+	void unbind() const;
 private:
 	GLuint vao;
 };

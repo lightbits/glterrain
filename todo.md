@@ -13,6 +13,8 @@ http://blog.ccoder.co.uk/?page=6
 
 General
 ====
+*	Implement nice line drawing https://forum.libcinder.org/topic/smooth-thick-lines-using-geometry-shader
+*	Fix spritebatch http://gamedev.stackexchange.com/questions/21220/how-exactly-does-xnas-spritebatch-work
 *	Move mesh generators out from TriMesh class
 *	Centralize rendering code to a Renderer class
 *	Move bufferData(const TriMesh &mesh) out of BufferObject. This makes no sense if we are handling a target that isn't GL_ARRAY_BUFFER.

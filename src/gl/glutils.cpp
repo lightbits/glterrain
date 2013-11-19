@@ -15,3 +15,16 @@ const char *getErrorMessage(GLenum code)
 	default: return "UNKNOWN";
 	}
 }
+
+bool checkGLErrors(std::ostream &out)
+{
+	bool wereErrors = false;
+	GLenum error = glGetError();
+	while(error != GL_NO_ERROR)
+	{
+		out<<getErrorMessage(error)<<std::endl;
+		wereErrors = true;
+		error = glGetError();
+	}
+	return wereErrors;
+}

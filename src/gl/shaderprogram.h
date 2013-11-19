@@ -23,6 +23,11 @@ public:
 	// Returns (a cached) attribute location for the given name
 	GLint getAttributeLocation(const std::string &name);
 
+	/*
+	stride: number of components between the first element in each attribute
+	offset: number of components into the array the component is found
+	note: not byte offset
+	*/
 	void setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	void setAttributefv(GLuint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	/*void unsetAttribute(const std::string &name);

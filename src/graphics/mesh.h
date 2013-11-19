@@ -51,12 +51,28 @@ public:
 	void addIndices(const unsigned int *is, int count);
 	void addTriangle(unsigned int i0, unsigned int i1, unsigned int i2);
 
+	vec3 &getPosition(int i);
+	vec4 &getColor(int i);
+	vec2 &getTexel(int i);
+	vec3 &getNormal(int i);
+	unsigned int &getIndex(int i);
+	vec3 &getTangent(int i);
+	vec3 &getBitangent(int i);
+
 	int getPositionCount() const;
 	int getColorCount() const;
 	int getTexelCount() const;
 	int getNormalCount() const;
 	int getIndexCount() const;
 	int getTangentsCount() const;
+
+	int getPositionByteSize() const;
+	int getColorByteSize() const;
+	int getTexelByteSize() const;
+	int getNormalByteSize() const;
+	int getIndexByteSize() const;
+	int getTangentsByteSize() const;
+	int getByteSize() const;
 
 	vec3 *getPositionPtr();
 	vec4 *getColorPtr();

@@ -1,6 +1,7 @@
 #ifndef GL_CONTEXT_H
 #define GL_CONTEXT_H
 #include <string>
+#include <common/timer.h>
 #include <gl/glutils.h>
 
 void crash(const char *error);
@@ -57,6 +58,9 @@ public:
 	void sleep(double time);
 
 	bool isOpen();
+
+	/* Returns the time since the last call to create(), in seconds. */
+	double getElapsedTime();
 private:
 	/* Disable copying */
 	GLContext(const GLContext &copy);

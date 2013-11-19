@@ -79,12 +79,37 @@ void Mesh::addTriangle(unsigned int i0, unsigned int i1, unsigned int i2)
 	indices.push_back(i2);
 }
 
+vec3 &Mesh::getPosition(int i) { return positions[i]; }
+vec4 &Mesh::getColor(int i) { return colors[i]; }
+vec2 &Mesh::getTexel(int i) { return texels[i]; }
+vec3 &Mesh::getNormal(int i) { return normals[i]; }
+unsigned int &Mesh::getIndex(int i) { return indices[i]; }
+vec3 &Mesh::getTangent(int i) { return tangents[i]; }
+vec3 &Mesh::getBitangent(int i) { return bitangents[i]; }
+
 int Mesh::getPositionCount() const { return positions.size(); }
 int Mesh::getColorCount() const { return colors.size(); }
 int Mesh::getTexelCount() const { return texels.size(); }
 int Mesh::getNormalCount() const { return normals.size(); }
 int Mesh::getIndexCount() const { return indices.size(); }
 int Mesh::getTangentsCount() const { return tangents.size(); } /* assert(==bitangents.size()) */
+
+int Mesh::getPositionByteSize() const { return positions.size() * sizeof(vec3); }
+int Mesh::getColorByteSize() const  { return colors.size() * sizeof(vec4); }
+int Mesh::getTexelByteSize() const  { return texels.size() * sizeof(vec2); }
+int Mesh::getNormalByteSize() const  { return normals.size() * sizeof(vec3); }
+int Mesh::getIndexByteSize() const  { return indices.size() * sizeof(unsigned int); }
+int Mesh::getTangentsByteSize() const  { return tangents.size() * sizeof(vec3); }
+int Mesh::getByteSize() const
+{ 
+	return 
+		getPositionByteSize() + 
+		getColorByteSize() +
+		getTexelByteSize() + 
+		getNormalByteSize() +
+		getIndexByteSize() + 
+		2 * getTangentsByteSize();
+}
 
 vec3 *Mesh::getPositionPtr() { return &positions[0]; }
 vec4 *Mesh::getColorPtr() { return &colors[0]; }
