@@ -10,6 +10,7 @@ public:
 
 	void dispose();
 	void create();
+	bool loadFromSource(const std::string &src);
 	bool loadFromFile(const std::string &filename);
 	bool compileAndCheckStatus(const std::string &src);
 	GLuint getHandle() const;

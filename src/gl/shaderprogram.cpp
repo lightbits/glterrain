@@ -5,9 +5,16 @@ ShaderProgram::ShaderProgram() : program(),
 	fragmentShader(GL_FRAGMENT_SHADER), 
 	vertexShader(GL_VERTEX_SHADER), 
 	uniformLocations(),
-	attribLocations()
-{
+	attribLocations() { }
 
+bool ShaderProgram::loadFromSource(const std::string &vertSrc, const std::string &fragSrc)
+{
+	uniformLocations.clear();
+	attribLocations.clear();
+	if(!vertexShader.loadFromSource(vertName) || 
+	   !fragmentShader.loadFromSource(fragName))
+		return false;
+	return true;
 }
 
 bool ShaderProgram::loadFromFile(const std::string &vertName, const std::string &fragName)

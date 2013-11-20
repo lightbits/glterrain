@@ -15,14 +15,19 @@ void Shader::create()
 	shader = glCreateShader(shaderType);
 }
 
+bool Shader::loadFromSource(const std::string &src)
+{
+	create();
+	return compileAndCheckStatus(src);
+}
+
 bool Shader::loadFromFile(const std::string &filename)
 {
 	std::string src;
 	if(!readFile(filename, src))
 		return false;
 
-	create();
-	return compileAndCheckStatus(src);
+	return loadFromSource(src);
 }
 
 bool Shader::compileAndCheckStatus(const std::string &src)

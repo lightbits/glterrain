@@ -22,6 +22,8 @@ public:
 	void setBlendState(BlendState state);
 	void enableUserStates();
 
+	// void setTextureUnit(int unit);
+
 	void clearColorBuffer();
 	void clearDepthBuffer();
 	void clearColorAndDepth();
@@ -65,6 +67,6 @@ private:
 Renderer *getActiveRenderer();
 ShaderProgram *getActiveShader();
 
-void setActiveRenderer(Renderer &r);
+void setActiveRenderer(Renderer &r); // TODO: remove this
 
 #endif

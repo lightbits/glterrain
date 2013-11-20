@@ -7,6 +7,7 @@ class ShaderProgram
 {
 public:
 	ShaderProgram();
+	bool loadFromSource(const std::string &vertSrc, const std::string &fragSrc);
 	bool loadFromFile(const std::string &vertName, const std::string &fragName);
 	bool linkAndCheckStatus();
 	void dispose();

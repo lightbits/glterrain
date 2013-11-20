@@ -1,13 +1,8 @@
-// class ShaderProgram
-// {
-// 	...
-// 	mat4 Model;
-// 	mat4 View;
-// 	mat4 Projection;
-// };
-
 #ifndef SPRITE_BATCH_H
 #define SPRITE_BATCH_H
+#include <common/rectangle.h>
+#include <common/vec.h>
+#include <common/matrix.h>
 #include <gl/bufferobject.h>
 #include <gl/shaderprogram.h>
 #include <gl/texture.h>
@@ -16,36 +11,98 @@
 #include <graphics/color.h>
 #include <graphics/renderstates.h>
 
-public enum class SpriteBlendMode
+/*
+SpriteBatch can set the renderer's blend state to any of these
+*/
+public enum class SpriteBlendMode { Additive, AlphaBlend, None };
+
+/*
+Sprites can be sorted before drawing them. Sorting methods use the sprite's
+z-coordinate or texture. Sorting by texture usually gives best performance.
+*/
+public enum class SpriteSortMode { BackToFront, FrontToBack, Texture, None };
+
+struct SpriteInfo
 {
-	Additive, AlphaBlend, None
+	SpriteInfo() : z(1.0f), zAxisRotation(0.0f), source(0.0f, 0.0f, 1.0f, 1.0f), destination(0.0f, 0.0f, 0.0f, 0.0f), color(1.0f, 1.0f, 1.0f, 1.0f), texture(nullptr) { }
+	float z;
+	Rectanglei source; // pixel-coordinates of source texture region
+	Rectanglef destination;
+	float zAxisRotation;
+	Color color;
+	const Texture *texture;
 };
 
+/*
+Renders textured quads in optimized batches, using an orthographic projection.
+*/
 class SpriteBatch
 {
 public:
-	static const int SpriteCount = 512;
-	static const int SizeOfSpriteVertex = 9 * sizeof(GLfloat);
-	static const int VerticesPerSprite = 4;
-	static const int IndicesPerSprite = 6;
-	static const int MaximumVboSize = SpriteCount * VerticesPerSprite;
-	static const GLenum SpriteWindingOrder = GL_CCW;
+	static const int SPRITE_COUNT = 512;
+	static const int VERTICES_PER_SPRITE = 4;
+	static const int VERTEX_SIZE = 9 * sizeof(float);
+	static const int INDICES_PER_SPRITE = 6;
+	static const int INDEX_SIZE = sizeof(unsigned int); // TODO: Use unsigned short instead?
 public:
 	SpriteBatch();
-	void create();
-	void dispose();
+	~SpriteBatch();
 
-	void begin();
-	void begin(const BlendState )
-	void begin();
-	void begin(const mat4 &transformMatrix);
+	// void setFont(const Font &font);
+
+	void begin(SpriteBlendMode blendMode = SpriteBlendMode.AlphaBlend, const mat4 &view = mat4(1.0f));
+	// void begin(const ShaderProgram &customShader, SpriteBlendMode blendMode = SpriteBlendMode.AlphaBlend, const mat4 &view = mat4(1.0f));
+
+	void drawTexture(const Texture &texture, const Color &color, const Rectanglef &dest, const Rectanglei &src, float depth = 1, float orientation = 0);
+	// void drawTexture(const Texture &texture, const Color &color, const Rectanglef &dest, float depth = 1, float orientation = 0);
+	// void drawTexture(const Texture &texture, const Color &color, const vec2 &pos, const Rectanglei &srcpx, float depth = 1, float orientation = 0);
+	// void drawTexture(const Texture &texture, const Color &color, const vec2 &pos, float depth = 1, float orientation = 0);
+
+	// void drawQuad(const Color &color, const Rectanglef &dest);
+	// void drawQuad(const Color &color, const vec2 &pos, const vec2 &size);
+	// void drawQuad(const Color &color, float x, float y, float w, float h);
+
+	// void drawString(const std::string &text, const vec2 &pos, const Color &color);
+	// void drawString(const std::string &text, float x, float y, const Color &color);
 
 	/* Draws all buffered sprite data, using the default shader program,
 	unless a different one was bound in the process - in which case it uses
 	that. */
 	void end();
 private:
+	// Disable copying
+	SpriteBatch(const SpriteBatch &copy);
+	SpriteBatch &operator=(const SpriteBatch &rhs);
+
+	void sortSprites();
+
+	/* Builds up the vertex and index data buffers with sprite data, and issues a drawcall
+	using glDrawElements. */
+	void renderBatch(const Texture *batchTexture, SpriteInfo *first, int count);
+
+	/* Adds a single sprite's data to the vertex and index data buffers */
+	void renderSprite(const SpriteInfo *sprite);
+private:
+	BlendState blendState;
+	SpriteSortMode sortMode;
+
+	BufferObject vertexBuffer;
+	BufferObject indexBuffer;
+
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
+
+	const Font *currentFont;
+	const Texture *currentTexture;
+	ShaderProgram *currentShader;
 	ShaderProgram defaultShader;
+
+	std::vector<SpriteInfo> spriteQueue; // Use dynamic array instead?
+	bool inBeginEndPair;
+	// int spriteQueueCount;
 };
+
+// Disable culling
+// Disable depth test?
 
 #endif

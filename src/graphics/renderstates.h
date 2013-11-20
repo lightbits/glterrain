@@ -105,6 +105,20 @@ struct RasterizerState
 };
 
 /*
+Enable or disable GL_TEXTURE(n)D and mipmap levels.
+With fixed pipeline, you needed to call glEnable(GL_TEXTURE_2D) to enable 2D texturing. You needed to call glEnable(GL_LIGHTING). Since shaders override these functionalities, you don't need to glEnable/glDisable. If you don't want texturing, you either need to write another shader that doesn't do texturing or you can attach a all white or all black texture, depending on your needs. You can also write one shader that does lighting and one that doesn't.
+
+http://www.opengl.org/wiki/GLSL_:_common_mistakes
+*/
+// struct SamplerState
+// {
+// 	SamplerState(bool enabled = false, GLenum textureMode) : Enabled(enabled), TextureMode(textureMode) { }
+// 	bool Enabled;
+// 	GLenum TextureMode;
+// 	// Mipmap, what ever
+// };
+
+/*
 See http://www.andersriggelsen.dk/glblendfunc.php and
 http://www.learnopengles.com/android-lesson-five-an-introduction-to-blending/
 */
@@ -149,5 +163,10 @@ namespace DepthTestStates
 	static const DepthTestState GreaterThanOrEqual = DepthTestState(false, GL_GEQUAL);
 	static const DepthTestState Always = DepthTestState(false, GL_ALWAYS);
 }
+
+// namespace SamplerStates
+// {
+// 	// static const SamplerState Default = SamplerState()
+// }
 
 #endif
