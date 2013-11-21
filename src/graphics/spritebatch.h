@@ -24,12 +24,14 @@ struct SpriteInfo
 		zAxisRotation(0.0f), 
 		uLeft(0.0f), uRight(1.0f),
 		vBottom(0.0f), vTop(1.0f),
+		center(0.0f, 0.0f),
 		destination(0.0f, 0.0f, 0.0f, 0.0f), 
 		color(1.0f, 1.0f, 1.0f, 1.0f), 
 		texture(nullptr) { }
 	float z;
 	float uLeft, uRight;
 	float vBottom, vTop;
+	vec2 center;
 	Rectanglef destination;
 	float zAxisRotation;
 	Color color;
@@ -62,37 +64,38 @@ public:
 					 float uLeft, float uRight,
 					 float vBottom, float vTop,
 					 float depth = 0.0f,
-					 float orientation = 0.0f);
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
 
 	void drawTexture(const Texture &texture, 
 					 const Color &color, 
 					 const Rectanglef &dest, 
 					 const Rectanglei &src, 
 					 float depth = 0.0f, 
-					 float orientation = 0.0f);
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
 
 	void drawTexture(const Texture &texture, 
 					 const Color &color, 
 					 const Rectanglef &dest, 
 					 float depth = 0.0f, 
-					 float orientation = 0.0f);
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
 
 	void drawTexture(const Texture &texture, 
 					 const Color &color, 
 					 const vec2 &pos, 
 					 const Rectanglei &src, 
 					 float depth = 0.0f, 
-					 float orientation = 0.0f);
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
 
 	void drawTexture(const Texture &texture, 
 					 const Color &color, 
 					 const vec2 &pos, 
 					 float depth = 0.0f, 
-					 float orientation = 0.0f);
-
-	// void drawQuad(const Color &color, const Rectanglef &dest);
-	// void drawQuad(const Color &color, const vec2 &pos, const vec2 &size);
-	// void drawQuad(const Color &color, float x, float y, float w, float h);
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
 
 	 void drawString(const std::string &text, const vec2 &pos, const Color &color);
 

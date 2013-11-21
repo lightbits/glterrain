@@ -171,6 +171,7 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 		Rectanglef dest = sprite->destination;
 		float zAxisRotation = sprite->zAxisRotation;
 		Color color = sprite->color;
+		vec2 center = sprite->center;
 		float z = sprite->z;
 		float r = color.r;
 		float g = color.g;
@@ -187,12 +188,10 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 		// Rotate the vertices if the rotation is nonzero
 		if(abs(zAxisRotation) > 1.0e-3)
 		{
-			float hw = dest.w * 0.5f;
-			float hh = dest.h * 0.5f;
-			vec2 vert0(-hw, -hh);
-			vec2 vert1(+hw, -hh);
-			vec2 vert2(+hw, +hh);
-			vec2 vert3(-hw, +hh);
+			vec2 vert0((-center.x) * dest.w, (-center.y) * dest.h);
+			vec2 vert1((1.0f - center.x) * dest.w, (-center.y) * dest.h);
+			vec2 vert2((1.0f - center.x) * dest.w, (1.0f - center.y) * dest.h);
+			vec2 vert3((-center.x) * dest.w, (1.0f - center.y) * dest.h);
 
 			//vec2 center(0.0f, 0.0f);
 
@@ -209,10 +208,10 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 		}
 		else
 		{
-			float x0 = dest.x;
-			float x1 = dest.x + dest.w;
-			float y0 = dest.y;
-			float y1 = dest.y + dest.h;
+			float x0 = dest.x - center.x * dest.w;
+			float x1 = dest.x + dest.w - center.x * dest.w;
+			float y0 = dest.y - center.y * dest.h;
+			float y1 = dest.y + dest.h - center.y * dest.h;
 
 			vertices[vi++] = Vertex(x0, y0, z, r, g, b, a, ul, vt); // Top-left
 			vertices[vi++] = Vertex(x1, y0, z, r, g, b, a, ur, vt); // Top-right
@@ -258,7 +257,8 @@ void SpriteBatch::drawTexture(const Texture &texture,
 					 float uLeft, float uRight,
 					 float vBottom, float vTop,
 					 float depth,
-					 float orientation)
+					 float orientation,
+					 vec2 center)
 {
 	// Draw the entire batch if max size is reached
 	if(spriteQueue.size() >= SPRITE_COUNT)
@@ -277,14 +277,16 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	spriteInfo.vTop = vTop;
 	spriteInfo.destination = dest;
 	spriteInfo.texture = &texture;
+	spriteInfo.center = center;
 	spriteQueue.push_back(spriteInfo);
 }
 
 void SpriteBatch::drawTexture(const Texture &texture, 
-							  const Color &color, 
-							  const Rectanglef &dest, 
-							  const Rectanglei &src, 
-							  float depth, float orientation)
+					const Color &color, 
+					const Rectanglef &dest, 
+					const Rectanglei &src, 
+					float depth, float orientation,
+					vec2 center)
 {
 	float w = float(texture.getWidth());
 	float h = float(texture.getHeight());
@@ -292,34 +294,37 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	float uRight = (src.x + src.w) / w;
 	float vBottom = 1.0f - (src.h + src.y) / h;
 	float vTop = 1.0f - src.y / h;
-	drawTexture(texture, color, dest, uLeft, uRight, vBottom, vTop, depth, orientation);
+	drawTexture(texture, color, dest, uLeft, uRight, vBottom, vTop, depth, orientation, center);
 }
 
 void SpriteBatch::drawTexture(const Texture &texture, 
-							  const Color &color, 
-							  const Rectanglef &dest,
-							  float depth, float orientation)
+					const Color &color, 
+					const Rectanglef &dest,
+					float depth, float orientation,
+					vec2 center)
 {
-	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation);
+	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
 }
 
 void SpriteBatch::drawTexture(const Texture &texture, 
-							  const Color &color, 
-							  const vec2 &pos,
-							  const Rectanglei &src,
-							  float depth, float orientation)
-{
-	Rectanglef dest(pos.x, pos.y, texture.getWidth(), texture.getHeight());
-	drawTexture(texture, color, dest, src, depth, orientation);
-}
-
-void SpriteBatch::drawTexture(const Texture &texture, 
-							  const Color &color, 
-							  const vec2 &pos,
-							  float depth, float orientation)
+					const Color &color, 
+					const vec2 &pos,
+					const Rectanglei &src,
+					float depth, float orientation,
+					vec2 center)
 {
 	Rectanglef dest(pos.x, pos.y, texture.getWidth(), texture.getHeight());
-	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation);
+	drawTexture(texture, color, dest, src, depth, orientation, center);
+}
+
+void SpriteBatch::drawTexture(const Texture &texture, 
+					const Color &color, 
+					const vec2 &pos,
+					float depth, float orientation,
+					vec2 center)
+{
+	Rectanglef dest(pos.x, pos.y, texture.getWidth(), texture.getHeight());
+	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
 }
 
 void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Color &color)

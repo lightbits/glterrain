@@ -84,8 +84,12 @@ int main()
 	if(!defaultShader.linkAndCheckStatus())
 		shutdown("Failed to link shaders");
 
-	Texture texture0;
-	if(!texture0.loadFromFile("data/img/tex0.png"))
+	Texture 
+		texture0,
+		texture1;
+
+	if(!texture0.loadFromFile("data/img/tex0.png") ||
+	   !texture1.loadFromFile("data/img/tex1.png"))
 		shutdown("Failed to load textures");
 
 	Font font0;
@@ -107,9 +111,9 @@ int main()
 
 	renderer.setClearColor(0.55f, 0.45f, 0.45f, 1.0f);
 	renderer.setClearDepth(1.0);
-	/*renderer.setCullState(CullStates::CullCounterClockwise);
+	renderer.setCullState(CullStates::CullCounterClockwise);
 	renderer.setBlendState(BlendStates::AlphaBlend);
-	renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);*/
+	renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);
 
 	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 0.05f, 50.0f);
 
@@ -125,7 +129,7 @@ int main()
 		double renderStart = timer.getElapsedTime();
 		renderer.clearColorAndDepth();
 
-		/*MatrixStack viewMatrix;
+		MatrixStack viewMatrix;
 		MatrixStack modelMatrix;
 		viewMatrix.push();
 		viewMatrix.translate(0.0f, 0.0f, -3.0f);
@@ -149,12 +153,16 @@ int main()
 
 		renderer.setRasterizerState(RasterizerStates::Default);
 		defaultShader.end();
-		viewMatrix.pop();*/
+		viewMatrix.pop();
+
+		Text debugInfo;
+		debugInfo<<"render: "<<int(renderTime * 1000.0)<<"ms";
 
 		spriteBatch.begin();
-		spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(300.0f, 200.0f, 128.0f, 128.0f), Rectanglei(0, 0, 350, 350));
-		spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 100.0f, 256.0f, 256.0f), 0.0f, 1.2f);
-		spriteBatch.drawString("Hello World!", vec2(5.0f, 5.0f), Color(1.0f));
+		spriteBatch.drawTexture(texture1, Color(1.0f), Rectanglef(320.0f, 200.0f, 200.0f, 200.0f));
+		//spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 128.0f, 128.0f, 128.0f), Rectanglei(0, 0, 350, 350), 0.0f, 0.0f, vec2(1.0f, 1.0f));
+		spriteBatch.drawTexture(texture1, Color(1.0f), Rectanglef(100.0f, 100.0f, 128.0f, 128.0f), 0.0f, 1.2f, vec2(1.0f, 1.0f));
+		spriteBatch.drawString(debugInfo.getString(), vec2(5.0f, 5.0f), Color(1.0f));
 		spriteBatch.end();
 
 		context.display();
@@ -174,16 +182,3 @@ int main()
 	font0.dispose();
 	return 0;
 }
-
-//int main()
-//{
-//	try
-//	{
-//		init();
-//		...
-//	}
-//	catch (std::exception &e)
-//	{
-//
-//	}
-//}
