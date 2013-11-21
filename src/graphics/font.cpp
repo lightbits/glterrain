@@ -129,8 +129,6 @@ bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 				glyph.symbol = charSet[index++];
 				glyph.width = w - 2;
 				glyph.height = h - 2;
-				glyph.x = x;
-				glyph.y = y;
 				glyph.uLeft = (x + 1) / (float)textureWidth;
 				glyph.uRight = (x + w - 1) / (float)textureWidth;
 				glyph.vBottom = (y - h + 2) / (float)textureHeight;

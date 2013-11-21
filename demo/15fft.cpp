@@ -153,8 +153,8 @@ int main()
 
 		spriteBatch.begin();
 		spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(300.0f, 200.0f, 128.0f, 128.0f), Rectanglei(0, 0, 350, 350));
-		//spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 100.0f, 256.0f, 256.0f), 0.0f, 1.2f);
-		//spriteBatch.drawString("Hello World!", vec2(5.0f, 5.0f), Color(1.0f));
+		spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 100.0f, 256.0f, 256.0f), 0.0f, 1.2f);
+		spriteBatch.drawString("Hello World!", vec2(5.0f, 5.0f), Color(1.0f));
 		spriteBatch.end();
 
 		context.display();

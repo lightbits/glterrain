@@ -22,12 +22,14 @@ struct SpriteInfo
 	SpriteInfo() : 
 		z(1.0f),
 		zAxisRotation(0.0f), 
-		source(0, 0, 0, 0), 
+		uLeft(0.0f), uRight(1.0f),
+		vBottom(0.0f), vTop(1.0f),
 		destination(0.0f, 0.0f, 0.0f, 0.0f), 
 		color(1.0f, 1.0f, 1.0f, 1.0f), 
 		texture(nullptr) { }
 	float z;
-	Rectanglei source; // pixel-coordinates of source texture region
+	float uLeft, uRight;
+	float vBottom, vTop;
 	Rectanglef destination;
 	float zAxisRotation;
 	Color color;
@@ -53,6 +55,14 @@ public:
 
 	void begin(BlendState blendMode = BlendStates::AlphaBlend, const mat4 &view = mat4(1.0f));
 	// void begin(const ShaderProgram &customShader, SpriteBlendMode blendMode = SpriteBlendMode.AlphaBlend, const mat4 &view = mat4(1.0f));
+
+	void drawTexture(const Texture &texture,
+					 const Color &color,
+					 const Rectanglef &dest,
+					 float uLeft, float uRight,
+					 float vBottom, float vTop,
+					 float depth = 0.0f,
+					 float orientation = 0.0f);
 
 	void drawTexture(const Texture &texture, 
 					 const Color &color, 
