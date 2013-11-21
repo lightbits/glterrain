@@ -85,13 +85,13 @@ void Texture::setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS,
 	//unbind();
 }
 
-void Texture::getInternalSize(int &width, int &height) const
+void Texture::getInternalSize(int *width, int *height) const
 {
-	width = 0; 
-	height = 0;
+	*width = 0; 
+	*height = 0;
 	//bind();
-	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, &height);
+	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, width);
+	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, height);
 	//unbind();
 }
 

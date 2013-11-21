@@ -24,7 +24,7 @@ public:
 
 	int getWidth() const;
 	int getHeight() const;
-	void getInternalSize(int &width, int &height) const;
+	void getInternalSize(int *width, int *height) const;
 	GLuint getHandle() const;
 
 	/*

@@ -154,14 +154,14 @@ namespace RasterizerStates
 namespace DepthTestStates
 {
 	static const DepthTestState Default = DepthTestState(false);
-	static const DepthTestState Never = DepthTestState(false, GL_NEVER);
-	static const DepthTestState Less = DepthTestState(false, GL_LESS);
-	static const DepthTestState Equal = DepthTestState(false, GL_EQUAL);
-	static const DepthTestState LessThanOrEqual = DepthTestState(false, GL_LEQUAL);
-	static const DepthTestState Greater = DepthTestState(false, GL_GREATER);
-	static const DepthTestState NotEqual = DepthTestState(false, GL_NOTEQUAL);
-	static const DepthTestState GreaterThanOrEqual = DepthTestState(false, GL_GEQUAL);
-	static const DepthTestState Always = DepthTestState(false, GL_ALWAYS);
+	static const DepthTestState Never = DepthTestState(true, GL_NEVER);
+	static const DepthTestState Less = DepthTestState(true, GL_LESS);
+	static const DepthTestState Equal = DepthTestState(true, GL_EQUAL);
+	static const DepthTestState LessThanOrEqual = DepthTestState(true, GL_LEQUAL);
+	static const DepthTestState Greater = DepthTestState(true, GL_GREATER);
+	static const DepthTestState NotEqual = DepthTestState(true, GL_NOTEQUAL);
+	static const DepthTestState GreaterThanOrEqual = DepthTestState(true, GL_GEQUAL);
+	static const DepthTestState Always = DepthTestState(true, GL_ALWAYS);
 }
 
 // namespace SamplerStates

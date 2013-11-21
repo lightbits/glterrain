@@ -11,8 +11,8 @@ bool ShaderProgram::loadFromSource(const std::string &vertSrc, const std::string
 {
 	uniformLocations.clear();
 	attribLocations.clear();
-	if(!vertexShader.loadFromSource(vertName) || 
-	   !fragmentShader.loadFromSource(fragName))
+	if(!vertexShader.loadFromSource(vertSrc) || 
+	   !fragmentShader.loadFromSource(fragSrc))
 		return false;
 	return true;
 }

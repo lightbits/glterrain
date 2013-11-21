@@ -79,9 +79,21 @@ int main()
 
 	ShaderProgram defaultShader;
 	if(!defaultShader.loadFromFile("data/shaders/simple.vert", "data/shaders/simple.frag"))
-		shutdown("Failed to load resources");
+		shutdown("Failed to load shaders");
 
-	defaultShader.linkAndCheckStatus();
+	if(!defaultShader.linkAndCheckStatus())
+		shutdown("Failed to link shaders");
+
+	Texture texture0;
+	if(!texture0.loadFromFile("data/img/tex0.png"))
+		shutdown("Failed to load textures");
+
+	Font font0;
+	if(!font0.loadFromFile("data/fonts/proggytinyttsz_8x12.png"))
+		shutdown("Failed to load fonts");
+
+	SpriteBatch spriteBatch;
+	spriteBatch.setFont(font0);
 
 	Mesh wireMesh;
 	const int wireMeshSamples = 8;
@@ -95,9 +107,9 @@ int main()
 
 	renderer.setClearColor(0.55f, 0.45f, 0.45f, 1.0f);
 	renderer.setClearDepth(1.0);
-	renderer.setCullState(CullStates::CullCounterClockwise);
+	/*renderer.setCullState(CullStates::CullCounterClockwise);
 	renderer.setBlendState(BlendStates::AlphaBlend);
-	renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);
+	renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);*/
 
 	mat4 perspectiveMatrix = glm::perspective(45.0f, 640.0f / 480.0f, 0.05f, 50.0f);
 
@@ -113,7 +125,7 @@ int main()
 		double renderStart = timer.getElapsedTime();
 		renderer.clearColorAndDepth();
 
-		MatrixStack viewMatrix;
+		/*MatrixStack viewMatrix;
 		MatrixStack modelMatrix;
 		viewMatrix.push();
 		viewMatrix.translate(0.0f, 0.0f, -3.0f);
@@ -137,7 +149,13 @@ int main()
 
 		renderer.setRasterizerState(RasterizerStates::Default);
 		defaultShader.end();
-		viewMatrix.pop();
+		viewMatrix.pop();*/
+
+		spriteBatch.begin();
+		spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(300.0f, 200.0f, 128.0f, 128.0f), Rectanglei(0, 0, 350, 350));
+		//spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 100.0f, 256.0f, 256.0f), 0.0f, 1.2f);
+		//spriteBatch.drawString("Hello World!", vec2(5.0f, 5.0f), Color(1.0f));
+		spriteBatch.end();
 
 		context.display();
 		renderTime = timer.getElapsedTime() - renderStart;
@@ -153,5 +171,19 @@ int main()
 
 	defaultShader.dispose();
 	vao.dispose();
+	font0.dispose();
 	return 0;
 }
+
+//int main()
+//{
+//	try
+//	{
+//		init();
+//		...
+//	}
+//	catch (std::exception &e)
+//	{
+//
+//	}
+//}

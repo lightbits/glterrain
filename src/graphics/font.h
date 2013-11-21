@@ -6,10 +6,10 @@
 
 struct Glyph
 {
-	Glyph() : symbol('0'), uLeft(0), uRight(0), vBottom(0), vTop(0), width(0), height(0) { }
+	Glyph() : symbol('0'), uLeft(0), uRight(0), vBottom(0), vTop(0), x(0), y(0), width(0), height(0) { }
 
 	char symbol;
-	int width, height;
+	int x, y, width, height;
 	float uLeft, uRight, vBottom, vTop; // OpenGL texture coordinates
 
 };

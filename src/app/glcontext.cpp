@@ -75,9 +75,9 @@ bool GLContext::create(const std::string &title, const VideoMode &vm, int major,
 	std::cout<<"GL ver.: "			<<glGetString(GL_VERSION)<<std::endl;
 	std::cout<<"GLSL ver.: "		<<glGetString(GL_SHADING_LANGUAGE_VERSION)<<std::endl;
 
-	return true;
-
 	setActive();
+
+	return true;
 }
 
 void GLContext::setActive()

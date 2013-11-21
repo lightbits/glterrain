@@ -1,87 +1,125 @@
-#ifndef SPRITEBATCH_H
-#define SPRITEBATCH_H
-#include <gl/opengl.h>
+#ifndef SPRITE_BATCH_H
+#define SPRITE_BATCH_H
+#include <common/rectangle.h>
+#include <common/vec.h>
+#include <common/matrix.h>
 #include <gl/bufferobject.h>
-#include <gl/vertexformat.h>
-#include <gl/program.h>
+#include <gl/shaderprogram.h>
 #include <gl/texture.h>
+#include <graphics/renderer.h>
 #include <graphics/font.h>
 #include <graphics/color.h>
-#include <common/vec.h>
-
-const int		SPRITE_BATCH_SPRITE_COUNT	= 512;
-const int		SPRITE_BATCH_VERTEX_SIZE	= 9 * sizeof(GLfloat);
-const int		SPRITE_BATCH_VBO_SIZE		= SPRITE_BATCH_SPRITE_COUNT * 4 * SPRITE_BATCH_VERTEX_SIZE;
-const int		SPRITE_BATCH_IBO_SIZE		= SPRITE_BATCH_SPRITE_COUNT * 6 * sizeof(GLushort);
-const GLenum	SPRITE_BATCH_WINDING_ORDER	= GL_CCW;
+#include <graphics/renderstates.h>
 
 /*
-A really slow and bad spritebatching implementation.
-Works kinda ok if you sort stuff by texture, and you don't have too many textures.
+Sprites can be sorted before drawing them. Sorting methods use the sprite's
+z-coordinate or texture. Sorting by texture usually gives best performance.
 */
+enum class SpriteSortMode { BackToFront, FrontToBack, Texture, None };
 
+struct SpriteInfo
+{
+	SpriteInfo() : 
+		z(1.0f),
+		zAxisRotation(0.0f), 
+		source(0, 0, 0, 0), 
+		destination(0.0f, 0.0f, 0.0f, 0.0f), 
+		color(1.0f, 1.0f, 1.0f, 1.0f), 
+		texture(nullptr) { }
+	float z;
+	Rectanglei source; // pixel-coordinates of source texture region
+	Rectanglef destination;
+	float zAxisRotation;
+	Color color;
+	const Texture *texture;
+};
+
+/*
+Renders textured quads in optimized batches, using an orthographic projection.
+*/
 class SpriteBatch
 {
 public:
+	static const int SPRITE_COUNT = 512;
+	static const int VERTICES_PER_SPRITE = 4;
+	static const int VERTEX_SIZE = 9 * sizeof(float);
+	static const int INDICES_PER_SPRITE = 6;
+	static const int INDEX_SIZE = sizeof(unsigned int); // TODO: Use unsigned short instead?
+public:
 	SpriteBatch();
-	void dispose();
-
-	/*
-	This function initializes uniform and attribute location variables. Be sure
-	to do this during the initialization of the application.
-	The program is assumed to have certain inputs:
-		VERTEX SHADER
-		in vec3 position;
-		in vec4 color;
-		in vec2 texel;
-		uniform mat4 projection;
-		uniform mat4 view;
-
-		FRAGMENT SHADER
-		uniform float texBlend;
-		uniform sampler2D tex;
-	*/
-	void create(const Program &program);
-
-	void begin();
-	void end();
-
-	// Include depth value?
-
-	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH, float ul, float ur, float vb, float vt);
-	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH, int srcX, int srcY, int srcW, int srcH);
-	void drawTexture(const Texture &texture, const Color &color, float dstX, float dstY, float dstW, float dstH);
-	void drawQuad(const Color &color, float x, float y, float w, float h);
-	void drawString(const std::string &text, float x, float y, const Color &color);
+	~SpriteBatch();
 
 	void setFont(const Font &font);
 
-private:
-	void draw(const Texture *texture, const Color &color, const vec3 &v0, const vec3 &v1, const vec3 &v2, const vec3 &v3, 
-		float ul, float ur, float vb, float vt);
-	void setTexture(const Texture *texture);
-	void flush();
+	void begin(BlendState blendMode = BlendStates::AlphaBlend, const mat4 &view = mat4(1.0f));
+	// void begin(const ShaderProgram &customShader, SpriteBlendMode blendMode = SpriteBlendMode.AlphaBlend, const mat4 &view = mat4(1.0f));
 
+	void drawTexture(const Texture &texture, 
+					 const Color &color, 
+					 const Rectanglef &dest, 
+					 const Rectanglei &src, 
+					 float depth = 0.0f, 
+					 float orientation = 0.0f);
+
+	void drawTexture(const Texture &texture, 
+					 const Color &color, 
+					 const Rectanglef &dest, 
+					 float depth = 0.0f, 
+					 float orientation = 0.0f);
+
+	void drawTexture(const Texture &texture, 
+					 const Color &color, 
+					 const vec2 &pos, 
+					 const Rectanglei &src, 
+					 float depth = 0.0f, 
+					 float orientation = 0.0f);
+
+	void drawTexture(const Texture &texture, 
+					 const Color &color, 
+					 const vec2 &pos, 
+					 float depth = 0.0f, 
+					 float orientation = 0.0f);
+
+	// void drawQuad(const Color &color, const Rectanglef &dest);
+	// void drawQuad(const Color &color, const vec2 &pos, const vec2 &size);
+	// void drawQuad(const Color &color, float x, float y, float w, float h);
+
+	 void drawString(const std::string &text, const vec2 &pos, const Color &color);
+
+	/* Draws all buffered sprite data, using the default shader program,
+	unless a different one was bound in the process - in which case it uses
+	that. */
+	void end();
 private:
-	BufferObject vbo;
-	BufferObject ibo;
+	// Disable copying
+	SpriteBatch(const SpriteBatch &copy);
+	SpriteBatch &operator=(const SpriteBatch &rhs);
+
+	void sortSprites();
+
+	/* Builds up the vertex and index data buffers with sprite data, and issues a drawcall
+	using glDrawElements. */
+	void renderBatch(const Texture *batchTexture, SpriteInfo *first, int count);
+
+	/* Adds a single sprite's data to the vertex and index data buffers */
+	void renderSprite(const SpriteInfo *sprite);
+private:
+	BlendState blendState;
+	SpriteSortMode sortMode;
+
+	BufferObject vertexBuffer;
+	BufferObject indexBuffer;
+
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
+
 	const Font *currentFont;
 	const Texture *currentTexture;
-	const Program *currentProgram;
+	ShaderProgram *currentShader;
+	ShaderProgram defaultShader;
 
-	GLsizei elementIndex; // Each sprite counts 6 elements (indices)
-	GLushort vertexIndex; // Implies a maximum of 65536 vertices
-
-	GLint positionAttribLocation;
-	GLint colorAttribLocation;
-	GLint texCoordAttribLocation;
-	GLint projectionUniform;
-	GLint viewUniform;
-	GLint texBlendUniform;
-	GLint textureSamplerUniform;
-
-	mat4 projectionMatrix;
-	mat4 viewMatrix;
+	std::vector<SpriteInfo> spriteQueue; // Use dynamic array instead?
+	bool inBeginEndPair;
 };
 
 #endif
