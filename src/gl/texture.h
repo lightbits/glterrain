@@ -12,13 +12,23 @@ public:
 	void create(GLuint texture, GLenum target, int width, int height);
 	void create(GLenum target, int width, int height);
 
-	void create2d(GLint level,	// Level-of-detail number
+	void create2d(
+		GLint level,			// Level-of-detail number
 		GLint internalFormat,	// Color component type in the texture
 		GLsizei width,			// Width of the texture
 		GLsizei height,			// Height of the texture
-		GLenum format,			// The format of the pixel data
+		GLenum format,			// The composition of each element in data
 		GLenum type,			// The data type of the pixel data
 		const GLvoid *data);	// A pointer to the pixel data in memory
+
+	// Replaces a rectangular portion of the texture image
+	void copyFromFramebuffer(
+		GLint level,			// Level-of-detail number. Level 0 is base image level.
+		GLint xoffset,			// A horizontal texel offset within the texture array
+		GLint yoffset,			// A vertical texel offset within the texture array
+		GLint x, GLint y,		// Window coordinates of lower left corner to begin copying
+		GLsizei width,			// Width of texture subimage
+		GLsizei height);		// Height of texture subimage
 
 	bool loadFromFile(const std::string &filename);
 

@@ -23,6 +23,7 @@ void Mesh::addPositions(const vec3 *ps, int count)
 }
 
 void Mesh::addNormal(float x, float y, float z) { normals.push_back(vec3(x, y, z)); }
+void Mesh::addNormal(const vec3 &n) { normals.push_back(n); }
 
 void Mesh::addNormals(const std::vector<vec3> &ns) 
 {
@@ -36,6 +37,7 @@ void Mesh::addNormals(const vec3 *ns, int count)
 
 void Mesh::addColor(float r, float g, float b, float a) { colors.push_back(vec4(r, g, b, a)); }
 void Mesh::addColor(const vec4 &c) { colors.push_back(c); }
+void Mesh::addColor(const Color &c) { colors.push_back(vec4(c.r, c.g, c.b, c.a)); }
 
 void Mesh::addColors(const std::vector<vec4> &cs) 
 { 
@@ -145,7 +147,7 @@ void Mesh::calculateNormalVectors()
 	normals.clear();
 }
 
-Mesh Mesh::getUnitColoredCube()
+Mesh Mesh::genUnitColoredCube()
 {
 	Mesh mesh;
 	const float halfSize = 0.5f;
@@ -200,5 +202,21 @@ Mesh Mesh::getUnitColoredCube()
 	mesh.addTriangle(20, 21, 22);
 	mesh.addTriangle(22, 23, 20);
 
+	return mesh;
+}
+
+Mesh Mesh::genUnitColoredPlane(const Color &color)
+{
+	Mesh mesh;
+	mesh.addPosition(-0.5f, 0.0f, -0.5f);
+	mesh.addPosition(+0.5f, 0.0f, -0.5f);
+	mesh.addPosition(+0.5f, 0.0f, +0.5f);
+	mesh.addPosition(-0.5f, 0.0f, +0.5f);
+	mesh.addColor(color);
+	mesh.addColor(color);
+	mesh.addColor(color);
+	mesh.addColor(color);
+	mesh.addTriangle(0, 3, 2);
+	mesh.addTriangle(2, 1, 0);
 	return mesh;
 }

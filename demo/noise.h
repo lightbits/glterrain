@@ -12,7 +12,7 @@ float smoothstep(float t);
 float sinestep(float t);
 
 // Linearly interpolates between a and b using t
-float lerp(float a, float b, float t);
+float linear(float a, float b, float t);
 
 // Returns a random floating point value between -1 and 1
 float noise1f(int x);

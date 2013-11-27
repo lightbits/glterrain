@@ -17,7 +17,6 @@
 #include <gl/bufferedmesh.h>
 #include <gl/shaderprogram.h>
 #include <graphics/spritebatch.h>
-#include <graphics/trimesh.h>
 #include <graphics/color.h>
 #include <graphics/mesh.h>
 #include <graphics/renderer.h>
@@ -159,9 +158,6 @@ int main()
 		debugInfo<<"render: "<<int(renderTime * 1000.0)<<"ms";
 
 		spriteBatch.begin();
-		spriteBatch.drawTexture(texture1, Color(1.0f), Rectanglef(320.0f, 200.0f, 200.0f, 200.0f));
-		//spriteBatch.drawTexture(texture0, Color(1.0f), Rectanglef(128.0f, 128.0f, 128.0f, 128.0f), Rectanglei(0, 0, 350, 350), 0.0f, 0.0f, vec2(1.0f, 1.0f));
-		spriteBatch.drawTexture(texture1, Color(1.0f), Rectanglef(100.0f, 100.0f, 128.0f, 128.0f), 0.0f, 1.2f, vec2(1.0f, 1.0f));
 		spriteBatch.drawString(debugInfo.getString(), vec2(5.0f, 5.0f), Color(1.0f));
 		spriteBatch.end();
 

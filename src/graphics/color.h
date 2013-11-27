@@ -4,39 +4,25 @@
 
 struct Color
 {
-	Color() : r(0), g(0), b(0), a(0) { }
-
-	Color(float r_, float g_, float b_, float a_ = 1.0f) :
-	r(std::min(r_, 1.0f)), 
-	g(std::min(g_, 1.0f)), 
-	b(std::min(b_, 1.0f)), 
-	a(std::min(a_, 1.0f)) 
-	{ }
-
-	Color(float s) :
-	r(std::min(s, 1.0f)), 
-	g(std::min(s, 1.0f)), 
-	b(std::min(s, 1.0f)), 
-	a(1.0f)
-	{ }
-
-	Color(int r_, int g_, int b_, int a_ = 255) :
-	r(std::min(r_ / 255.0f, 1.0f)), 
-	g(std::min(g_ / 255.0f, 1.0f)), 
-	b(std::min(b_ / 255.0f, 1.0f)), 
-	a(std::min(a_ / 255.0f, 1.0f))
-	{ }
-
+	Color() : 
+		r(0), g(0), b(0), a(0) { }
+	Color(float R, float G, float B, float A = 1.0f) : 
+		r(R), g(G), b(B), a(A) { }
+	Color(float s) : 
+		r(s), g(s), b(s), a(1.0f) { }
+	Color(int R, int G, int B, int A = 255) :
+		r(R / 255.0f), g(G / 255.0f), b(B / 255.0f), a(A / 255.0f) { }
 	Color(int s) :
-	r(std::min(s / 255.0f, 1.0f)), 
-	g(std::min(s / 255.0f, 1.0f)), 
-	b(std::min(s / 255.0f, 1.0f)), 
-	a(1.0f)
-	{ }
+		r(s / 255.0f), g(s / 255.0f), b(s / 255.0f), a(1.0f) { }
 
 	bool operator==(const Color &rhs) const
 	{
 		return r == rhs.r && g == rhs.g && b == rhs.b && a == rhs.a;
+	}
+
+	bool operator!=(const Color &rhs) const
+	{
+		return r != rhs.r || g != rhs.g || b != rhs.b || a != rhs.a;
 	}
 
 	float r, g, b, a;

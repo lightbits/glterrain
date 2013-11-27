@@ -104,6 +104,32 @@ struct RasterizerState
 	}
 };
 
+struct StencilState
+{
+	StencilState(bool enabled, GLenum op, GLint ref, GLuint mask, GLenum sfail, GLenum dpfail, GLenum dppass);
+	bool Enabled;
+	GLenum Op;
+	GLint Ref;
+	GLuint Mask;
+	GLenum SFail;
+	GLenum DPFail;
+	GLenum DPPass;
+	void set()
+	{
+		if(Enabled)
+		{
+			glEnable(GL_STENCIL_TEST);
+			glStencilFunc(Op, Ref, Mask); // Set any stencil to 1
+			glStencilOp(SFail, DPFail, DPPass);
+			glStencilMask(Mask); // Write to stencil buffer
+		}
+		else
+		{
+			glDisable(GL_STENCIL_TEST);
+		}
+	}
+};
+
 /*
 Enable or disable GL_TEXTURE(n)D and mipmap levels.
 With fixed pipeline, you needed to call glEnable(GL_TEXTURE_2D) to enable 2D texturing. You needed to call glEnable(GL_LIGHTING). Since shaders override these functionalities, you don't need to glEnable/glDisable. If you don't want texturing, you either need to write another shader that doesn't do texturing or you can attach a all white or all black texture, depending on your needs. You can also write one shader that does lighting and one that doesn't.
@@ -154,6 +180,7 @@ namespace RasterizerStates
 namespace DepthTestStates
 {
 	static const DepthTestState Default = DepthTestState(false);
+	static const DepthTestState Disabled = DepthTestState(false);
 	static const DepthTestState Never = DepthTestState(true, GL_NEVER);
 	static const DepthTestState Less = DepthTestState(true, GL_LESS);
 	static const DepthTestState Equal = DepthTestState(true, GL_EQUAL);

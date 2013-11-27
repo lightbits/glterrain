@@ -97,8 +97,12 @@ void ShaderProgram::setAttributefv(const std::string &name, GLsizei numComponent
 	setAttributefv(getAttributeLocation(name), numComponents, stride, offset);
 }
 
-void ShaderProgram::setAttributefv(GLuint location, GLsizei numComponents, GLsizei stride, GLsizei offset)
+void ShaderProgram::setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset)
 {
+	// Debug
+	if(location < 0)
+		throw std::exception("Missing attribute");
+
 	glEnableVertexAttribArray(location);
 	glVertexAttribPointer(location, numComponents, GL_FLOAT, GL_FALSE, stride * sizeof(GLfloat), (void*)(offset * sizeof(GLfloat)));
 }

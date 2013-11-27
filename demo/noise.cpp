@@ -27,7 +27,7 @@ float sinestep(float t)
 	return sinf(1.57079632679f * (2.0f * t - 1.0f)) * 0.5f + 0.5f; 
 }
 
-float lerp(float a, float b, float t) 
+float linear(float a, float b, float t) 
 {
 	return a + (b - a) * t; 
 }
@@ -76,7 +76,7 @@ float snoise(float x)
 	float h1 = noise1f(xi + 1);
 
 	float t = smoothstep(xf);
-	return lerp(h0, h1, t);
+	return linear(h0, h1, t);
 }
 
 // Returns the smoothed bilinear interpolation of the noise values in the square containing (x, y)
@@ -95,10 +95,10 @@ float snoise(float x, float y)
 	float u = smoothstep(xf);
 	float v = smoothstep(yf);
 
-	float x0 = lerp(h00, h10, u);
-	float x1 = lerp(h01, h11, u);
+	float x0 = linear(h00, h10, u);
+	float x1 = linear(h01, h11, u);
 
-	return lerp(x0, x1, v);
+	return linear(x0, x1, v);
 }
 
 // A 1-dimensional fractional brownian motion function (noise in layers)

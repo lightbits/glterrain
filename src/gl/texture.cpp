@@ -50,6 +50,18 @@ void Texture::create2d(GLint level,
 	unbind();
 }
 
+void Texture::copyFromFramebuffer(			
+		GLint level,			
+		GLint xoffset,			
+		GLint yoffset,			
+		GLint x, GLint y,		
+		GLsizei width,			
+		GLsizei height)
+{
+	// http://www.opengl.org/sdk/docs/man/xhtml/glCopyTexSubImage2D.xml
+	glCopyTexSubImage2D(target_, level, xoffset, yoffset, x, y, width, height);
+}
+
 // Loads texture using the glimg library
 // See http://glsdk.sourceforge.net/docs/html/group__module__glimg.html for details
 // glimg does not convert to power-of-two textures, so be your GPU should support NPOT textures

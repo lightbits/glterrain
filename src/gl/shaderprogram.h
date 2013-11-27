@@ -30,9 +30,9 @@ public:
 	note: not byte offset
 	*/
 	void setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
-	void setAttributefv(GLuint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	/*void unsetAttribute(const std::string &name);
-	void unsetAttribute(GLuint location);*/
+	void unsetAttribute(GLint location);*/
 
 	void setUniform(const std::string &name, const mat4 &mat);
 	void setUniform(const std::string &name, const mat3 &mat);

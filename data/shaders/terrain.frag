@@ -1,11 +1,13 @@
 #version 140
 
-in vec4 worldNormal;
+in vec3 worldNormal;
 in vec4 worldPos;
 in float distToCamera;
 in float height;
 
-uniform float white;
+uniform vec3 light0Position;
+uniform vec3 light0Color;
+uniform vec3 ambient;
 
 out vec4 outColor;
 
@@ -15,13 +17,12 @@ void main()
 
   	// Diffuse lighting
 	// vec4 ambient = vec4(0.2, 0.23, 0.35, 1.0);
-	vec4 lightColor = vec4(1.0, 0.8, 0.5, 1.0);
-	vec4 ambient = vec4(67.0/255.0, 66.0/255.0, 63.0/255.0, 1.0);
 	// vec4 lightColor = vec4(135.0/255.0, 105.0/255.0, 100.0/255.0, 1.0);
-	vec4 dirToLight = -normalize(vec4(1.0, -1.0, 0.0, 0.0));
-	float intensity = max(0, dot(dirToLight, worldNormal));
-	outColor = intensity * lightColor + (1.0 - intensity) * ambient;
-	outColor = mix(outColor, vec4(1.0), white);
+	// vec4 ambient = vec4(67.0/255.0, 66.0/255.0, 63.0/255.0, 1.0);
+	// vec4 lightColor = vec4(1.0, 0.8, 0.5, 1.0);
+	vec3 lightDirection = normalize(light0Position - worldPos.xyz);
+	float intensity = max(0, dot(lightDirection, worldNormal));
+	outColor = vec4(intensity * light0Color + (1.0 - intensity) * ambient, 1.0);
 
   	// Fog
 	const float LOG2 = 1.442695;

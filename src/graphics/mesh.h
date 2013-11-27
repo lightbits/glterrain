@@ -38,6 +38,7 @@ public:
 
 	void addColor(float r, float g, float b, float a);
 	void addColor(const vec4 &c);
+	void addColor(const Color &c);
 	void addColors(const std::vector<vec4> &cs);
 	void addColors(const vec4 *cs, int count);
 
@@ -93,7 +94,8 @@ public:
 	void calculateTangentVectors();
 	void calculateNormalVectors();
 
-	static Mesh getUnitColoredCube();
+	static Mesh genUnitColoredCube();
+	static Mesh genUnitColoredPlane(const Color &color);
 
 	//void draw() { getRenderer()->draw(*this, ...); }
 private:
