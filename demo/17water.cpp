@@ -1,3 +1,8 @@
+/*
+Keywords: deformation, jacobian, waves, vertex shader
+http://http.developer.nvidia.com/GPUGems/gpugems_ch42.html
+*/
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -48,6 +53,10 @@ int main()
 	   !waterShader.linkAndCheckStatus())
 		shutdown("Failed to link shaders");
 
+	Texture waterNormals;
+	if(!waterNormals.loadFromFile("data/img/waternormal.jpg"))
+		shutdown("Failed to load textures");
+
 	Mesh cubeMesh = Mesh::genUnitColoredCube();
 	MeshBuffer cubeBuffer(cubeMesh);
 	Model cube(cubeBuffer);
@@ -69,6 +78,25 @@ int main()
 	quadMesh.addTriangle(2, 3, 0);
 	MeshBuffer quadBuffer(quadMesh);
 	Model quad(quadBuffer);
+
+	Mesh gridMesh;
+	for(int i = 0; i <= 8; ++i)
+	{
+		float f = (i / 8.0) * 2.0f - 1.0f;
+		int j = gridMesh.getPositionCount();
+		gridMesh.addPosition(f * 3.0f, 0.0f, -3.0f);
+		gridMesh.addPosition(f * 3.0f, 0.0f, +3.0f);
+		gridMesh.addPosition(-3.0f, 0.0f, f * 3.0f);
+		gridMesh.addPosition(+3.0f, 0.0f, f * 3.0f);
+		gridMesh.addColor(Colors::White);
+		gridMesh.addColor(Colors::White);
+		gridMesh.addColor(Colors::White);
+		gridMesh.addColor(Colors::White);
+		gridMesh.addIndex(j + 0); gridMesh.addIndex(j + 1);
+		gridMesh.addIndex(j + 2); gridMesh.addIndex(j + 3);
+	}
+	MeshBuffer gridBuffer(gridMesh);
+	Model grid(gridBuffer);
 
 	VertexArray vao;
 	vao.create();
@@ -137,13 +165,19 @@ int main()
 		simpleShader.setUniform("projection", perspectiveMatrix);
 		simpleShader.setUniform("view", viewMatrix.top());
 		cube.pushTransform();
-		cube.translate(0.0f, 0.5f, 0.0f);
+		cube.translate(0.0f, 0.4f, 0.0f);
 		cube.scale(0.5f);
 		cube.draw(GL_TRIANGLES);
+
+		grid.pushTransform();
+		grid.translate(0.0f, -0.5f, 0.0f);
+		grid.draw(GL_LINES);
 
 		// Draw mirrored scene to a rendertarget
 		rt.begin();
 		renderer.clearColorAndDepth();
+		grid.draw(GL_LINES);
+		grid.popTransform();
 		viewMatrix.push();
 		viewMatrix.scale(1.0f, -1.0f, 1.0f);
 		simpleShader.setUniform("view", viewMatrix.top());
@@ -173,15 +207,22 @@ int main()
 		glDepthMask(GL_TRUE);
 
 		waterShader.begin();
-		rt.bindTexture();
 		waterShader.setUniform("time", time);
-		waterShader.setUniform("tex", 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+		rt.bindTexture();
+		glActiveTexture(GL_TEXTURE0 + 1);
+		waterNormals.bind();
+		waterShader.setUniform("view", viewMatrix.top());
+		waterShader.setUniform("tex0", 0);
+		waterShader.setUniform("tex1", 1);
 		waterShader.setUniform("light0Position", vec3(0.0f, 1.0f, 0.0f));
 		waterShader.setUniform("light0Color", vec3(1.0f, 0.8f, 0.5f));
 		waterShader.setUniform("ambient", vec3(67.0f/255.0f, 66.0f/255.0f, 63.0f/255.0f));
 		quad.draw(GL_TRIANGLES);
 		rt.unbindTexture();
+		waterNormals.unbind();
 		waterShader.end();
+		glActiveTexture(GL_TEXTURE0 + 0);
 
 		glDisable(GL_STENCIL_TEST);
 

@@ -24,23 +24,55 @@
 #include <app/glcontext.h>
 #include "noise.h"
 
-void initTerrainMesh(Mesh &mesh)
+void initTerrainMesh(Mesh &mesh, 
+					 float frequency, 
+					 int samples, // Number of interpolation values to take between start and end noise points
+					 float scale, // World-space width and depth
+					 float height) // World-space height
 {
 	mesh.clear();
-	float frequency = 1.1f;
-	int samples = 64; // Number of interpolation values to take between start and end noise points
 	float ds = frequency / float(samples);
-	float scale = 3.0f; // World-space width and depth
-	float height = 2.0f; // World-space height
 
 	std::vector<float> heights(samples * samples);
 	for(int i = 0; i < heights.size(); ++i)
 	{
 		int xi = i % samples;
 		int yi = i / samples;
-		float h0 = min(fBm(xi * ds, yi * ds) * height, 0.35f) * exp(-0.0014f * ((xi - 32) * (xi - 32) + (yi - 32) * (yi - 32)));
-		heights[i] = h0;
+		heights[i] = fBm(xi * ds, yi * ds);
+		// float h0 = min(fBm(xi * ds, yi * ds) * height, 0.35f) * exp(-0.0014f * ((xi - 32) * (xi - 32) + (yi - 32) * (yi - 32)));
+		// heights[i] = h0;
 	}
+
+	// std::vector<vec3> normals(samples * samples);
+	// vec3 cornerNormal = vec3(0.0f, 1.0f, 0.0f);
+	// normals[0] = cornerNormal;
+	// normals[samples - 1] = cornerNormal;
+	// normals[(samples - 1) * samples] = cornerNormal;
+	// normals[(samples - 1) * samples + samples - 1] = cornerNormal;
+	// for(int y = 1; y < samples - 1; ++y)
+	// {
+	// 	for(int x = 1; x < samples - 1; ++x)
+	// 	{
+	// 		float hCenter = heights[y * samples + x];
+	// 		float hTop = heights[(y - 1) * samples + x];
+	// 		float hBottom = heights[(y + 1) * samples + x];
+	// 		float hLeft = heights[y * samples + x - 1];
+	// 		float hRight = heights[y * samples + x + 1];
+
+	// 		float dx = scale / float(samples);
+	// 		float dz = scale / float(samples);
+	// 		vec3 v0 = vec3(dx, hRight - hCenter, 0.0f);
+	// 		vec3 v1 = vec3(0.0f, hTop - hCenter, -dz);
+	// 		vec3 v2 = vec3(-dx, hLeft - hCenter, 0.0f);
+	// 		vec3 v3 = vec3(0.0f, hBottom - hCenter, dz);
+
+	// 		vec3 n0 = glm::normalize(glm::cross(v0, v1));
+	// 		vec3 n1 = glm::normalize(glm::cross(v1, v2));
+	// 		vec3 n2 = glm::normalize(glm::cross(v2, v3));
+	// 		vec3 n3 = glm::normalize(glm::cross(v3, v0));
+	// 		normals[y * samples + x] = glm::normalize(n0 + n1 + n2 + n3);
+	// 	}
+	// }
 
 	for(int y = 0; y < samples - 1; ++y)
 	{
@@ -50,34 +82,38 @@ void initTerrainMesh(Mesh &mesh)
 			float h10 = heights[y * samples + x + 1];
 			float h01 = heights[(y + 1) * samples + x];
 			float h11 = heights[(y + 1) * samples + x + 1];
-			/*float h00 = fBm(x * ds, y * ds);
-			float h10 = fBm((x + 1) * ds, y * ds);
-			float h01 = fBm(x * ds, (y + 1) * ds);
-			float h11 = fBm((x + 1) * ds, (y + 1) * ds);*/
 
-			float xf0 = (x / float(samples)) * scale - scale * 0.5f;
-			float xf1 = ((x + 1) / float(samples)) * scale - scale * 0.5f;
-			float zf0 = (y / float(samples)) * scale - scale * 0.5f;
-			float zf1 = ((y + 1) / float(samples)) * scale - scale * 0.5f;
+			// vec3 n00 = normals[y * samples + x];
+			// vec3 n10 = normals[y * samples + x + 1];
+			// vec3 n01 = normals[(y + 1) * samples + x];
+			// vec3 n11 = normals[(y + 1) * samples + x + 1];
 
-			vec3 v0(xf0, h00, zf0);
-			vec3 v1(xf1, h10, zf0);
-			vec3 v2(xf1, h11, zf1);
-			vec3 v3(xf0, h01, zf1);
-
-			vec3 n0 = glm::cross(v0 - v1, v2 - v1);
+			float xf0 = (x / float(samples - 1)) * scale - scale * 0.5f;
+			float xf1 = ((x + 1) / float(samples - 1)) * scale - scale * 0.5f;
+			float zf0 = (y / float(samples - 1)) * scale - scale * 0.5f;
+			float zf1 = ((y + 1) / float(samples - 1)) * scale - scale * 0.5f;
 
 			int i = mesh.getPositionCount();
 			mesh.addPosition(xf0, h00, zf0);
 			mesh.addPosition(xf1, h10, zf0);
 			mesh.addPosition(xf1, h11, zf1);
+
+			mesh.addPosition(xf1, h11, zf1);
 			mesh.addPosition(xf0, h01, zf1);
-			mesh.addNormal(n0);
-			mesh.addNormal(n0);
-			mesh.addNormal(n0);
-			mesh.addNormal(n0);
-			mesh.addTriangle(i + 0, i + 3, i + 2);
-			mesh.addTriangle(i + 2, i + 1, i + 0);
+			mesh.addPosition(xf0, h00, zf0);
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			mesh.addNormal(vec3(0.0f, 1.0f, 0.0f));
+			// mesh.addNormal(n00);
+			// mesh.addNormal(n10);
+			// mesh.addNormal(n01);
+			// mesh.addNormal(n11);
+			mesh.addTriangle(i + 0, i + 1, i + 2);
+			mesh.addTriangle(i + 3, i + 4, i + 5);
 		}
 	}
 }
@@ -93,14 +129,17 @@ int main()
 
 	ShaderProgram 
 		terrainShader,
-		waterShader;
+		waterShader,
+		simpleShader;
 
 	if(!terrainShader.loadFromFile("data/shaders/terrain.vert", "data/shaders/terrain.frag") ||
-	   !waterShader.loadFromFile("data/shaders/water.vert", "data/shaders/water.frag"))
+	   !waterShader.loadFromFile("data/shaders/water.vert", "data/shaders/water.frag") ||
+	   !simpleShader.loadFromFile("data/shaders/simple.vert", "data/shaders/simple.frag"))
 		shutdown("Failed to load shaders");
 
 	if(!terrainShader.linkAndCheckStatus() ||
-	   !waterShader.linkAndCheckStatus())
+	   !waterShader.linkAndCheckStatus() ||
+	   !simpleShader.linkAndCheckStatus())
 		shutdown("Failed to link shaders");
 
 	Font font0;
@@ -111,27 +150,10 @@ int main()
 	spriteBatch.setFont(font0);
 
 	Mesh terrainMesh;
-	initTerrainMesh(terrainMesh);
+	//initTerrainMesh(terrainMesh, 1.1f, 64, 3.0f, 2.0f);
+	initTerrainMesh(terrainMesh, 1.1f, 3, 3.0f, 2.0f);
 	MeshBuffer terrainBuffer(terrainMesh);
 	Model terrain(terrainBuffer);
-
-	Mesh waterMesh;
-	waterMesh.addPosition(-1.5f, 0.0f, -1.5f);
-	waterMesh.addPosition(+1.5f, 0.0f, -1.5f);
-	waterMesh.addPosition(+1.5f, 0.0f, +1.5f);
-	waterMesh.addPosition(-1.5f, 0.0f, +1.5f);
-	waterMesh.addColor(0.57f, 0.63f, 0.98f, 0.5f);
-	waterMesh.addColor(0.57f, 0.63f, 0.98f, 0.5f);
-	waterMesh.addColor(0.57f, 0.63f, 0.98f, 0.5f);
-	waterMesh.addColor(0.57f, 0.63f, 0.98f, 0.5f);
-	waterMesh.addNormal(0.0f, 1.0f, 0.0f);
-	waterMesh.addNormal(0.0f, 1.0f, 0.0f);
-	waterMesh.addNormal(0.0f, 1.0f, 0.0f);
-	waterMesh.addNormal(0.0f, 1.0f, 0.0f);
-	waterMesh.addTriangle(0, 3, 2);
-	waterMesh.addTriangle(2, 1, 0);
-	MeshBuffer waterBuffer(waterMesh);
-	Model water(waterBuffer);
 
 	VertexArray vao;
 	vao.create();
@@ -168,36 +190,62 @@ int main()
 		renderer.clearColorAndDepth();
 
 		MatrixStack viewMatrix;
-		MatrixStack modelMatrix;
 		viewMatrix.push();
-		viewMatrix.translate(0.0f, 0.0f, -3.0f);
+		viewMatrix.translate(0.0f, 0.0f, -4.0f);
 		viewMatrix.rotateX(xAxisRotation);
 		viewMatrix.rotateY(yAxisRotation);
 
-		renderer.setCullState(CullStates::CullCounterClockwise);
+		renderer.setCullState(CullStates::CullNone);
 		renderer.setBlendState(BlendStates::AlphaBlend);
 		renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);
+		renderer.setRasterizerState(RasterizerStates::LineBoth);
 
 		terrainShader.begin();
 		terrainShader.setUniform("projection", perspectiveMatrix);
 		terrainShader.setUniform("view", viewMatrix.top());
-		terrainShader.setUniform("light0Position", vec3(0.5f, 1.0f, 0.0f));
+		terrainShader.setUniform("light0Position", vec3(sin(time), 1.0f, cos(time)));
 		terrainShader.setUniform("light0Color", vec3(1.0f, 0.8f, 0.5f));
 		terrainShader.setUniform("ambient", vec3(67.0f/255.0f, 66.0f/255.0f, 63.0f/255.0f));		
 		terrain.draw(GL_TRIANGLES);
 		terrainShader.end();
 
-		waterShader.begin();
-		waterShader.setUniform("projection", perspectiveMatrix);
-		waterShader.setUniform("view", viewMatrix.top());
-		waterShader.setUniform("light0Position", vec3(0.5f, 1.0f, 0.0f));
-		waterShader.setUniform("light0Color", vec3(1.0f, 0.8f, 0.5f));
-		waterShader.setUniform("ambient", vec3(67.0f/255.0f, 66.0f/255.0f, 63.0f/255.0f));
-		water.pushTransform();
-		water.translate(0.0f, -0.15f, 0.0f);
-		water.draw(GL_TRIANGLES);
-		water.popTransform();
-		waterShader.end();
+		if(glfwGetKey('N'))
+		{
+			Mesh normals;
+			for(int i = 0; i < terrainMesh.getIndexCount() - 2; i += 3)
+			{
+				unsigned int a0 = terrainMesh.getIndex(i);
+				unsigned int a1 = terrainMesh.getIndex(i + 1);
+				unsigned int a2 = terrainMesh.getIndex(i + 2);
+
+				vec3 v0 = terrainMesh.getPosition(a0);
+				vec3 v1 = terrainMesh.getPosition(a1);
+				vec3 v2 = terrainMesh.getPosition(a2);
+
+				vec3 n = glm::normalize(glm::cross(v0 - v1, v2 - v1));
+
+				unsigned int j = normals.getPositionCount();
+				vec3 center = v1 + 0.5f * (v0 - v1) + 0.5f * (v2 - v1);
+				Color color = i % 2 == 0 ? Color(255, 20, 20) : Color(20, 20, 255);
+				normals.addPosition(v0); normals.addPosition(v0 + n);
+				normals.addPosition(v1); normals.addPosition(v1 + n);
+				normals.addPosition(v2); normals.addPosition(v2 + n);
+				normals.addColor(color); normals.addColor(color);
+				normals.addColor(color); normals.addColor(color);
+				normals.addColor(color); normals.addColor(color);
+				normals.addIndex(j + 0); normals.addIndex(j + 1);
+				normals.addIndex(j + 2); normals.addIndex(j + 3);
+				normals.addIndex(j + 4); normals.addIndex(j + 5);
+			}
+			MeshBuffer mb(normals);
+			Model m(mb);
+			simpleShader.begin();
+			simpleShader.setUniform("projection", perspectiveMatrix);
+			simpleShader.setUniform("view", viewMatrix.top());
+			m.draw(GL_LINES);
+			simpleShader.end();
+			mb.dispose();
+		}
 
 		viewMatrix.pop();
 
