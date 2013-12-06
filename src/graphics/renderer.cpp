@@ -88,6 +88,12 @@ void Renderer::drawIndexedGeometry(GLenum drawMode, int indexCount, GLenum index
 	glDrawElements(drawMode, indexCount, indexType, 0);
 }
 
+void Renderer::draw(Mesh &mesh, GLenum drawMode)
+{
+	MeshBuffer buffer(mesh);
+	buffer.draw(drawMode);
+}
+
 void Renderer::draw(MeshBuffer &mesh, GLenum drawMode)
 {
 	

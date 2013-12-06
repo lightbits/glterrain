@@ -34,6 +34,9 @@ public:
 	/* Draws the currently bound vertex and index buffer data */
 	void drawIndexedGeometry(GLenum drawMode, int indexCount, GLenum indexType);
 
+	/* Allocates a buffer for the vertex data in the mesh and renders */
+	void draw(Mesh &mesh, GLenum drawMode);
+
 	/* Renders the buffer data using the currently set program */
 	void draw(MeshBuffer &mesh, GLenum drawMode);
 

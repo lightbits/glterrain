@@ -50,6 +50,7 @@ public:
 	void addIndex(unsigned int i);
 	void addIndices(const std::vector<unsigned int> &is);
 	void addIndices(const unsigned int *is, int count);
+	void addLine(unsigned int i0, unsigned int i1);
 	void addTriangle(unsigned int i0, unsigned int i1, unsigned int i2);
 
 	vec3 &getPosition(int i);

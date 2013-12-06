@@ -74,6 +74,12 @@ void Mesh::addIndices(const unsigned int *is, int count)
 	indices.insert(indices.end(), is, is + count);
 }
 
+void Mesh::addLine(unsigned int i0, unsigned int i1) 
+{ 
+	indices.push_back(i0);
+	indices.push_back(i1);
+}
+
 void Mesh::addTriangle(unsigned int i0, unsigned int i1, unsigned int i2) 
 { 
 	indices.push_back(i0);
