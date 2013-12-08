@@ -3,18 +3,20 @@
 static Renderer *activeRenderer = nullptr;
 
 Renderer *getActiveRenderer() { return activeRenderer; }
+void setActiveRenderer(Renderer *r) { activeRenderer = r; }
+
 ShaderProgram *getActiveShader() { 
-	if(activeRenderer) 
+	if(activeRenderer)
 		return activeRenderer->getCurrentShaderProgram();
 	else
 		return nullptr;
 }
 
-void setActiveRenderer(Renderer *r) { activeRenderer = r; }
+Renderer::Renderer() : currentShaderProgram(nullptr) { }
 
-Renderer::Renderer() : currentShaderProgram(nullptr)
+Renderer::~Renderer()
 {
-
+	currentShaderProgram = nullptr;
 }
 
 void Renderer::init()

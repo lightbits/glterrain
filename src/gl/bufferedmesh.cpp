@@ -27,7 +27,7 @@ void MeshBuffer::dispose()
 void MeshBuffer::create(Mesh &mesh)
 {
 	if(mesh.getIndexCount() == 0 || mesh.getPositionCount() == 0)
-		throw std::exception("Mesh can not be empty");
+		throw std::exception("Cannot create mesh buffer from empty mesh");
 
 	dispose();
 	meshPtr = &mesh;
@@ -137,24 +137,19 @@ void MeshBuffer::bufferMeshInterleaved(Mesh &mesh)
 
 void MeshBuffer::update(Mesh &mesh)	
 {
-	if(!isBound())
-		throw std::exception("Mesh not bound");
-
-	if(meshPtr->getByteSize() != mesh.getByteSize())
-		throw std::exception("Mesh must be of same size");
-
-	bufferMeshBlock(mesh);
+	update(mesh, 0, mesh.getIndexCount());
 }
 
 void MeshBuffer::update(Mesh &mesh, int startIndex, int endIndex)
 {
+	// Todo: add index selection support
+
 	if(!isBound())
-		throw std::exception("Mesh not bound");
+		throw std::exception("Mesh must be bound before updating");
 
 	if(meshPtr->getByteSize() != mesh.getByteSize())
-		throw std::exception("Mesh must be of same size");
+		throw std::exception("The new mesh must be of the same size");
 
-	// Todo: add index selection support
 	bufferMeshBlock(mesh);
 }
 
@@ -162,7 +157,7 @@ void MeshBuffer::draw(GLenum drawMode)
 {
 	ShaderProgram *sp = getActiveShader();
 	if(!sp)
-		throw std::exception("No active shader");
+		throw std::exception("A shader must be active before drawing");
 	
 	if(meshPtr->getIndexCount() == 0)
 		return;
@@ -247,7 +242,7 @@ void MeshBuffer::setupVao()
 
 	ShaderProgram *shader = getActiveShader();
 	if(!shader)
-		throw std::exception("No active shader");
+		throw std::exception("A shader must be active before VAO setup");
 
 	vaoOk = true;
 	vao.create();
@@ -307,6 +302,8 @@ void MeshBuffer::unbind()
 		ibo.unbind();
 	}
 }
+
+// Deprecated
 
 BufferedMesh::BufferedMesh() : vbo(), ibo(), fmt(), indexCount(0)
 {

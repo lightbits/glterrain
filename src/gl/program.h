@@ -68,6 +68,7 @@ public:
 	void uniform(GLint location, const vec4 &vec) const;
 	void uniform(GLint location, const vec3 &vec) const;
 	void uniform(GLint location, const vec2 &vec) const;
+	void uniform(GLint location, GLdouble d) const;
 	void uniform(GLint location, GLfloat f) const;
 	void uniform(GLint location, GLint i) const;
 private:

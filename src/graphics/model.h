@@ -33,7 +33,7 @@ public:
 
 		ShaderProgram *sp = getActiveShader();
 		if(!sp)
-			throw std::exception("No active shader");		
+			throw std::exception("No active shader");
 
 		sp->setUniform("model", transform.top());
 		mb->draw(drawMode);

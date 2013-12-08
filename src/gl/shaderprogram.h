@@ -40,6 +40,7 @@ public:
 	void setUniform(const std::string &name, const vec4 &vec);
 	void setUniform(const std::string &name, const vec3 &vec);
 	void setUniform(const std::string &name, const vec2 &vec);
+	void setUniform(const std::string &name, GLdouble d);
 	void setUniform(const std::string &name, GLfloat f);
 	void setUniform(const std::string &name, GLint i);
 

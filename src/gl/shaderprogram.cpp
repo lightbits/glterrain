@@ -101,7 +101,7 @@ void ShaderProgram::setAttributefv(GLint location, GLsizei numComponents, GLsize
 {
 	// Debug
 	if(location < 0)
-		throw std::exception("Missing attribute");
+		throw std::exception("Invalid shader attribute");
 
 	glEnableVertexAttribArray(location);
 	glVertexAttribPointer(location, numComponents, GL_FLOAT, GL_FALSE, stride * sizeof(GLfloat), (void*)(offset * sizeof(GLfloat)));
@@ -113,6 +113,7 @@ void ShaderProgram::setUniform(const std::string &name, const mat2 &mat) { progr
 void ShaderProgram::setUniform(const std::string &name, const vec4 &vec) { program.uniform(getUniformLocation(name), vec); }
 void ShaderProgram::setUniform(const std::string &name, const vec3 &vec) { program.uniform(getUniformLocation(name), vec); }
 void ShaderProgram::setUniform(const std::string &name, const vec2 &vec) { program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const std::string &name, GLdouble d) { program.uniform(getUniformLocation(name), d); }
 void ShaderProgram::setUniform(const std::string &name, GLfloat f) { program.uniform(getUniformLocation(name), f); }
 void ShaderProgram::setUniform(const std::string &name, GLint i) { program.uniform(getUniformLocation(name), i); }
 

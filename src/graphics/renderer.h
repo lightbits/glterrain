@@ -13,6 +13,7 @@ class Renderer /* GLrenderer : public Renderer */
 {
 public:
 	Renderer();
+	~Renderer();
 	void init();
 	void dispose();
 
@@ -67,9 +68,17 @@ private:
 	ShaderProgram *currentShaderProgram;
 };
 
+// HEED CAUTION, FOR THERE BE DRAGONS!
 Renderer *getActiveRenderer();
+
+// HEED CAUTION, FOR THERE BE DRAGONS!
+// Allowing anything to handle the raw pointer to the current shader is dangerous
+// When can it be modified ooh I don't know ANY TIME AT ALL WOW!
+// It returns a garbage value? Have fun debugging when you realize that any place
+// in your code could have modified it!
 ShaderProgram *getActiveShader();
 
-void setActiveRenderer(Renderer &r); // TODO: remove this
+// TODO: Not this
+void setActiveRenderer(Renderer &r);
 
 #endif

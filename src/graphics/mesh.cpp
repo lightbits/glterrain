@@ -1,7 +1,86 @@
 #include <graphics/mesh.h>
+#include <common/helpers.h>
 
 Mesh::Mesh() : positions(), normals(), colors(), texels(), indices(), drawMode(GL_TRIANGLES) { }
 Mesh::Mesh(GLenum mode) { }
+
+// http://paulbourke.net/dataformats/obj/
+bool loadMeshObj(const std::string &filename, Mesh &mesh)
+{
+	mesh.clear();
+	std::vector<vec3> positions;
+	std::vector<vec3> normals;
+	std::vector<vec2> texels;
+
+	std::vector<std::string> lines;
+	if(!readFile(filename, lines))
+		return false;
+
+	for(int i = 0; i < lines.size(); ++i)
+	{
+		std::stringstream ss(lines[i]);
+		std::string prefix; ss>>prefix;
+		if(prefix == "v") // Vertices
+		{
+			float x; ss>>x;
+			float y; ss>>y;
+			float z; ss>>z;
+			positions.push_back(vec3(x, y, z));
+		}
+		else if(prefix == "vt") // Texture coordinates
+		{
+			float u; ss>>u;
+			float v; ss>>v;
+			texels.push_back(vec2(u, v));
+		}
+		else if(prefix == "vn") // Normals
+		{
+			float x; ss>>x;
+			float y; ss>>y;
+			float z; ss>>z;
+			normals.push_back(vec3(x, y, z));
+		}
+		else if(prefix == "f") // Facets, assuming all other stuff loaded by now
+		{
+			// A single facet is in the format v/vt/vn, where
+			// a texel or a normal may be omitted, as such:
+			// v//vn, or v/vt/
+			unsigned int i = mesh.getPositionCount();
+
+			for(int n = 0; n < 3; ++n)
+			{
+				std::string indexStr; ss>>indexStr;
+				std::vector<unsigned int> index = split<unsigned int>(indexStr, '/');
+				// Remember that .obj indices start from 1
+				mesh.addPosition(positions[index[0] - 1]);
+				int j = 1;
+				if(texels.size() > 0 && index.size() > j)
+				{
+					mesh.addTexel(texels[index[j] - 1]);
+					++j;
+				}
+				if(normals.size() > 0 && index.size() > j)
+				{
+					mesh.addNormal(normals[index[j] - 1]);
+				}
+			}
+
+			mesh.addTriangle(i + 0, i + 1, i + 2);
+		}
+	}
+
+	return true;
+}
+
+bool Mesh::loadFromFile(const std::string &filename)
+{
+	std::string::size_type dot = filename.find_last_of('.');
+	std::string ext = filename.substr(dot + 1);
+	if(ext == "obj" && !loadMeshObj(filename, *this))
+		return false;
+
+	return true;
+}
 
 void Mesh::setDrawMode(GLenum mode) { drawMode = mode; }
 GLenum Mesh::getDrawMode() const { return drawMode; }

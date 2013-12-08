@@ -47,3 +47,36 @@ bool readFile(const std::string &filename, std::string &dest)
 
 	return true;
 }
+
+bool readFile(const std::string &filename, std::vector<std::string> &dest)
+{
+	std::ifstream in(filename, std::ios::in);
+	dest.clear();
+	if(!in.is_open())
+		return false;
+
+	dest.clear();
+	while(in.good())
+	{
+		std::string line;
+		std::getline(in, line);
+		dest.push_back(line);
+	}
+	in.close();
+
+	return true;
+}
+
+bool endsWith(const std::string &s, const std::string &end)
+{
+	std::string::size_type e = end.size() - 1;
+	std::string::size_type t = s.size() - 1;
+	while(e >= 0 && t >= 0)
+	{
+		if(s[t] != end[e])
+			return false;
+		e--;
+		t--;
+	}
+	return true;
+}

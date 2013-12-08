@@ -17,6 +17,11 @@ float bezier(float v0, float v1, float v2, float v3, float t);
 
 // I/O
 bool readFile(const std::string &filename, std::string &dest);
+bool readFile(const std::string &filename, std::vector<std::string> &dest);
+
+// Strings
+// Does this work?
+bool endsWith(const std::string &s, const std::string &end);
 
 template <class T>
 std::vector<T> split(const std::string &s, char delimiter)
