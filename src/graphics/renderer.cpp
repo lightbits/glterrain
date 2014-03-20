@@ -78,10 +78,13 @@ void Renderer::setClearDepth(double depth)
 void Renderer::beginCustomShader(ShaderProgram &sp)
 {
 	currentShaderProgram = &sp;
+	sp.begin();
 }
 
 void Renderer::endCustomShader()
 {
+	if (currentShaderProgram != nullptr)
+		currentShaderProgram->end();
 	currentShaderProgram = nullptr;
 }
 
@@ -151,4 +154,102 @@ void Renderer::drawLine(const vec3 &v0, const vec3 &v1, const Color &color, floa
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	vbo.unbind();
 	vbo.dispose();
+}
+
+GLint Renderer::getUniformLocation(const std::string &name)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	return currentShaderProgram->getUniformLocation(name);
+}
+
+GLint Renderer::getAttributeLocation(const std::string &name)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	return currentShaderProgram->getAttributeLocation(name);
+}
+
+void Renderer::bindAttribute(GLuint location, const std::string &name)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->bindAttribute(location, name);
+}
+
+void Renderer::setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setAttributefv(name, numComponents, stride, offset);
+}
+
+void Renderer::setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setAttributefv(location, numComponents, stride, offset);
+}
+
+void Renderer::setUniform(const std::string &name, const mat4 &mat)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, mat);
+}
+
+void Renderer::setUniform(const std::string &name, const mat3 &mat)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, mat);
+}
+
+void Renderer::setUniform(const std::string &name, const mat2 &mat)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, mat);
+}
+
+void Renderer::setUniform(const std::string &name, const vec4 &vec)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, vec);
+}
+
+void Renderer::setUniform(const std::string &name, const vec3 &vec)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, vec);
+}
+
+void Renderer::setUniform(const std::string &name, const vec2 &vec)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, vec);
+}
+
+void Renderer::setUniform(const std::string &name, GLdouble d)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, d);
+}
+
+void Renderer::setUniform(const std::string &name, GLfloat f)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, f);
+}
+
+void Renderer::setUniform(const std::string &name, GLint i)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, i);
 }

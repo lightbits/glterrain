@@ -53,12 +53,12 @@ int main()
 	vao.create();
 	vao.bind();
 
-	Mesh cubeMesh = Mesh::getUnitColoredCube();
+	Mesh cubeMesh = Mesh::genUnitColoredCube();
 	MeshBuffer cubeBuffer;
 	cubeBuffer.create(cubeMesh);
 
 	// Data for a fullscreen quad
-	GLfloat postEffectVertexData[] = {
+	float postEffectVertexData[] = {
 	//	x		y		u		v
 		-1.0f, -1.0f,	0.0f, 0.0f,
 		-1.0f, +1.0f,	0.0f, 1.0f,
@@ -66,20 +66,39 @@ int main()
 		+1.0f, -1.0f,	1.0f, 0.0f
 	};
 
-	GLushort postEffectIndexData[] = {
+	unsigned short postEffectIndexData[] = {
 		0, 1, 2, 
 		2, 3, 0
 	};
 
 	BufferObject postEffectVbo, postEffectIbo;
-	postEffectVbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(GLfloat)*4*4, postEffectVertexData);
-	postEffectIbo.create(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(GLushort)*3*2, postEffectIndexData);
+	postEffectVbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(postEffectVertexData), postEffectVertexData);
+	postEffectIbo.create(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(postEffectIndexData), postEffectIndexData);
 
-	Texture texture;
-	texture.create2d(0, GL_RGB, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	texture.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	Texture rt;
+	rt.create2d(0, GL_RGBA8, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	rt.bind();
+	rt.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	rt.unbind();
 
-	renderer.enableDepthTest(GL_LEQUAL);
+	// Create a render buffer to store depth info
+	Renderbuffer rbo;
+	rbo.create();
+	rbo.bind();
+	rbo.storage(GL_DEPTH_COMPONENT, windowWidth, windowHeight);
+	rbo.unbind();
+
+	Framebuffer fbo;
+	fbo.create();
+	fbo.bind();
+	fbo.attachTexture2D(GL_COLOR_ATTACHMENT0, rt, 0);
+	fbo.attachRenderbuffer(GL_DEPTH_ATTACHMENT, rbo);
+	GLenum status = fbo.checkStatus();
+	if(status != GL_FRAMEBUFFER_COMPLETE)
+		crash("Framebuffer not complete.");
+	fbo.unbind();
+
+	renderer.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	//renderer.enableCulling(GL_BACK, GL_CCW);
 	renderer.setClearDepth(1.0);
 	renderer.setClearColor(Color(0.55f, 0.45f, 0.45f, 1.0f));
@@ -89,13 +108,29 @@ int main()
 	Timer timer;
 	timer.start();
 	double renderTime = 0.0;
+	bool reloading = false;
 
-	while(glfwGetWindowParam(GLFW_OPENED) == GL_TRUE)
+	while(context.isOpen())
 	{
 		timer.step();
 		float time = timer.getElapsedTime();
-
 		double renderStart = timer.getElapsedTime();
+
+		if(glfwGetKey('R') && !reloading)
+		{
+			reloading = true;
+			if(!fboShader.loadFromFile("data/shaders/fbopass.vert", "data/shaders/fbopass.frag"))
+				context.close();
+
+			fboShader.linkAndCheckStatus();
+			std::cout<<"Reloaded FBO shader"<<std::endl;
+		}
+		else if(!glfwGetKey('R') && reloading)
+		{
+			reloading = false;
+		}
+
+		fbo.bind();
 		renderer.clearColorAndDepth();
 
 		MatrixStack viewMatrix;
@@ -109,12 +144,29 @@ int main()
 
 		modelMatrix.push();
 		modelMatrix.rotateY(time);
-		modelMatrix.rotateX(0.3f);
+		modelMatrix.rotateX(time * 0.5f);
 		defaultShader.setUniform("model", modelMatrix.top());
 		cubeBuffer.draw(GL_TRIANGLES);
 		modelMatrix.pop();
-		defaultShader.end();
 		viewMatrix.pop();
+		defaultShader.end();
+
+		fbo.unbind();
+
+		renderer.clearColorAndDepth();
+		fboShader.begin();
+		postEffectVbo.bind();
+		postEffectIbo.bind();
+		fboShader.setAttributefv("position", 2, 4, 0);
+		fboShader.setAttributefv("texel", 2, 4, 2);
+		fboShader.setUniform("tex", 0);
+		fboShader.setUniform("time", time);
+		rt.bind();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+		postEffectVbo.unbind();
+		postEffectIbo.unbind();
+		rt.unbind();
+		fboShader.end();
 
 		context.display();
 		renderTime = timer.getElapsedTime() - renderStart;

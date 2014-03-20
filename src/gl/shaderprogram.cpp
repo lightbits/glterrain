@@ -27,6 +27,11 @@ bool ShaderProgram::loadFromFile(const std::string &vertName, const std::string 
 	return true;
 }
 
+bool ShaderProgram::loadFromFile(const std::string &baseName)
+{
+	return loadFromFile(baseName + ".vs", baseName + ".fs");
+}
+
 bool ShaderProgram::linkAndCheckStatus()
 {
 	program.create();
@@ -46,15 +51,15 @@ void ShaderProgram::dispose()
 void ShaderProgram::begin()
 {
 	program.use();
-	Renderer *r = getActiveRenderer();
-	if(r) r->beginCustomShader(*this);
+	//Renderer *r = getActiveRenderer();
+	//if(r) r->beginCustomShader(*this);
 }
 
 void ShaderProgram::end()
 {
 	program.unuse();
-	Renderer *r = getActiveRenderer();
-	if(r) r->endCustomShader();
+	//Renderer *r = getActiveRenderer();
+	//if(r) r->endCustomShader();
 }
 
 void ShaderProgram::bindAttribute(GLuint location, const std::string &name)
@@ -72,7 +77,9 @@ GLint ShaderProgram::getUniformLocation(const std::string &name)
 	else
 	{
 		GLint location = glGetUniformLocation(program.getHandle(), name.c_str());
-		if(location != -1) uniformLocations[name] = location;
+		if(location < 0)
+			throw std::runtime_error("Invalid shader uniform [" + name + "] (not used or bad name)");
+		uniformLocations[name] = location;
 		return location;
 	}
 }
@@ -87,7 +94,9 @@ GLint ShaderProgram::getAttributeLocation(const std::string &name)
 	else
 	{
 		GLint location = glGetAttribLocation(program.getHandle(), name.c_str());
-		if(location != -1) attribLocations[name] = location;
+		if(location < 0)
+			throw std::runtime_error("Invalid shader attribute [" + name + "] (not used or bad name)");
+		attribLocations[name] = location;
 		return location;
 	}
 }
@@ -100,11 +109,16 @@ void ShaderProgram::setAttributefv(const std::string &name, GLsizei numComponent
 void ShaderProgram::setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset)
 {
 	// Debug
-	if(location < 0)
-		throw std::exception("Invalid shader attribute");
+	//if(location < 0)
+	//	throw std::runtime_error("Invalid shader attribute");
 
 	glEnableVertexAttribArray(location);
-	glVertexAttribPointer(location, numComponents, GL_FLOAT, GL_FALSE, stride * sizeof(GLfloat), (void*)(offset * sizeof(GLfloat)));
+	glVertexAttribPointer(location, 
+	                      numComponents, 
+	                      GL_FLOAT, 
+	                      GL_FALSE, 
+	                      stride * sizeof(GLfloat), 
+	                      reinterpret_cast<void*>(offset * sizeof(GLfloat)));
 }
 
 void ShaderProgram::setUniform(const std::string &name, const mat4 &mat) { program.uniform(getUniformLocation(name), mat); }

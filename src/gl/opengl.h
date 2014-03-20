@@ -1,7 +1,7 @@
 #ifndef OPENGL_H
 #define OPENGL_H
 //#include <glload/gl_3_1.h> // OpenGL version 3.1, core profile.
-#include <glload/gl_3_1_comp.h> // OpenGL version 3.1, core profile.
+#include <glload/gl_3_1_comp.h> // OpenGL version 3.1, compatibility profile.
 #include <glload/gll.hpp> // The C-style loading interface
 #include <GL/glfw.h> // Handles context
 

@@ -47,7 +47,7 @@ class MatrixStack
 {
 public:
 	// Initializes the stack with the identity matrix
-	MatrixStack() : current(mat3(1.0f))
+	MatrixStack() : current(1.0f)
 	{
 
 	}

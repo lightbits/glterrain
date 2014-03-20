@@ -53,7 +53,29 @@ public:
 	/* Draws a set of lines pretty slowly */
 	void drawLines(const std::vector<vec3> &lines);
 
+	/* Sets the current shader to be used while rendering */
 	void beginCustomShader(ShaderProgram &sp);
+
+	/* 
+	The following functions all work on the current shader program.
+	If there is none, an execution is thrown. 
+	*/
+	GLint getUniformLocation(const std::string &name);
+	GLint getAttributeLocation(const std::string &name);
+	void bindAttribute(GLuint location, const std::string &name);
+	void setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void setUniform(const std::string &name, const mat4 &mat);
+	void setUniform(const std::string &name, const mat3 &mat);
+	void setUniform(const std::string &name, const mat2 &mat);
+	void setUniform(const std::string &name, const vec4 &vec);
+	void setUniform(const std::string &name, const vec3 &vec);
+	void setUniform(const std::string &name, const vec2 &vec);
+	void setUniform(const std::string &name, GLdouble d);
+	void setUniform(const std::string &name, GLfloat f);
+	void setUniform(const std::string &name, GLint i);
+
+	/* Unsets the current shader */
 	void endCustomShader();
 
 	void begin2d();

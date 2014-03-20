@@ -43,7 +43,7 @@ Texture waterNormals;
 
 bool initialize()
 {
-	if(!context.create("Terrain", VideoMode(windowWidth, windowHeight, 24, 8, 8, false)))
+	if (!context.create(VideoMode(windowWidth, windowHeight, 0, 0, 4, 3, 1, false), "Water", true, true))
 		return false;
 
 	renderer.init();
@@ -52,8 +52,8 @@ bool initialize()
 
 bool loadShaders()
 {
-	if(!colorShader.loadFromFile("demo/17water/color.vs", "demo/17water/color.fs") ||
-	   !waterShader.loadFromFile("demo/17water/water.vs", "demo/17water/water.fs"))
+	if(!colorShader.loadFromFile("demo/17water/color") ||
+	   !waterShader.loadFromFile("demo/17water/water"))
 	   return false;
 
 	if(!colorShader.linkAndCheckStatus() ||
@@ -68,7 +68,7 @@ bool loadContent()
 	if(!loadShaders())
 		return false;
 
-	if(!waterNormals.loadFromFile("data/img/waternormal.jpg"))
+	if(!waterNormals.loadFromFile("data/textures/waternormal.jpg"))
 		return false;
 
 	return true;
@@ -113,19 +113,16 @@ void run()
 	MeshBuffer waterBuffer(waterMesh);
 	Model water(waterBuffer);
 
-	Mesh quadMesh;
-	quadMesh.addPosition(-1.0f, -1.0f, 0.0f);
-	quadMesh.addPosition(+1.0f, -1.0f, 0.0f);
-	quadMesh.addPosition(+1.0f, +1.0f, 0.0f);
-	quadMesh.addPosition(-1.0f, +1.0f, 0.0f);
-	quadMesh.addTexel(0.0f, 0.0f);
-	quadMesh.addTexel(1.0f, 0.0f);
-	quadMesh.addTexel(1.0f, 1.0f);
-	quadMesh.addTexel(0.0f, 1.0f);
-	quadMesh.addTriangle(0, 1, 2);
-	quadMesh.addTriangle(2, 3, 0);
-	MeshBuffer quadBuffer(quadMesh);
-	Model quad(quadBuffer);
+	BufferObject quadVbo;
+	float quadVertices[] = {
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		+1.0f, -1.0f, 1.0f, 0.0f,
+		+1.0f, +1.0f, 1.0f, 1.0f,
+		+1.0f, +1.0f, 1.0f, 1.0f,
+		-1.0f, +1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f
+	};
+	quadVbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(quadVertices), quadVertices);
 
 	Mesh gridMesh;
 	for(int i = 0; i <= 8; ++i)
@@ -185,7 +182,7 @@ void run()
 		colorShader.begin();
 		colorShader.setUniform("projection", perspectiveMatrix);
 		cube.pushTransform();
-		cube.translate(0.0f, 0.4f, 0.0f);
+		cube.translate(0.0f, 0.0f, 0.0f);
 		cube.scale(0.5f);
 
 		// Render the geometry to be refracted, store result in rt
@@ -218,14 +215,19 @@ void run()
 		reflectionRT.bindTexture();
 		glActiveTexture(GL_TEXTURE0 + 2);
 		waterNormals.bind();
-		waterShader.setUniform("view", viewMatrix.top());
+		//waterShader.setUniform("view", viewMatrix.top());
 		waterShader.setUniform("refraction_tex", 0);
 		waterShader.setUniform("reflection_tex", 1);
 		waterShader.setUniform("water_normals_tex", 2);
-		waterShader.setUniform("light0_pos", vec3(0.0f, 1.0f, 0.0f));
-		waterShader.setUniform("light0_col", vec3(1.0f, 0.8f, 0.5f));
-		waterShader.setUniform("ambient", vec3(67.0f/255.0f, 66.0f/255.0f, 63.0f/255.0f));
-		quad.draw(GL_TRIANGLES);
+		//waterShader.setUniform("light0_pos", vec3(0.0f, 1.0f, 0.0f));
+		//waterShader.setUniform("light0_col", vec3(1.0f, 0.8f, 0.5f));
+		//waterShader.setUniform("ambient", vec3(67.0f/255.0f, 66.0f/255.0f, 63.0f/255.0f));
+		quadVbo.bind();
+		waterShader.setAttributefv("position", 2, 4, 0);
+		waterShader.setAttributefv("texel", 2, 4, 2);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		quadVbo.unbind();
+		reflectionRT.unbindTexture();
 		refractionRT.unbindTexture();
 		waterNormals.unbind();
 		waterShader.end();
@@ -301,6 +303,7 @@ void run()
 	colorShader.dispose();
 	waterShader.dispose();
 	vao.dispose();
+	context.dispose();
 }
 
 int main()

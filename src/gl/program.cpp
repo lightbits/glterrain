@@ -124,6 +124,6 @@ void Program::uniform(GLint location, const mat2 &mat) const { glUniformMatrix2f
 void Program::uniform(GLint location, const vec4 &vec) const { glUniform4f(location, vec.x, vec.y, vec.z, vec.w); }
 void Program::uniform(GLint location, const vec3 &vec) const { glUniform3f(location, vec.x, vec.y, vec.z); }
 void Program::uniform(GLint location, const vec2 &vec) const { glUniform2f(location, vec.x, vec.y); }
-void Program::uniform(GLint location, GLdouble d) const { glUniform1f(location, d); }
+void Program::uniform(GLint location, GLdouble d) const { glUniform1f(location, float(d)); }
 void Program::uniform(GLint location, GLfloat f) const { glUniform1f(location, f); }
 void Program::uniform(GLint location, GLint i) const { glUniform1i(location, i); }

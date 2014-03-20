@@ -19,6 +19,7 @@ class MeshBuffer
 public:
 	MeshBuffer();
 	MeshBuffer(Mesh &mesh);
+
 	void dispose();
 
 	void create(Mesh &mesh);
@@ -52,7 +53,13 @@ private:
 	VertexArray vao;
 	BufferObject vbo;
 	BufferObject ibo;
-	const Mesh *meshPtr;
+	
+	int positionCount;
+	int normalCount;
+	int colorCount;
+	int texelCount;
+	int tangentsCount;
+	int indexCount;
 };
 
 // TODO: Add intereaved vertex format for batching possibilities (static buffered mesh)

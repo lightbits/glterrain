@@ -13,53 +13,28 @@ void crash(const char *error )
 	exit(EXIT_FAILURE);
 }
 
-VideoMode::VideoMode() 
-	: windowX(0), windowY(0), 
-	windowWidth(640), windowHeight(480), 
-	depthBits(0), stencilBits(0), 
-	fsaaSamples(0), fullscreen(false)
-{ }
-
-VideoMode::VideoMode(int windowX_, int windowY_, 
-		int windowWidth_, int windowHeight_, 
-		int depthBits_, int stencilBits_, 
-		int fsaaSamples_, bool fullscreen_) 
-	: windowX(windowX_), windowY(windowY_), 
-	windowWidth(windowWidth_), windowHeight(windowHeight_), 
-	depthBits(depthBits_), stencilBits(stencilBits_), 
-	fsaaSamples(fsaaSamples_), fullscreen(fullscreen_)
-{ }
-
-VideoMode::VideoMode(int windowWidth_, int windowHeight_, 
-		int depthBits_, int stencilBits_, 
-		int fsaaSamples_, bool fullscreen_) 
-	: windowWidth(windowWidth_), windowHeight(windowHeight_), 
-	depthBits(depthBits_), stencilBits(stencilBits_), 
-	fsaaSamples(fsaaSamples_), fullscreen(fullscreen_)
-{ }
-
 GLContext::GLContext()
 {
 
 }
 
-bool GLContext::create(const std::string &title, const VideoMode &vm, int major, int minor)
+bool GLContext::create(const VideoMode &mode, const char *title, bool decorated, bool centered)
 {
 	if(glfwInit() != GL_TRUE)
 		return false;
 
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, 0); // 0 = auto
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, major);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, minor);
-	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, vm.fsaaSamples);
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, mode.GlMajor);
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, mode.GlMinor);
+	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, mode.FsaaSamples);
 	glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
 
-	int mode = vm.fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW;
-	if(glfwOpenWindow(vm.windowWidth, vm.windowHeight, 0, 0, 0, 0, vm.depthBits, vm.stencilBits, mode) != GL_TRUE)
+	int fsFlag = mode.Fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW;
+	if(glfwOpenWindow(mode.Width, mode.Height, 0, 0, 0, 0, mode.DepthBits, mode.StencilBits, fsFlag) != GL_TRUE)
 		return false;
 
 	//glfwSetWindowPos(vm.windowX, vm.windowY);
-	glfwSetWindowTitle(title.c_str());
+	glfwSetWindowTitle(title);
 	glfwSwapInterval(1); // vsync (experimental)
 
 	if(glload::LoadFunctions() == glload::LS_LOAD_FAILED)
@@ -87,6 +62,13 @@ void GLContext::setActive()
 
 void GLContext::close()
 {
+	glfwCloseWindow();
+	//glfwTerminate();
+	//activeContext = nullptr;
+}
+
+void GLContext::dispose()
+{
 	glfwTerminate();
 	activeContext = nullptr;
 }
@@ -109,9 +91,9 @@ void GLContext::setCursorEnabled(bool cursor)
 		glfwDisable(GLFW_MOUSE_CURSOR);
 }
 
-void GLContext::setWindowTitle(const std::string &title)
+void GLContext::setWindowTitle(const char *title)
 {
-	glfwSetWindowTitle(title.c_str());
+	glfwSetWindowTitle(title);
 }
 
 void GLContext::setWindowPosition(int x, int y)
@@ -126,10 +108,8 @@ void GLContext::setWindowSize(int w, int h)
 
 void GLContext::setVerticalSync(bool vsync)
 {
-	if(vsync)
-		glfwSwapInterval(1); // Experimental
-	else
-		glfwSwapInterval(0);
+	if(vsync) glfwSwapInterval(1);
+	else glfwSwapInterval(0);
 }
 
 void GLContext::getSize(int *width, int *height)
@@ -147,9 +127,14 @@ double GLContext::getElapsedTime()
 	return glfwGetTime();
 }
 
-void GLContext::sleep(double time)
+void GLContext::sleep(double seconds)
 {
-	glfwSleep(time);
+	glfwSleep(seconds);
+}
+
+void GLContext::sleepms(unsigned int milliseconds)
+{
+	glfwSleep(milliseconds / 1000.0);
 }
 
 bool GLContext::isOpen()

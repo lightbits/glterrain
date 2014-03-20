@@ -236,7 +236,7 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 
 	// Set render states and issue draw call
 	// renderer->setTextureUnit(0);
-	 renderer->setBlendState(blendState);
+	renderer->setBlendState(blendState);
 	renderer->setCullState(CullStates::CullNone);
 	renderer->setRasterizerState(RasterizerStates::Default);
 	renderer->setDepthTestState(DepthTestStates::Always);

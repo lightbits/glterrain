@@ -9,6 +9,10 @@ public:
 	ShaderProgram();
 	bool loadFromSource(const std::string &vertSrc, const std::string &fragSrc);
 	bool loadFromFile(const std::string &vertName, const std::string &fragName);
+
+	// Loads from files baseName.vs and baseName.fs
+	bool loadFromFile(const std::string &baseName);
+
 	bool linkAndCheckStatus();
 	void dispose();
 

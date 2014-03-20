@@ -3,15 +3,14 @@
 in vec2 vert_position;
 in vec2 vert_texel;
 
-uniform vec3 light0_pos;
-uniform vec3 light0_col;
-uniform vec3 ambient;
+// uniform vec3 light0_pos;
+// uniform vec3 light0_col;
+// uniform vec3 ambient;
 uniform float time;
 
 uniform sampler2D refraction_tex;
 uniform sampler2D reflection_tex;
 uniform sampler2D water_normals_tex;
-uniform mat4 view;
 out vec4 out_color;
 
 void main()
