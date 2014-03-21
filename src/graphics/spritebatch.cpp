@@ -31,6 +31,18 @@ static const char *spritebatchVertexShaderSrc =
 
 SpriteBatch::SpriteBatch()
 {
+	currentFont = nullptr;
+	currentShader = nullptr;
+	inBeginEndPair = false;
+}
+
+SpriteBatch::~SpriteBatch()
+{
+	
+}
+
+void SpriteBatch::create()
+{
 	if(!defaultShader.loadFromSource(spritebatchVertexShaderSrc, spritebatchFragShaderSrc))
 		throw std::exception("Failure loading default spritebatch shader");
 
@@ -69,7 +81,7 @@ SpriteBatch::SpriteBatch()
 	indexBuffer.unbind();
 }
 
-SpriteBatch::~SpriteBatch()
+void SpriteBatch::dispose()
 {
 	vertexBuffer.dispose();
 	indexBuffer.dispose();

@@ -27,7 +27,13 @@ public:
 	void setVerticalSync(bool vsync);
 
 	void getSize(int *width, int *height);
+	int	 getWidth();
+	int	 getHeight();
 	void getMousePos(int *x, int *y);
+	int  getMouseX();
+	int  getMouseY();
+	void setMousePos(int x, int y);
+
 	bool isOpen();
 
 	void sleep(double seconds);

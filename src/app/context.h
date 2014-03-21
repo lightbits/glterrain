@@ -4,6 +4,13 @@
 
 class Context
 {
+//public:
+//	enum Style
+//	{
+//		Border    = 0x10000000,
+//		Centered  = 0x01000000
+//	};
+
 public:
 	Context() { }
 	virtual ~Context() { }
@@ -26,10 +33,16 @@ public:
 	/* Retrieves the width and height of the window */
 	virtual void getSize(int *width, int *height) = 0;
 
+	virtual int getWidth() = 0;
+	virtual int getHeight() = 0;
+
 	/* Returns the current mouse position. If the cursor is not hidden, the mouse
 	position is the cursor position, relative to the upper left corner of the window and
 	with the Y-axis down. */
 	virtual void getMousePos(int *x, int *y) = 0;
+	virtual int  getMouseX() = 0;
+	virtual int  getMouseY() = 0;
+	virtual void setMousePos(int x, int y) = 0;
 
 	virtual bool isOpen() = 0;
 

@@ -6,14 +6,48 @@ Camera::Camera() : theta(0), phi(0), position(0, 0, -1)
 	updateVectors();
 }
 
-void Camera::rotateLeft(float t) { theta -= t; if(t < 0.0f) t += M_TWO_PI; }
-void Camera::rotateRight(float t) { theta += t; if(t > M_TWO_PI) t -= M_TWO_PI; }
-void Camera::rotateUp(float t) { if(phi < M_PI) phi += t; }
-void Camera::rotateDown(float t) { if(phi > -M_PI) phi -= t; }
+void Camera::rotateHorizontal(float dt) 
+{
+	theta = glm::mod(theta + dt, M_TWO_PI);
+}
 
-void Camera::setHorizontalAngle(float t) { theta = glm::mod(t, M_TWO_PI); }
-void Camera::setVerticalAngle(float t) { phi = glm::mod(abs(t), M_PI) * (t < 0 ? -1 : 1); }
-void Camera::setPosition(const glm::vec3 &p) { position = p; }
+void Camera::rotateVertical(float dt) 
+{ 
+	phi = glm::clamp(phi - dt, -M_PI_TWO, M_PI_TWO);
+}
+
+void Camera::moveUp(float dx)
+{ position += up * dx; }
+
+void Camera::moveDown(float dx)
+{ position -= up * dx; }
+
+void Camera::moveLeft(float dx)
+{ position -= right * dx; }
+
+void Camera::moveRight(float dx)
+{ position += right * dx; }
+
+void Camera::moveForward(float dx)
+{ position += forward * dx; }
+
+void Camera::moveBackward(float dx)
+{ position -= forward * dx; }
+
+void Camera::setHorizontalAngle(float t) 
+{ 
+	theta = glm::mod(t, M_TWO_PI); 
+}
+
+void Camera::setVerticalAngle(float t) 
+{ 
+	phi = glm::mod(abs(t), M_PI) * (t < 0 ? -1 : 1); 
+}
+
+void Camera::setPosition(const glm::vec3 &p) 
+{ 
+	position = p;
+}
 
 void Camera::updateVectors()
 {
@@ -26,5 +60,14 @@ void Camera::updateVectors()
 	up = glm::cross(right, forward);
 }
 
-mat4 Camera::getViewMatrix() { return glm::lookAt(position, position + forward, up); }
-mat4 Camera::getViewMatrixFocus(float radius, const vec3 &focus) { return glm::lookAt(focus + radius * forward, focus, up); }
+mat4 Camera::getViewMatrix() 
+{ 
+	updateVectors();
+	return glm::lookAt(position, position + forward, up); 
+}
+
+mat4 Camera::getViewMatrixFocus(float radius, const vec3 &focus) 
+{
+	updateVectors();
+	return glm::lookAt(focus + radius * forward, focus, up); 
+}

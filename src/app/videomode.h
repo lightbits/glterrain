@@ -5,7 +5,7 @@ struct VideoMode
 {
 	VideoMode(int width = 640, 
 			  int height = 480, 
-			  int depthBits = 0, 
+			  int depthBits = 24, 
 			  int stencilBits = 0, 
 			  int fsaaSamples = 0,
 			  int glMajor = 3,

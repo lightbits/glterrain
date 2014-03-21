@@ -117,9 +117,40 @@ void GLContext::getSize(int *width, int *height)
 	glfwGetWindowSize(width, height);
 }
 
+int GLContext::getWidth()
+{
+	int w, h; getSize(&w, &h);
+	return w;
+}
+
+int GLContext::getHeight()
+{
+	int w, h; getSize(&w, &h);
+	return h;
+}
+
 void GLContext::getMousePos(int *x, int *y)
 {
 	glfwGetMousePos(x, y);
+}
+
+int GLContext::getMouseX()
+{ 
+	int x, y;
+	getMousePos(&x, &y);
+	return x;
+}
+
+int GLContext::getMouseY()
+{
+	int x, y;
+	getMousePos(&x, &y);
+	return y;
+}		
+
+void GLContext::setMousePos(int x, int y)
+{
+	glfwSetMousePos(x, y);
 }
 
 double GLContext::getElapsedTime()

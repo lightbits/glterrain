@@ -13,16 +13,11 @@ http://blog.ccoder.co.uk/?page=6
 
 General
 ====
+*	Add error logging to file
+*	Update to GLFW 3 or switch to SDL for context handling
 *	Implement nice line drawing https://forum.libcinder.org/topic/smooth-thick-lines-using-geometry-shader
 *	Fix spritebatch http://gamedev.stackexchange.com/questions/21220/how-exactly-does-xnas-spritebatch-work
-*	Move mesh generators out from TriMesh class
-*	Centralize rendering code to a Renderer class
-*	Move bufferData(const TriMesh &mesh) out of BufferObject. This makes no sense if we are handling a target that isn't GL_ARRAY_BUFFER.
 *	Switch to interlaced vertex formats, as this actually supports batching.
-*	Come up with some clever way to handle shared attrib locations
-
-*	Consider dropping the BufferObject class. It just causes confusion and doesn't really make things simpler.
-
 *	Find out why gDEBugger doesn't detect glBindTexture or glDraw*
 *	Use debug context http://www.altdevblogaday.com/2011/06/23/improving-opengl-error-messages/
 

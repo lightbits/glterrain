@@ -235,6 +235,7 @@ void Mesh::calculateNormalVectors()
 Mesh Mesh::genUnitColoredCube()
 {
 	Mesh mesh;
+	mesh.setDrawMode(GL_TRIANGLES);
 	const float halfSize = 0.5f;
 
 	// All faces are oriented counter-clockwise outwards
@@ -293,6 +294,7 @@ Mesh Mesh::genUnitColoredCube()
 Mesh Mesh::genUnitColoredPlane(const Color &color)
 {
 	Mesh mesh;
+	mesh.setDrawMode(GL_TRIANGLES);
 	mesh.addPosition(-0.5f, 0.0f, -0.5f);
 	mesh.addPosition(+0.5f, 0.0f, -0.5f);
 	mesh.addPosition(+0.5f, 0.0f, +0.5f);
@@ -303,5 +305,52 @@ Mesh Mesh::genUnitColoredPlane(const Color &color)
 	mesh.addColor(color);
 	mesh.addTriangle(0, 3, 2);
 	mesh.addTriangle(2, 1, 0);
+	return mesh;
+}
+
+Mesh Mesh::genUnitCylinder(const Color &color, int levels)
+{
+	Mesh mesh;
+	mesh.setDrawMode(GL_TRIANGLES);
+	float dt = M_TWO_PI / float(levels);
+	for (int i = 0; i < levels; ++i)
+	{
+		unsigned int index = mesh.getPositionCount();
+		float t = i * dt;
+		float x0 = cos(t); float x1 = cos(t + dt);
+		float y0 = sin(t); float y1 = sin(t + dt);
+		mesh.addPosition(x0, y0, -1.0f);
+		mesh.addPosition(x0, y0, +1.0f);
+		mesh.addPosition(x1, y1, +1.0f);
+		mesh.addPosition(x1, y1, -1.0f);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addTriangle(index, index + 1, index + 2);
+		mesh.addTriangle(index + 2, index + 3, index);
+	}
+	return mesh;
+}
+
+Mesh Mesh::genUnitGrid(const Color &color, int lines)
+{
+	Mesh mesh;
+	mesh.setDrawMode(GL_LINES);
+	for (int i = 0; i <= lines; ++i)
+	{
+		unsigned int index = mesh.getPositionCount();
+		float t = (i / float(lines)) * 2.0f - 1.0f;
+		mesh.addPosition(t, 0.0f, -1.0f);
+		mesh.addPosition(t, 0.0f, +1.0f);
+		mesh.addPosition(-1.0f, 0.0f, t);
+		mesh.addPosition(+1.0f, 0.0f, t);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addColor(color);
+		mesh.addLine(index, index + 1);
+		mesh.addLine(index + 2, index + 3);
+	}
 	return mesh;
 }

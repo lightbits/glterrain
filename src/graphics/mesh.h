@@ -100,6 +100,8 @@ public:
 
 	static Mesh genUnitColoredCube();
 	static Mesh genUnitColoredPlane(const Color &color);
+	static Mesh genUnitCylinder(const Color &color, int levels);
+	static Mesh genUnitGrid(const Color &color, int lines);
 
 	//void draw() { getRenderer()->draw(*this, ...); }
 private:

@@ -12,16 +12,22 @@ ShaderProgram *getActiveShader() {
 		return nullptr;
 }
 
-Renderer::Renderer() : currentShaderProgram(nullptr) { }
+Renderer::Renderer() : currentShaderProgram(nullptr)
+{
+
+}
 
 Renderer::~Renderer()
 {
 	currentShaderProgram = nullptr;
 }
 
-void Renderer::init()
+void Renderer::init(Context &ctx)
 {
 	setActiveRenderer(this);
+	int w, h;
+	ctx.getSize(&w, &h);
+	glViewport(0, 0, w, h);
 }
 
 void Renderer::dispose()
@@ -30,11 +36,8 @@ void Renderer::dispose()
 }
 
 void Renderer::setDepthTestState(DepthTestState state) { depthTestState = state; state.set(); }
-
 void Renderer::setCullState(CullState state) { cullState = state; state.set(); }
-
 void Renderer::setRasterizerState(RasterizerState state) { rasterizerState = state; state.set(); }
-
 void Renderer::setBlendState(BlendState state) { blendState = state; state.set(); }
 
 void Renderer::enableUserStates() 
@@ -96,12 +99,39 @@ void Renderer::drawIndexedGeometry(GLenum drawMode, int indexCount, GLenum index
 void Renderer::draw(Mesh &mesh, GLenum drawMode)
 {
 	MeshBuffer buffer(mesh);
-	buffer.draw(drawMode);
+	buffer.draw();
 }
 
 void Renderer::draw(MeshBuffer &mesh, GLenum drawMode)
 {
-	
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader");
+
+	//mesh.vbo.bind();
+	//mesh.ibo.bind();
+	//int offset = 0;
+
+	//setAttributefv("position", 3, 0, offset); 
+	//offset += mesh.positionCount * 3;
+
+	//if (mesh.normalCount > 0)
+	//{
+	//	setAttributefv("normal", 3, 0, offset); 
+	//	offset += mesh.normalCount * 3;
+	//}
+	//if (mesh.colorCount > 0)
+	//{
+	//	setAttributefv("color", 4, 0, offset); 
+	//	offset += mesh.colorCount * 4;
+	//}
+	//if (mesh.texelCount > 0)
+	//{
+	//	setAttributefv("texel", 2, 0, offset); 
+	//}
+
+	//glDrawElements(drawMode, mesh.indexCount, GL_UNSIGNED_INT, 0);
+	//mesh.vbo.unbind();
+	//mesh.ibo.unbind();
 }
 
 void Renderer::draw(std::vector<MeshBuffer> &meshes)

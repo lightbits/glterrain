@@ -1,7 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
+#include <app/context.h>
 #include <gl/opengl.h>
-#include <gl/bufferedmesh.h>
+#include <gl/meshbuffer.h>
 #include <gl/shaderprogram.h>
 #include <graphics/mesh.h>
 #include <graphics/spritebatch.h>
@@ -14,7 +15,7 @@ class Renderer /* GLrenderer : public Renderer */
 public:
 	Renderer();
 	~Renderer();
-	void init();
+	void init(Context &ctx);
 	void dispose();
 
 	void setDepthTestState(DepthTestState state);

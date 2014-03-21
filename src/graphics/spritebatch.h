@@ -53,6 +53,9 @@ public:
 	SpriteBatch();
 	~SpriteBatch();
 
+	void create(/* int spriteCount = 512 */);
+	void dispose();
+
 	void setFont(const Font &font);
 
 	void begin(BlendState blendMode = BlendStates::AlphaBlend, const mat4 &view = mat4(1.0f));
@@ -127,7 +130,6 @@ private:
 	mat4 projectionMatrix;
 
 	const Font *currentFont;
-	const Texture *currentTexture;
 	ShaderProgram *currentShader;
 	ShaderProgram defaultShader;
 

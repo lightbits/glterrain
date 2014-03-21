@@ -8,20 +8,25 @@ class Camera
 public:
 	Camera();
 
-	void rotateLeft(float t);
-	void rotateRight(float t);
-	void rotateUp(float t);
-	void rotateDown(float t);
+	void rotateHorizontal(float dt);
+	void rotateVertical(float dt);
 
-	void setHorizontalAngle(float t);
-	void setVerticalAngle(float t);
+	void moveUp(float dx);
+	void moveDown(float dx);
+	void moveLeft(float dx);
+	void moveRight(float dx);
+	void moveForward(float dx);
+	void moveBackward(float dx);
+
+	void setHorizontalAngle(float radians);
+	void setVerticalAngle(float radians);
 	void setPosition(const vec3 &p);
-
-	void updateVectors();
 
 	mat4 getViewMatrix();
 	mat4 getViewMatrixFocus(float radius, const vec3 &focus);
 private:
+	void updateVectors();
+
 	float theta;
 	float phi;
 	vec3 position;

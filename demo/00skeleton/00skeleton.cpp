@@ -21,30 +21,66 @@
 #include <graphics/renderer.h>
 #include <app/glcontext.h>
 
+bool load()
+{
+	return true;
+}
+
+void free()
+{
+	
+}
+
+void init(Renderer &gfx, Context &ctx)
+{
+
+}
+
+void update(Renderer &gfx, Context &ctx, double dt)
+{
+
+}
+
+void render(Renderer &gfx, Context &ctx, double dt)
+{
+
+}
+
 int main()
 {
-	GLContext context;
-	if(!context.create("Skeleton", VideoMode(640, 480, 24, 8, 8, false)))
+	GLContext ctx;
+	if (!ctx.create(VideoMode(720, 480, 0, 0, 4, 3, 1, false), "Skeleton", true, true))
 		return -1;
 
-	Renderer renderer;
-	renderer.init();
-	renderer.setClearColor(Color(0.55f, 0.45f, 0.45f, 1.0f));
+	Renderer gfx;
+	gfx.init(ctx);
+	gfx.setClearColor(Color(0.55f, 0.45f, 0.45f, 1.0f));
 
-	while(context.isOpen())
+	if (!load())
 	{
-		renderer.clearColorBuffer();
-
-		context.display();
-		GLenum error = glGetError();
-		if(error != GL_NO_ERROR)
-		{
-			std::cerr<<getErrorMessage(error)<<"...";
-			std::cin.get();
-			context.close();
-		}
+		ctx.dispose();
+		crash("Failed to load content");
 	}
 
-	renderer.dispose();
+	try
+	{
+		init(gfx, ctx);
+
+		while(ctx.isOpen())
+		{
+			gfx.clearColorBuffer();
+			ctx.display();
+			ctx.pollEvents();
+			if (checkGLErrors(std::cerr))
+				ctx.close();
+		}
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << "An unexpected error occured: " << e.what() << std::endl;
+	}
+
+	gfx.dispose();
+	ctx.dispose();
 	shutdown();
 }
