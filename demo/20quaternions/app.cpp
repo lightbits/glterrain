@@ -73,9 +73,6 @@ float y_rotation = 0.0f;
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	if (glfwGetKey(GLFW_KEY_ESC))
-		ctx.close();
-
 	y_rotation += dt;
 	updateCamera(gfx, ctx, dt);
 }

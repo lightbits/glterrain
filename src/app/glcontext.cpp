@@ -1,121 +1,173 @@
 #include <app/glcontext.h>
-#include <gl/opengl.h>
 #include <common/timer.h>
 #include <sstream>
 #include <string>
 
-static GLContext *activeContext = nullptr;
+static GLContext *g_active_context = nullptr;
 GLContext *getActiveContext() {
-	return activeContext;
+	return g_active_context;
 }
 
-GLContext::GLContext()
-{
-
-}
+GLContext::GLContext() : window(nullptr), context(nullptr)
+{ }
 
 bool GLContext::create(const VideoMode &mode, const char *title, bool decorated, bool centered)
 {
-	if(glfwInit() != GL_TRUE)
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		return false;
 
-	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, 0); // 0 = auto
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, mode.GlMajor);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, mode.GlMinor);
-	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, mode.FsaaSamples);
-	glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, mode.GlMajor);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mode.GlMinor);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, mode.DepthBits);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, mode.FsaaSamples > 0 ? 1 : 0);
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, mode.FsaaSamples);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
-	int fsFlag = mode.Fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW;
-	if(glfwOpenWindow(mode.Width, mode.Height, 0, 0, 0, 0, mode.DepthBits, mode.StencilBits, fsFlag) != GL_TRUE)
+	int x = centered ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED;
+	int y = centered ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED;
+
+	window = SDL_CreateWindow(
+		title, x, y, mode.Width, mode.Height,
+		SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+
+	if (window == NULL)
 		return false;
 
-	//glfwSetWindowPos(vm.windowX, vm.windowY);
-	glfwSetWindowTitle(title);
-	glfwSwapInterval(1); // vsync (experimental)
+	context = SDL_GL_CreateContext(window);
+	SDL_GL_SetSwapInterval(1);
 
-	if(glload::LoadFunctions() == glload::LS_LOAD_FAILED)
+	GLenum glew_status = glewInit();
+	if (glew_status != GLEW_OK)
+	{
+		SDL_Quit();
 		return false;
+	}
 
-	setActive();
+	g_active_context = this;
 
 	return true;
 }
 
-void GLContext::setActive()
-{
-	activeContext = this;
-}
-
 void GLContext::close()
 {
-	glfwCloseWindow();
-	//glfwTerminate();
-	//activeContext = nullptr;
+	g_active_context = nullptr;
 }
 
 void GLContext::dispose()
 {
-	glfwTerminate();
-	activeContext = nullptr;
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	g_active_context = nullptr;
 }
 
 std::string GLContext::getDebugInfo() const
 {
 	std::stringstream ss;
-	ss << "Debug context: "	 <<(glfwGetWindowParam(GLFW_OPENGL_DEBUG_CONTEXT) ? "yes" : "no") << std::endl;
-	ss << "HW accelerated: " <<(glfwGetWindowParam(GLFW_ACCELERATED) ? "yes" : "no") << std::endl;
-	ss << "Depth bits: "     <<glfwGetWindowParam(GLFW_DEPTH_BITS) << std::endl;
-	ss << "Stencil bits: "   <<glfwGetWindowParam(GLFW_STENCIL_BITS) << std::endl;
-	ss << "FSAA samples: "   <<glfwGetWindowParam(GLFW_FSAA_SAMPLES) << std::endl;
-	ss << "Vendor: "         <<glGetString(GL_VENDOR) << std::endl;
-	ss << "Renderer: "       <<glGetString(GL_RENDERER) << std::endl;
-	ss << "GL ver.: "        <<glGetString(GL_VERSION) << std::endl;
-	ss << "GLSL ver.: "	     <<glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	int context_flags;
+	int accelerated;
+	int double_buffer;
+	int depth_bits;
+	int stencil_bits;
+	int fsaa_samples;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &context_flags);
+	SDL_GL_GetAttribute(SDL_GL_ACCELERATED_VISUAL, &accelerated);
+	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &double_buffer);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &depth_bits);
+	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits);
+	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &fsaa_samples);
+	ss << "Debug context: "	 << (context_flags & SDL_GL_CONTEXT_DEBUG_FLAG ? "yes" : "no") << std::endl;
+	ss << "HW accelerated: " << (accelerated ? "yes" : "no") << std::endl;
+	ss << "Doublebuffered: " << (double_buffer ? "yes" : "no") << std::endl;
+	ss << "Depth bits: "     << depth_bits << std::endl;
+	ss << "Stencil bits: "   << stencil_bits << std::endl;
+	ss << "FSAA samples: "   << fsaa_samples << std::endl;
+	ss << "Vendor: "         << glGetString(GL_VENDOR) << std::endl;
+	ss << "Renderer: "       << glGetString(GL_RENDERER) << std::endl;
+	ss << "GL ver.: "        << glGetString(GL_VERSION) << std::endl;
+	ss << "GLSL ver.: "	     << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 	return ss.str();
 }
 
 void GLContext::pollEvents()
 {
-	glfwPollEvents();
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		switch (event.type)
+		{
+		case SDL_KEYUP:
+			if (!key_released)
+				break;
+			key_released(event.key.keysym.mod, event.key.keysym.sym);
+			break;
+		case SDL_KEYDOWN:
+			if (!key_pressed)
+				break;
+			key_pressed(event.key.keysym.mod, event.key.keysym.sym);
+			break;
+		case SDL_MOUSEMOTION:
+			if (mouse_dragged && event.motion.state & SDL_BUTTON_LMASK)
+				mouse_dragged(SDL_BUTTON_LEFT, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+			else if (mouse_dragged && event.motion.state & SDL_BUTTON_MMASK)
+				mouse_dragged(SDL_BUTTON_MIDDLE, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+			else if (mouse_dragged && event.motion.state & SDL_BUTTON_RMASK)
+				mouse_dragged(SDL_BUTTON_RIGHT, event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+			else if (mouse_moved)
+				mouse_moved(event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (!mouse_pressed)
+				break;
+			mouse_pressed(event.button.button, event.button.x, event.button.y);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if (!mouse_released)
+				break;
+			mouse_released(event.button.button, event.button.x, event.button.y);
+			break;
+		case SDL_QUIT:
+			g_active_context = nullptr;
+			break;
+		}
+	}
 }
 
 void GLContext::display()
 {
-	glfwSwapBuffers();
+	SDL_GL_SwapWindow(window);
 }
 
 void GLContext::setCursorEnabled(bool cursor)
 {
-	if(cursor)
-		glfwEnable(GLFW_MOUSE_CURSOR);
-	else
-		glfwDisable(GLFW_MOUSE_CURSOR);
+	SDL_ShowCursor(cursor);
 }
 
 void GLContext::setWindowTitle(const char *title)
 {
-	glfwSetWindowTitle(title);
+	SDL_SetWindowTitle(window, title);
 }
 
 void GLContext::setWindowPosition(int x, int y)
 {
-	glfwSetWindowPos(x, y);
+	SDL_SetWindowPosition(window, x, y);
 }
 
 void GLContext::setWindowSize(int w, int h)
 {
-	glfwSetWindowSize(w, h);
+	SDL_SetWindowSize(window, w, h);
 }
 
 void GLContext::setVerticalSync(bool vsync)
 {
-	if(vsync) glfwSwapInterval(1);
-	else glfwSwapInterval(0);
+	if (!SDL_GL_SetSwapInterval(vsync))
+		return; // log << could not enable vsync
 }
 
 void GLContext::getSize(int *width, int *height) const
 {
-	glfwGetWindowSize(width, height);
+	SDL_GetWindowSize(window, width, height);
 }
 
 int GLContext::getWidth() const
@@ -132,7 +184,7 @@ int GLContext::getHeight() const
 
 void GLContext::getMousePos(int *x, int *y) const
 {
-	glfwGetMousePos(x, y);
+	SDL_GetMouseState(x, y);
 }
 
 int GLContext::getMouseX() const
@@ -151,25 +203,44 @@ int GLContext::getMouseY() const
 
 void GLContext::setMousePos(int x, int y)
 {
-	glfwSetMousePos(x, y);
+	SDL_WarpMouseInWindow(window, x, y);
 }
 
 double GLContext::getElapsedTime()
 {
-	return glfwGetTime();
+	return SDL_GetTicks() / 1000.0;
 }
 
 void GLContext::sleep(double seconds)
 {
-	glfwSleep(seconds);
+	SDL_Delay(Uint32(seconds * 1000));
 }
 
 void GLContext::sleepms(unsigned int milliseconds)
 {
-	glfwSleep(milliseconds / 1000.0);
+	SDL_Delay(milliseconds);
 }
 
 bool GLContext::isOpen() const
 {
-	return glfwGetWindowParam(GLFW_OPENED) == GL_TRUE;
+	return g_active_context == this;
+}
+
+bool GLContext::isKeyPressed(int scancode) const
+{
+	 const unsigned char *kbs = SDL_GetKeyboardState(NULL);
+	 return kbs[scancode];
+}
+
+bool GLContext::isKeyPressed(char key) const
+{
+	 const unsigned char *kbs = SDL_GetKeyboardState(NULL);
+	 int index = SDL_SCANCODE_A + int(tolower(key)) - int('a');
+	 return kbs[index];
+}
+
+bool GLContext::isMousePressed(int button) const
+{
+	int state = SDL_GetMouseState(NULL, NULL);
+	return SDL_BUTTON(state) == button;
 }

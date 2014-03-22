@@ -2,6 +2,7 @@
 #define CONTEXT_H
 #include <app/videomode.h>
 #include <string>
+#include <functional>
 
 class Context
 {
@@ -29,7 +30,6 @@ public:
 	virtual void setWindowTitle(const char *title) = 0;
 	virtual void setWindowPosition(int x, int y) = 0;
 	virtual void setWindowSize(int w, int h) = 0;
-	virtual void setActive() = 0;
 
 	virtual void setVerticalSync(bool vsync) = 0;
 
@@ -48,12 +48,27 @@ public:
 	virtual void setMousePos(int x, int y) = 0;
 
 	virtual bool isOpen() const = 0;
+	virtual bool isKeyPressed(int scancode) const = 0;
+	virtual bool isKeyPressed(char letter) const = 0;
+	virtual bool isMousePressed(int button) const = 0;
 
 	virtual void sleep(double seconds) = 0;
 	virtual void sleepms(unsigned int milliseconds) = 0;
 
 	/* Returns the time since the last call to create(), in seconds. */
 	virtual double getElapsedTime() = 0;
+
+public:
+	typedef std::function< void(int modifiers, int key) > KeyboardEventCallback;
+	typedef std::function< void(int x, int y, int dx, int dy) > MouseMotionEventCallback;
+	typedef std::function< void(int button, int x, int y, int dx, int dy) > MouseDragEventCallback;
+	typedef std::function< void(int button, int x, int y) > MouseButtonEventCallback;
+	KeyboardEventCallback key_released;
+	KeyboardEventCallback key_pressed;
+	MouseMotionEventCallback mouse_moved;
+	MouseDragEventCallback mouse_dragged;
+	MouseButtonEventCallback mouse_pressed;
+	MouseButtonEventCallback mouse_released;
 private:
 	Context(const Context &copy) { }
 	Context &operator=(const Context &rhs) { }

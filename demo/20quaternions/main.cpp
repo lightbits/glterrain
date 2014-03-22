@@ -1,7 +1,7 @@
 #include "app.h"
 #include <app/log.h>
 
-int main()
+int main(int argc, char **argv)
 {
 	Log log("log.txt", true);
 	GLContext ctx;
@@ -26,6 +26,14 @@ int main()
 		}
 
 		init(gfx, ctx);
+
+		/* Setup event callbacks */
+		//ctx.key_pressed = keyPressed;
+		//ctx.key_released = keyReleased;
+		//ctx.mouse_moved = mouseMoved;
+		//ctx.mouse_dragged = mouseDragged;
+		//ctx.mouse_pressed = mousePressed;
+		//ctx.mouse_released = mouseReleased;
 
 		int updates_per_sec = 60;
 		double target_frame_time = 1.0 / 60.0;
@@ -52,6 +60,9 @@ int main()
 			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();
+
+			if (ctx.isKeyPressed(SDL_SCANCODE_ESCAPE))
+				ctx.close();
 
 			double render_time = ctx.getElapsedTime() - t;
 			if (render_time < target_frame_time)

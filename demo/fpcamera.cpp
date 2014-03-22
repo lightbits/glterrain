@@ -13,7 +13,7 @@ void resetCamera(float theta, float phi, vec3 position)
 
 void updateCamera(Renderer &gfx, Context &ctx, double dt)
 {
-	if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_1))
+	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{
 		int wh = ctx.getWidth() / 2;
 		int hh = ctx.getHeight() / 2;
@@ -27,19 +27,19 @@ void updateCamera(Renderer &gfx, Context &ctx, double dt)
 	else
 		ctx.setCursorEnabled(true);
 
-	if (glfwGetKey(GLFW_KEY_LCTRL))
+	if (ctx.isKeyPressed(SDL_SCANCODE_LCTRL))
 		camera.moveDown(dt);
-	else if (glfwGetKey(GLFW_KEY_SPACE))
+	else if (ctx.isKeyPressed(SDL_SCANCODE_SPACE))
 		camera.moveUp(dt);
 
-	if (glfwGetKey('W'))
+	if (ctx.isKeyPressed('w'))
 		camera.moveForward(dt);
-	else if (glfwGetKey('S'))
+	else if (ctx.isKeyPressed('s'))
 		camera.moveBackward(dt);
 
-	if (glfwGetKey('A'))
+	if (ctx.isKeyPressed('a'))
 		camera.moveLeft(dt);
-	else if (glfwGetKey('D'))
+	else if (ctx.isKeyPressed('d'))
 		camera.moveRight(dt);
 }
 

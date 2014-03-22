@@ -9,12 +9,22 @@ void init(Renderer &gfx, Context &ctx);
 void update(Renderer &gfx, Context &ctx, double dt);
 void render(Renderer &gfx, Context &ctx, double dt);
 
-//void keyPressed(int key);
-//void keyReleased(int key);
-//void mouseMoved(int x, int y);
-//void mouseDragged(int x, int y, int button);
-//void mousePressed(int x, int y, int button);
-//void mouseReleased(int x, int y, int button);
-//void windowResized(int w, int h);
+///* See SDL_KeyboardEvent */
+//void keyPressed(int mod, int key);
+//
+///* See SDL_KeyboardEvent */
+//void keyReleased(int mod, int key);
+//
+///* See SDL_MouseButtonEvent */
+//void mouseMoved(int x, int y, int dx, int dy);
+//
+///* See SDL_MouseButtonEvent */
+//void mouseDragged(int button, int x, int y, int dx, int dy);
+//
+///* See SDL_MouseButtonEvent */
+//void mousePressed(int button, int x, int y);
+//
+///* See SDL_MouseButtonEvent */
+//void mouseReleased(int button, int x, int y);
 
 #endif

@@ -2,7 +2,7 @@
 #ifdef SLGL_WINDOWS
 	#include <Windows.h>
 #else
-	#include <GL/glfw.h>
+	#include <SDL.h>
 #endif
 
 Timer::Timer() : startTime(0.0), prevTime(0.0), currTime(0.0), prevFpsUpdate(0.0), fps(0.0), frames(0), delta(0.0)
@@ -54,7 +54,7 @@ double Timer::getElapsedTime() const
 	// of decades
 	return (double)(ticks.QuadPart / (double)freq);
 #else
-	return glfwGetTime();
+	return SDL_GetTicks() / 1000.0;
 #endif
 }
 

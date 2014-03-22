@@ -1,8 +1,6 @@
 #include <gl/texture.h>
-#include <glimg/glimg.h>
-#include <iostream> // for cerr
+#include <iostream>
 #include <string>
-#include <memory> // for unique_ptr
 
 Texture::Texture() : width_(0), height_(0), handle_(0), target_(GL_TEXTURE_2D)
 {
@@ -67,22 +65,10 @@ void Texture::copyFromFramebuffer(
 // glimg does not convert to power-of-two textures, so be your GPU should support NPOT textures
 bool Texture::loadFromFile(const std::string &filename)
 {
-	try
-	{
-		// Allocate data for images (deletes itself when no longer used)
-		std::unique_ptr<glimg::ImageSet> imgset(glimg::loaders::stb::LoadFromFile(filename));
+	// TODO: Use image loading library to load images
 
-		create(glimg::CreateTexture(imgset.get(), 0), 
-			GL_TEXTURE_2D,
-			imgset.get()->GetDimensions().width, 
-			imgset.get()->GetDimensions().height);
-	}
-	catch(glimg::loaders::stb::StbLoaderException &e)
-	{
-		dispose();
-		std::cerr<<"Failure loading texture: "<<e.what()<<"("<<filename<<")"<<std::endl;
-		return false;
-	}
+	unsigned char pixels[] = { 255, 0, 255, 0, 0, 0, 255, 0, 255, 0, 0, 0 };
+	create2d(0, GL_RGB, 2, 2, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)pixels);
 
 	return true;
 }

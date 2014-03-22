@@ -1,15 +1,14 @@
 #ifndef GL_CONTEXT_H
 #define GL_CONTEXT_H
 #include <app/context.h>
+#include <gl/opengl.h>
 
 class GLContext : public Context
 {
 public:
 	GLContext();
-	~GLContext() { }
 	
 	bool create(const VideoMode &mode, const char *title, bool decorated, bool centered);
-	void setActive();
 	void close();
 	void dispose();
 
@@ -33,10 +32,16 @@ public:
 	void setMousePos(int x, int y);
 
 	bool isOpen() const;
+	bool isKeyPressed(int scancode) const;
+	bool isKeyPressed(char letter) const;
+	bool isMousePressed(int button) const;
 
 	void sleep(double seconds);
 	void sleepms(unsigned int milliseconds);
 	double getElapsedTime();
+private:
+	SDL_Window *window;
+	SDL_GLContext context;
 };
 
 GLContext *getActiveContext();
