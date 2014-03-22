@@ -1,17 +1,18 @@
 #ifndef OPENGL_H
 #define OPENGL_H
-//#include <glload/gl_3_1.h> // OpenGL version 3.1, core profile.
 #include <glload/gl_3_1_comp.h> // OpenGL version 3.1, compatibility profile.
 #include <glload/gll.hpp> // The C-style loading interface
-#include <GL/glfw.h> // Handles context
+#include <GL/glfw.h>
+#include <iostream>
+#include <app/log.h>
 
-const int OPENGL_VERSION_MAJOR = 3;
-const int OPENGL_VERSION_MINOR = 1;
-
+/* Converts a GLenum to a text error */
 const char *getErrorMessage(GLenum code);
 
-bool createContext(const char *title, int x, int y, int w, int h, int depthbits, int stencilbits, int fsaa, bool fullscreen);
-void destroyContext();
-void shutdown(const char *error = "");
+/* 
+Polls for OpenGL errors and writes them to the log.
+@return The number of errors
+*/
+int checkGLErrors(Log &log);
 
 #endif

@@ -2,13 +2,13 @@
 http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
 */
 
-#include <app/glcontext.h>
-#include <graphics/renderer.h>
-#include <gl/shaderprogram.h>
+#include "app.h"
 #include <graphics/model.h>
-#include <common/transform.h>
-#include <camera/camera.h>
 #include <graphics/spritebatch.h>
+#include <common/transform.h>
+#include <common/typedefs.h>
+#include <app/log.h>
+#include "../fpcamera.h"
 
 MeshBuffer cubebuffer;
 MeshBuffer inner_gridbuffer;
@@ -22,8 +22,6 @@ Model cylinder;
 VertexArray vao;
 
 ShaderProgram shader_default;
-
-Camera camera;
 
 Font font;
 SpriteBatch spritebatch;
@@ -68,37 +66,10 @@ void init(Renderer &gfx, Context &ctx)
 {
 	vao.create();
 	vao.bind();
-	camera.setPosition(vec3(0.0f, 0.0f, -1.0f));
-	ctx.setMousePos(ctx.getWidth() / 2, ctx.getHeight() / 2);
+	resetCamera(-PI, 0.0f, vec3(0.0f, 0.0f, -2.0f));
 }
 
 float y_rotation = 0.0f;
-
-void updateCamera(Renderer &gfx, Context &ctx, double dt)
-{
-	if (glfwGetKey(GLFW_KEY_LCTRL))
-		camera.moveDown(dt);
-	else if (glfwGetKey(GLFW_KEY_SPACE))
-		camera.moveUp(dt);
-
-	if (glfwGetKey('W'))
-		camera.moveForward(dt);
-	else if (glfwGetKey('S'))
-		camera.moveBackward(dt);
-
-	if (glfwGetKey('A'))
-		camera.moveLeft(dt);
-	else if (glfwGetKey('D'))
-		camera.moveRight(dt);
-
-	int wh = ctx.getWidth() / 2;
-	int hh = ctx.getHeight() / 2;
-	int dx = ctx.getMouseX() - wh;
-	int dy = ctx.getMouseY() - hh;
-	camera.rotateHorizontal(dx * 0.4f * dt);
-	camera.rotateVertical(dy * 0.4f * dt);
-	ctx.setMousePos(wh, hh);
-}
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
@@ -161,7 +132,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.clearColorAndDepth();
 
 	gfx.beginCustomShader(shader_default);
-	gfx.setUniform("view", camera.getViewMatrix());
+	gfx.setUniform("view", getCameraView());
 	gfx.setUniform("projection", glm::perspective(45.0f, 720 / 480.0f, 0.05f, 10.0f));
 	inner_grid.draw();
 	outer_grid.draw();
@@ -172,69 +143,4 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	spritebatch.setFont(font);
 	spritebatch.drawString("Hello World!", vec2(5.0f, 5.0f), Colors::White),
 	spritebatch.end();
-}
-
-int main()
-{
-	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4, 3, 1, false), "Irradiance", true, true))
-		crash("Failed to open context");
-
-	Renderer gfx;
-	gfx.init(ctx);
-
-	if (!load())
-	{
-		ctx.dispose();
-		crash("Failed to load content");
-	}
-
-	try
-	{
-		init(gfx, ctx);
-
-		int updatesPerSec = 60;
-		double targetFrameTime = 1.0 / 60.0;
-		double secsPerUpdate = 1.0 / double(updatesPerSec);
-		double accumulator = 0.0;
-		double dt = 0.0;
-		double prevNow = 0.0;
-		while (ctx.isOpen())
-		{
-			double now = glfwGetTime();
-			double dt = now - prevNow;
-			prevNow = now;
-
-			accumulator += dt;
-			while (accumulator >= secsPerUpdate)
-			{
-				update(gfx, ctx, secsPerUpdate);
-				accumulator -= secsPerUpdate;
-			}
-
-			double updateTime = glfwGetTime() - now;
-			now = glfwGetTime();
-
-			render(gfx, ctx, dt);
-			ctx.display();
-			ctx.pollEvents();
-
-			double renderTime = glfwGetTime() - now;
-			if (renderTime < targetFrameTime)
-				ctx.sleep(targetFrameTime - renderTime);
-
-			if (checkGLErrors(std::cerr))
-				ctx.close();
-		}
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << "An unexpected error occured: " << e.what() << std::endl;
-		std::cin.get();
-	}
-
-	free();
-	gfx.dispose();
-	ctx.dispose();
-	exit(EXIT_SUCCESS);
 }

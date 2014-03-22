@@ -1,16 +1,12 @@
 #include <app/glcontext.h>
-#include <iostream>
+#include <gl/opengl.h>
+#include <common/timer.h>
+#include <sstream>
+#include <string>
 
 static GLContext *activeContext = nullptr;
 GLContext *getActiveContext() {
 	return activeContext;
-}
-
-void crash(const char *error )
-{
-	std::cerr<<error<<std::endl;
-	std::cin.get();
-	exit(EXIT_FAILURE);
 }
 
 GLContext::GLContext()
@@ -40,16 +36,6 @@ bool GLContext::create(const VideoMode &mode, const char *title, bool decorated,
 	if(glload::LoadFunctions() == glload::LS_LOAD_FAILED)
 		return false;
 
-	std::cout<<"Debug context: "	<<(glfwGetWindowParam(GLFW_OPENGL_DEBUG_CONTEXT) ? "yes" : "no")<<std::endl;
-	std::cout<<"HW accelerated: "	<<(glfwGetWindowParam(GLFW_ACCELERATED) ? "yes" : "no")<<std::endl;
-	std::cout<<"Depth bits: "		<<glfwGetWindowParam(GLFW_DEPTH_BITS)<<std::endl;
-	std::cout<<"Stencil bits: "		<<glfwGetWindowParam(GLFW_STENCIL_BITS)<<std::endl;
-	std::cout<<"FSAA samples: "		<<glfwGetWindowParam(GLFW_FSAA_SAMPLES)<<std::endl;
-	std::cout<<"Vendor: "			<<glGetString(GL_VENDOR)<<std::endl;
-	std::cout<<"Renderer: "			<<glGetString(GL_RENDERER)<<std::endl;
-	std::cout<<"GL ver.: "			<<glGetString(GL_VERSION)<<std::endl;
-	std::cout<<"GLSL ver.: "		<<glGetString(GL_SHADING_LANGUAGE_VERSION)<<std::endl;
-
 	setActive();
 
 	return true;
@@ -71,6 +57,21 @@ void GLContext::dispose()
 {
 	glfwTerminate();
 	activeContext = nullptr;
+}
+
+std::string GLContext::getDebugInfo() const
+{
+	std::stringstream ss;
+	ss << "Debug context: "	 <<(glfwGetWindowParam(GLFW_OPENGL_DEBUG_CONTEXT) ? "yes" : "no") << std::endl;
+	ss << "HW accelerated: " <<(glfwGetWindowParam(GLFW_ACCELERATED) ? "yes" : "no") << std::endl;
+	ss << "Depth bits: "     <<glfwGetWindowParam(GLFW_DEPTH_BITS) << std::endl;
+	ss << "Stencil bits: "   <<glfwGetWindowParam(GLFW_STENCIL_BITS) << std::endl;
+	ss << "FSAA samples: "   <<glfwGetWindowParam(GLFW_FSAA_SAMPLES) << std::endl;
+	ss << "Vendor: "         <<glGetString(GL_VENDOR) << std::endl;
+	ss << "Renderer: "       <<glGetString(GL_RENDERER) << std::endl;
+	ss << "GL ver.: "        <<glGetString(GL_VERSION) << std::endl;
+	ss << "GLSL ver.: "	     <<glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	return ss.str();
 }
 
 void GLContext::pollEvents()
@@ -112,36 +113,36 @@ void GLContext::setVerticalSync(bool vsync)
 	else glfwSwapInterval(0);
 }
 
-void GLContext::getSize(int *width, int *height)
+void GLContext::getSize(int *width, int *height) const
 {
 	glfwGetWindowSize(width, height);
 }
 
-int GLContext::getWidth()
+int GLContext::getWidth() const
 {
 	int w, h; getSize(&w, &h);
 	return w;
 }
 
-int GLContext::getHeight()
+int GLContext::getHeight() const
 {
 	int w, h; getSize(&w, &h);
 	return h;
 }
 
-void GLContext::getMousePos(int *x, int *y)
+void GLContext::getMousePos(int *x, int *y) const
 {
 	glfwGetMousePos(x, y);
 }
 
-int GLContext::getMouseX()
+int GLContext::getMouseX() const
 { 
 	int x, y;
 	getMousePos(&x, &y);
 	return x;
 }
 
-int GLContext::getMouseY()
+int GLContext::getMouseY() const
 {
 	int x, y;
 	getMousePos(&x, &y);
@@ -168,7 +169,7 @@ void GLContext::sleepms(unsigned int milliseconds)
 	glfwSleep(milliseconds / 1000.0);
 }
 
-bool GLContext::isOpen()
+bool GLContext::isOpen() const
 {
 	return glfwGetWindowParam(GLFW_OPENED) == GL_TRUE;
 }

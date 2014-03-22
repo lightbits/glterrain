@@ -116,8 +116,8 @@ void SpriteBatch::end()
 	// sortSprites();
 
 	const Texture *currentTexture = nullptr;
-	int first = 0;
-	for(int i = 0; i < spriteQueue.size(); ++i)
+	unsigned int first = 0;
+	for(unsigned int i = 0; i < spriteQueue.size(); ++i)
 	{
 		const Texture *texture = spriteQueue[i].texture;
 
@@ -325,7 +325,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 					float depth, float orientation,
 					vec2 center)
 {
-	Rectanglef dest(pos.x, pos.y, texture.getWidth(), texture.getHeight());
+	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
 	drawTexture(texture, color, dest, src, depth, orientation, center);
 }
 
@@ -335,7 +335,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 					float depth, float orientation,
 					vec2 center)
 {
-	Rectanglef dest(pos.x, pos.y, texture.getWidth(), texture.getHeight());
+	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
 	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
 }
 
@@ -358,15 +358,15 @@ void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Col
 	const Texture *texture = currentFont->getTexture();
 	float txtwidth = (float)texture->getWidth();
 	float txtheight = (float)texture->getHeight();
-	for(int i = 0; i < lines.size(); ++i)
+	for(unsigned int i = 0; i < lines.size(); ++i)
 	{
 		float posX = pos.x;
-		for(int j = 0; j < lines[i].size(); ++j)
+		for(unsigned int j = 0; j < lines[i].size(); ++j)
 		{
 			Glyph glyph = currentFont->getGlyph(lines[i][j]);
 			drawTexture(
 				*texture, color, 
-				Rectanglef(posX, posY, glyph.width, glyph.height),
+				Rectanglef(posX, posY, float(glyph.width), float(glyph.height)),
 				glyph.uLeft, glyph.uRight, glyph.vBottom, glyph.vTop);
 			posX += glyph.width;
 		}

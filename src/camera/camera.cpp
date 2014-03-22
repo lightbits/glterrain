@@ -1,19 +1,19 @@
 #include <camera/camera.h>
-#include <common/helpers.h>
+#include <common/typedefs.h>
 
-Camera::Camera() : theta(0), phi(0), position(0, 0, -1)
+Camera::Camera() : theta(-PI), phi(0), position(0, 0, -1)
 {
 	updateVectors();
 }
 
 void Camera::rotateHorizontal(float dt) 
 {
-	theta = glm::mod(theta + dt, M_TWO_PI);
+	theta = glm::mod(theta + dt, TWO_PI);
 }
 
 void Camera::rotateVertical(float dt) 
 { 
-	phi = glm::clamp(phi - dt, -M_PI_TWO, M_PI_TWO);
+	phi = glm::clamp(phi - dt, -PI_TWO, PI_TWO);
 }
 
 void Camera::moveUp(float dx)
@@ -36,12 +36,12 @@ void Camera::moveBackward(float dx)
 
 void Camera::setHorizontalAngle(float t) 
 { 
-	theta = glm::mod(t, M_TWO_PI); 
+	theta = glm::mod(t, TWO_PI); 
 }
 
 void Camera::setVerticalAngle(float t) 
 { 
-	phi = glm::mod(abs(t), M_PI) * (t < 0 ? -1 : 1); 
+	phi = glm::mod(abs(t), PI) * (t < 0 ? -1 : 1); 
 }
 
 void Camera::setPosition(const glm::vec3 &p) 

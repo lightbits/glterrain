@@ -3,7 +3,7 @@
 #include <vector>
 #include <graphics/color.h>
 #include <common/vec.h>
-#include <gl/glutils.h>
+#include <gl/opengl.h>
 
 //enum ElementDrawMode
 //{

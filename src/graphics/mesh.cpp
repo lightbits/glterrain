@@ -1,4 +1,5 @@
 #include <graphics/mesh.h>
+#include <common/typedefs.h>
 #include <common/helpers.h>
 
 Mesh::Mesh() : positions(), normals(), colors(), texels(), indices(), drawMode(GL_TRIANGLES) { }
@@ -312,7 +313,7 @@ Mesh Mesh::genUnitCylinder(const Color &color, int levels)
 {
 	Mesh mesh;
 	mesh.setDrawMode(GL_TRIANGLES);
-	float dt = M_TWO_PI / float(levels);
+	float dt = TWO_PI / float(levels);
 	for (int i = 0; i < levels; ++i)
 	{
 		unsigned int index = mesh.getPositionCount();

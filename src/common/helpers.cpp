@@ -1,16 +1,17 @@
 #include <common/helpers.h>
+#include <common/typedefs.h>
 #include <ctype.h>
 #include <sstream>
 #include <fstream>
 
 float degToRad(float degrees) 
 {
-	return degrees * M_PI / 180.0f; 
+	return degrees * PI / 180.0f; 
 }
 
 float radToDeg(float radians) 
 {
-	return radians * 180.0f / M_PI; 
+	return radians * 180.0f / PI; 
 }
 
 float lerp(float a, float b, float t)

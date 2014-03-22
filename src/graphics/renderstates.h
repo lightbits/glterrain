@@ -1,6 +1,6 @@
 #ifndef RENDER_STATES_H
 #define RENDER_STATES_H
-#include <gl/glutils.h>
+#include <gl/opengl.h>
 
 /*
 Various renderstates that can be used in conjuction with the GL renderer.

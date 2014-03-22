@@ -1,6 +1,7 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 #include <app/videomode.h>
+#include <string>
 
 class Context
 {
@@ -19,6 +20,8 @@ public:
 	virtual void close() = 0;
 	virtual void dispose() = 0;
 
+	virtual std::string getDebugInfo() const = 0;
+
 	virtual void pollEvents() = 0;
 	virtual void display() = 0;
 
@@ -31,20 +34,20 @@ public:
 	virtual void setVerticalSync(bool vsync) = 0;
 
 	/* Retrieves the width and height of the window */
-	virtual void getSize(int *width, int *height) = 0;
+	virtual void getSize(int *width, int *height) const = 0;
 
-	virtual int getWidth() = 0;
-	virtual int getHeight() = 0;
+	virtual int getWidth() const = 0;
+	virtual int getHeight() const = 0;
 
 	/* Returns the current mouse position. If the cursor is not hidden, the mouse
 	position is the cursor position, relative to the upper left corner of the window and
 	with the Y-axis down. */
-	virtual void getMousePos(int *x, int *y) = 0;
-	virtual int  getMouseX() = 0;
-	virtual int  getMouseY() = 0;
+	virtual void getMousePos(int *x, int *y) const = 0;
+	virtual int  getMouseX() const = 0;
+	virtual int  getMouseY() const = 0;
 	virtual void setMousePos(int x, int y) = 0;
 
-	virtual bool isOpen() = 0;
+	virtual bool isOpen() const = 0;
 
 	virtual void sleep(double seconds) = 0;
 	virtual void sleepms(unsigned int milliseconds) = 0;

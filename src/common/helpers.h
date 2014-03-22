@@ -1,11 +1,8 @@
-#ifndef SLGL_COMMON_HELPERS_H
-#define SLGL_COMMON_HELPERS_H
+#ifndef COMMON_HELPERS_H
+#define COMMON_HELPERS_H
 #include <vector>
 #include <string>
 #include <sstream>
-#define M_PI 3.14159265359f
-#define M_TWO_PI 6.28318530718f
-#define M_PI_TWO 1.57079632679f
 
 // Math
 float degToRad(float degrees);

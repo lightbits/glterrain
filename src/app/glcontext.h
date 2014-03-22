@@ -1,10 +1,6 @@
 #ifndef GL_CONTEXT_H
 #define GL_CONTEXT_H
-#include <common/timer.h>
-#include <gl/glutils.h>
 #include <app/context.h>
-
-void crash(const char *error);
 
 class GLContext : public Context
 {
@@ -17,6 +13,8 @@ public:
 	void close();
 	void dispose();
 
+	std::string getDebugInfo() const;
+
 	void pollEvents();
 	void display();
 
@@ -26,15 +24,15 @@ public:
 	void setWindowSize(int w, int h);
 	void setVerticalSync(bool vsync);
 
-	void getSize(int *width, int *height);
-	int	 getWidth();
-	int	 getHeight();
-	void getMousePos(int *x, int *y);
-	int  getMouseX();
-	int  getMouseY();
+	void getSize(int *width, int *height) const;
+	int	 getWidth() const;
+	int	 getHeight() const;
+	void getMousePos(int *x, int *y) const;
+	int  getMouseX() const;
+	int  getMouseY() const;
 	void setMousePos(int x, int y);
 
-	bool isOpen();
+	bool isOpen() const;
 
 	void sleep(double seconds);
 	void sleepms(unsigned int milliseconds);
