@@ -27,14 +27,6 @@ int main(int argc, char **argv)
 
 		init(gfx, ctx);
 
-		/* Setup event callbacks */
-		//ctx.key_pressed = keyPressed;
-		//ctx.key_released = keyReleased;
-		//ctx.mouse_moved = mouseMoved;
-		//ctx.mouse_dragged = mouseDragged;
-		//ctx.mouse_pressed = mousePressed;
-		//ctx.mouse_released = mouseReleased;
-
 		int updates_per_sec = 60;
 		double target_frame_time = 1.0 / 60.0;
 		double secs_per_update = 1.0 / double(updates_per_sec);

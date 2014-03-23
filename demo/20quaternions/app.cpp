@@ -1,5 +1,5 @@
 /*
-http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
+http://antongerdelan.net/opengl/quaternions.html
 */
 
 #include "app.h"
@@ -9,6 +9,90 @@ http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
 #include <common/typedefs.h>
 #include <app/log.h>
 #include "../fpcamera.h"
+
+struct quaternion
+{
+	/* 
+	Creates a quaternion from an angle-axis.
+	angle: Rotation angle about axis in radians 
+	axis: Normalized rotation axis
+	*/
+	quaternion(float angle, const vec3 &axis)
+	{
+		float s = sin(0.5f * angle);
+		w = cos(0.5f * angle);
+		x = s * axis.x;
+		y = s * axis.y;
+		z = s * axis.z;
+	}
+
+	/*
+	Creates a quaternion with the given components
+	*/
+	quaternion(float X, float Y, float Z, float W) :
+		x(X), y(Y), z(Z), w(W) 
+	{ }
+
+	void normalize()
+	{
+		float invlen = 1.0f / sqrt(w * w + x * x + y * y + z * z);
+		w *= invlen;
+		x *= invlen;
+		y *= invlen;
+		z *= invlen;
+	}
+
+	mat4 getMatrix() const
+	{
+		mat4 m;
+		m[0][0] = 1 - 2 * y * y - 2 * z * z;
+		m[1][0] = 2 * x * y - 2 * w * z;
+		m[2][0] = 2 * x * z + 2 * w * y;
+		m[3][0] = 0;
+
+		m[0][1] = 2 * x * y + 2 * w * z;
+		m[1][1] = 1 - 2 * x * x - 2 * z * z;
+		m[2][1] = 2 * y * z - 2 * w * x;
+		m[3][1] = 0;
+
+		m[0][2] = 2 * x * z - 2 * w * y;
+		m[1][2] = 2 * y * z + 2 * w * x;
+		m[2][2] = 1 - 2 * x * x - 2 * y * y;
+		m[3][2] = 0;
+
+		m[0][3] = 0;
+		m[1][3] = 0;
+		m[2][3] = 0;
+		m[3][3] = 1;
+		return m;
+	}
+	
+	quaternion operator*(const quaternion &b)
+	{
+		return quaternion(
+			w * b.y + y * b.w + z * b.x - x * b.z,
+			w * b.z + z * b.w + x * b.y - y * b.x,
+			w * b.w - x * b.x - y * b.y - z * b.z,
+			w * b.x + x * b.w + y * b.z - z * b.y
+			);
+	}
+
+	float x, y, z, w;
+};
+
+quaternion slerp(const quaternion &q, const quaternion &r, float t)
+{
+	float dp = q.w * r.w + q.x * r.x + q.y * r.y + q.z * r.z;
+	float om = acos(dp);
+	float a = sin((1 - t) * om) / sin(om);
+	float b = sin(t * om) / sin(om);
+	return quaternion(
+		a * q.x + b * r.x,
+		a * q.y + b * r.y,
+		a * q.z + b * r.z,
+		a * q.w + b * r.w
+		);
+}
 
 MeshBuffer cubebuffer;
 MeshBuffer inner_gridbuffer;
@@ -69,31 +153,47 @@ void init(Renderer &gfx, Context &ctx)
 	resetCamera(-PI, 0.0f, vec3(0.0f, 0.0f, -2.0f));
 }
 
-float y_rotation = 0.0f;
+float roll = 0.0f;
+float pitch = 0.0f;
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	y_rotation += dt;
+	if (ctx.isKeyPressed(SDL_SCANCODE_LEFT))
+		roll += dt;
+	else if (ctx.isKeyPressed(SDL_SCANCODE_RIGHT))
+		roll -= dt;
+
+	if (ctx.isKeyPressed(SDL_SCANCODE_UP))
+		pitch += dt;
+	else if (ctx.isKeyPressed(SDL_SCANCODE_DOWN))
+		pitch -= dt;
 	updateCamera(gfx, ctx, dt);
 }
 
 void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 {
+	/* Combining rotations around the axes is done by multiplying quaternions.
+	The cool thing is that axis of rotation is naturally updated when doing this.
+	For example: rotating around the z-axis will change the "y-axis" to be upwards
+	relative to the object! This produces more intuitive rotation than by Euler angles? */
+
 	cube.pushTransform();
-		cube.rotateY(y_rotation);
+		quaternion q(roll, vec3(0, 1, 0));
+		quaternion r(pitch, vec3(0, 0, 1));
+		cube.multiply((q * r).getMatrix());
 		cube.pushTransform();
-			cube.scale(0.65f, 0.2f, 0.2f);
+			cube.scale(0.2f, 0.2f, 0.65f);
 			cube.draw();
 		cube.popTransform();
 		cube.pushTransform();
-			cube.translate(-0.15f, 0.0f, 0.0f);
-			cube.scale(0.3f, 0.14f, 0.6f);
+			cube.translate(0.0f, 0.0f, -0.15f);
+			cube.scale(0.6f, 0.14f, 0.3f);
 			cube.draw();
 		cube.popTransform();
 		cube.pushTransform();
-			cube.translate(0.325f, 0.0f, 0.0f);
-			cube.rotateZ(3.1415f / 4.0f);
-			cube.scale(0.141f, 0.141f, 0.2f);
+			cube.translate(0.0f, 0.0f, 0.325f);
+			cube.scale(0.2f, 0.141f, 0.141f);
+			cube.rotateX(PI / 4.0f);
 			cube.draw();
 		cube.popTransform();
 	cube.popTransform();
@@ -102,18 +202,15 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 void drawAxes(Renderer &gfx, Context &ctx, double dt)
 {
 	cylinder.pushTransform();
-		cylinder.rotateY(y_rotation);
 		cylinder.scale(0.7f, 0.7f, 0.02f);
 		cylinder.draw();
 	cylinder.popTransform();
 	cylinder.pushTransform();
-		cylinder.rotateY(y_rotation);
 		cylinder.rotateX(1.54f);
 		cylinder.scale(0.7f, 0.7f, 0.02f);
 		cylinder.draw();
 	cylinder.popTransform();
 	cylinder.pushTransform();
-		cylinder.rotateY(y_rotation + 1.54f);
 		cylinder.scale(0.7f, 0.7f, 0.02f);
 		cylinder.draw();
 	cylinder.popTransform();

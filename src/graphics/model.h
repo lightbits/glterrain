@@ -23,6 +23,7 @@ public:
 	void translate(float x, float y, float z);
 	void scale(float sx, float sy, float sz);
 	void scale(float s);
+	void multiply(const mat4 &m);
 	void pushTransform();
 	void popTransform();
 	const mat4 &getTransform() const;

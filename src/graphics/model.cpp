@@ -25,6 +25,7 @@ void Model::translate(const vec3 &v) { transform.translate(v); }
 void Model::translate(float x, float y, float z) { transform.translate(x, y, z); }
 void Model::scale(float sx, float sy, float sz) { transform.scale(sx, sy, sz); }
 void Model::scale(float s) { transform.scale(s); }
+void Model::multiply(const mat4 &m) { transform.multiply(m); }
 void Model::pushTransform() { transform.push(); }
 void Model::popTransform() { transform.pop(); }
 const mat4 &Model::getTransform() const { return transform.top(); }
