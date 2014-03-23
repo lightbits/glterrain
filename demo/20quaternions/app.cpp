@@ -123,23 +123,6 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 	cube.popTransform();
 }
 
-void drawAxes(Renderer &gfx, Context &ctx, double dt)
-{
-	cylinder.pushTransform();
-		cylinder.scale(0.7f, 0.7f, 0.02f);
-		cylinder.draw();
-	cylinder.popTransform();
-	cylinder.pushTransform();
-		cylinder.rotateX(1.54f);
-		cylinder.scale(0.7f, 0.7f, 0.02f);
-		cylinder.draw();
-	cylinder.popTransform();
-	cylinder.pushTransform();
-		cylinder.scale(0.7f, 0.7f, 0.02f);
-		cylinder.draw();
-	cylinder.popTransform();
-}
-
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	gfx.setClearColor(0.23f, 0.23f, 0.23f);

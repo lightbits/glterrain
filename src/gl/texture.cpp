@@ -1,4 +1,5 @@
 #include <gl/texture.h>
+#include <SOIL.h>
 #include <iostream>
 #include <string>
 
@@ -60,16 +61,29 @@ void Texture::copyFromFramebuffer(
 	glCopyTexSubImage2D(target_, level, xoffset, yoffset, x, y, width, height);
 }
 
-// Loads texture using the glimg library
-// See http://glsdk.sourceforge.net/docs/html/group__module__glimg.html for details
-// glimg does not convert to power-of-two textures, so be your GPU should support NPOT textures
 bool Texture::loadFromFile(const std::string &filename)
 {
-	// TODO: Use image loading library to load images
+	GLuint tex = SOIL_load_OGL_texture(
+		filename.c_str(), SOIL_LOAD_RGBA,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_INVERT_Y);
 
-	unsigned char pixels[] = { 255, 0, 255, 0, 0, 0, 255, 0, 255, 0, 0, 0 };
-	create2d(0, GL_RGB, 2, 2, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)pixels);
+	if (tex == 0)
+	{
+		std::cerr << "Failed to load texture: " << SOIL_last_result() << std::endl;
+		return false;
+	}
 
+	// Retreive the dimensions
+	glBindTexture(GL_TEXTURE_2D, tex);
+	GLint w = 0;
+	GLint h = 0;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	create(tex, GL_TEXTURE_2D, w, h);
+	
 	return true;
 }
 
