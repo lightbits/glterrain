@@ -24,6 +24,7 @@ public:
 	void scale(float sx, float sy, float sz);
 	void scale(float s);
 	void multiply(const mat4 &m);
+	void multiply(const quat &q);
 	void pushTransform();
 	void popTransform();
 	const mat4 &getTransform() const;

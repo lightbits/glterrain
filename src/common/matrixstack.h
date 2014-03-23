@@ -2,6 +2,7 @@
 #define SLGL_COMMON_MATRIX_STACK_H
 #include <stack>
 #include <common/matrix.h>
+#include <common/quaternion.h>
 #include <common/vec.h>
 
 /*
@@ -109,6 +110,11 @@ public:
 	void multiply(const mat4 &mat)
 	{
 		current = current * mat;
+	}
+
+	void multiply(const quat &q)
+	{
+		current = current * glm::mat4_cast(q);
 	}
 
 	// Takes the current matrix and pushes it onto the stack
