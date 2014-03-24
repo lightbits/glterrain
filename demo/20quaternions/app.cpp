@@ -72,6 +72,7 @@ void init(Renderer &gfx, Context &ctx)
 
 float roll = 0.0f;
 float pitch = 0.0f;
+float yaw = 0.0f;
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
@@ -81,9 +82,14 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		roll -= dt;
 
 	if (ctx.isKeyPressed(SDL_SCANCODE_UP))
-		pitch += dt;
-	else if (ctx.isKeyPressed(SDL_SCANCODE_DOWN))
 		pitch -= dt;
+	else if (ctx.isKeyPressed(SDL_SCANCODE_DOWN))
+		pitch += dt;
+
+	if (ctx.isKeyPressed(SDL_SCANCODE_Q))
+		yaw -= dt;
+	else if (ctx.isKeyPressed(SDL_SCANCODE_E))
+		yaw += dt;
 	updateCamera(gfx, ctx, dt);
 }
 
@@ -95,12 +101,13 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 	relative to the object! This produces more intuitive rotation than by Euler angles? */
 
 	cube.pushTransform();
-		//quat q = quaternion(roll, vec3(0, 1, 0));
-		//quat r = quaternion(pitch, vec3(1, 0, 0));
-		//cube.multiply(q * r);
+		quat q = quaternion(roll, vec3(0, 1, 0));
+		quat r = quaternion(pitch, vec3(1, 0, 0));
+		quat p = quaternion(yaw, vec3(0, 0, 1));
+		cube.multiply(p * r * q);
 
-		quat q = quat(vec3(pitch, roll, 0.0f));
-		cube.multiply(q);
+		//quat q = quat(vec3(pitch, roll, 0.0f));
+		//cube.multiply(q);
 
 		//quaternion q(roll, vec3(0, 1, 0));
 		//quaternion r(pitch, vec3(0, 0, 1));
@@ -142,6 +149,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	spritebatch.begin();
 	spritebatch.setFont(font);
-	spritebatch.drawString("Hello World!", vec2(5.0f, 5.0f), Colors::White),
+	std::string text = "Hold <e> or <q> to change yaw\nHold <left> or <right> to change roll\nHold <up> or <down> to change pitch";
+	spritebatch.drawString(text, vec2(5, 5), Colors::White);
 	spritebatch.end();
 }

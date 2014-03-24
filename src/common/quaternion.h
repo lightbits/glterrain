@@ -3,12 +3,19 @@
 #include <common/vec.h>
 #include <common/matrix.h>
 #include <glm/gtx/quaternion.hpp>
+#include <common/typedefs.h>
 typedef glm::quat quat;
 
 static quat quaternion(float angle, const vec3 &axis)
 {
-	float s = sin(0.5f * angle);
-	return quat(cos(0.5f * angle), s * axis.x, s * axis.y, s * axis.z);
+	//float s = sin(0.5f * angle);
+	//return quat(cos(0.5f * angle), s * axis.x, s * axis.y, s * axis.z);
+	return glm::gtx::quaternion::angleAxis(angle * 180.0f / PI, axis);
+}
+
+static quat slerp(const quat &r, const quat &q, float t)
+{
+	return glm::gtx::quaternion::mix(r, q, t);
 }
 
 //struct quaternion
