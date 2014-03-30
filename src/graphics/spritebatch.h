@@ -6,7 +6,6 @@
 #include <gl/bufferobject.h>
 #include <gl/shaderprogram.h>
 #include <gl/texture.h>
-#include <graphics/renderer.h>
 #include <graphics/font.h>
 #include <graphics/color.h>
 #include <graphics/renderstates.h>

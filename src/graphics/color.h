@@ -8,8 +8,10 @@ struct Color
 	Color(float R, float G, float B, float A = 1.0f);
 	Color(float s);
 	Color(int R, int G, int B, int A = 255);
-	Color(int s);
-	Color(unsigned int hex);
+	Color(unsigned char R, unsigned char G, unsigned char B, unsigned char A = 255);
+	Color(unsigned char s);
+
+	static Color fromHex(unsigned int hex);
 
 	bool operator==(const Color &rhs) const;
 	bool operator!=(const Color &rhs) const;

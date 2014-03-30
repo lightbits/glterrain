@@ -139,6 +139,26 @@ void Renderer::draw(std::vector<MeshBuffer> &meshes)
 
 }
 
+void Renderer::drawTexQuad(float x, float y, float w, float h)
+{
+	BufferObject vbo;
+	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+	vbo.bind();
+	float data[] = {
+		x,     y,     0.0f, 0.0f,
+		x + w, y,     1.0f, 0.0f,
+		x + w, y + h, 1.0f, 1.0f,
+		x + w, y + h, 1.0f, 1.0f,
+		x,     y + h, 0.0f, 1.0f,
+		x,     y,     0.0f, 0.0f
+	};
+	vbo.bufferData(sizeof(data), data);
+	currentShaderProgram->setAttributefv("position", 2, 4, 0);
+	currentShaderProgram->setAttributefv("texel", 2, 4, 2);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	vbo.dispose();
+}
+
 void Renderer::drawLine(const vec3 &v0, const vec3 &v1, const Color &color)
 {
 	BufferObject vbo;

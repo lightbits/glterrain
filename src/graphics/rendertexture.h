@@ -3,11 +3,16 @@
 #include <gl/framebuffer.h>
 #include <gl/texture.h>
 
+/*
+A specialized framebuffer intended as a target for offscreen rendering.
+The renderered data can be obtained as a Texture by calling 'bindTexture'.
+*/
 class RenderTexture
 {
 public:
-	RenderTexture(int width, int height);
-	~RenderTexture();
+	RenderTexture();
+	void create(int width, int height);
+	void dispose();
 
 	// Enables the framebuffer as the active render target
 	void begin();

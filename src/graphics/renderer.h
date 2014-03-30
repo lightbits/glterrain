@@ -4,9 +4,12 @@
 #include <gl/opengl.h>
 #include <gl/meshbuffer.h>
 #include <gl/shaderprogram.h>
+#include <gl/framebuffer.h>
+#include <graphics/model.h>
 #include <graphics/mesh.h>
 #include <graphics/spritebatch.h>
 #include <graphics/color.h>
+#include <graphics/rendertexture.h>
 #include <graphics/renderstates.h>
 #include <iostream>
 
@@ -54,6 +57,9 @@ public:
 	/* Draws a set of lines pretty slowly */
 	void drawLines(const std::vector<vec3> &lines);
 
+	/* Draws a single flat quad very slowly */
+	void drawTexQuad(float x, float y, float w, float h);
+
 	/* Sets the current shader to be used while rendering */
 	void beginCustomShader(ShaderProgram &sp);
 
@@ -78,9 +84,6 @@ public:
 
 	/* Unsets the current shader */
 	void endCustomShader();
-
-	void begin2d();
-	void end2d();
 
 	ShaderProgram *getCurrentShaderProgram() { return currentShaderProgram; }
 private:

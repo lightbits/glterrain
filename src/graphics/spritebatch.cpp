@@ -1,5 +1,6 @@
 #include <graphics/spritebatch.h>
 #include <app/glcontext.h>
+#include <graphics/renderer.h>
 #include <sstream> // For drawstring
 
 static const char *spritebatchFragShaderSrc =

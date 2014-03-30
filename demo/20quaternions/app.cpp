@@ -112,6 +112,9 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 		//quaternion q(roll, vec3(0, 1, 0));
 		//quaternion r(pitch, vec3(0, 0, 1));
 		//cube.multiply((q * r).getMatrix());
+		mat4 m = glm::mat4_cast(p * r * q) * transform::translate(0, 0.1f, 0);
+		gfx.setUniform("model", m);
+		gfx.drawLine(vec3(0, 0, 0), vec3(0, 0.5f, 0), Color(1.0f, 0.4f, 0.4f));
 		cube.pushTransform();
 			cube.scale(0.2f, 0.2f, 0.65f);
 			cube.draw();

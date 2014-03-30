@@ -2,6 +2,7 @@
 #define CONTEXT_H
 #include <app/videomode.h>
 #include <string>
+#include <SDL.h>
 #include <functional>
 
 class Context
@@ -59,7 +60,12 @@ public:
 	virtual double getElapsedTime() = 0;
 
 public:
-	typedef std::function< void(int modifiers, int key) > KeyboardEventCallback;
+	/*
+	* mod Enabled modifiers (such as shift key)
+	* key The SDL-defined value of the key. This representation is hardware independent,
+	* and should be used instead of the 'scancode' field, defined in SDL_keysym.
+	*/
+	typedef std::function< void(int mod, SDL_Keycode key) > KeyboardEventCallback;
 	typedef std::function< void(int x, int y, int dx, int dy) > MouseMotionEventCallback;
 	typedef std::function< void(int button, int x, int y, int dx, int dy) > MouseDragEventCallback;
 	typedef std::function< void(int button, int x, int y) > MouseButtonEventCallback;

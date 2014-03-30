@@ -120,7 +120,7 @@ public:
 	}
 
 	/*
-	f a renderbuffer object is deleted while it is still attached in a FBO, 
+	If a renderbuffer object is deleted while it is still attached in a FBO, 
 	then it will be automatically detached from the bound FBO. However, 
 	it will not be detached from any other non-bound FBOs.
 	*/

@@ -1,6 +1,8 @@
 #include <graphics/rendertexture.h>
 
-RenderTexture::RenderTexture(int width, int height)
+RenderTexture::RenderTexture() { }
+
+void RenderTexture::create(int width, int height)
 {
 	colorBuffer.create2d(0, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	colorBuffer.bind();
@@ -22,7 +24,7 @@ RenderTexture::RenderTexture(int width, int height)
 	frameBuffer.unbind();
 }
 
-RenderTexture::~RenderTexture()
+void RenderTexture::dispose()
 {
 	colorBuffer.dispose();
 	frameBuffer.dispose();

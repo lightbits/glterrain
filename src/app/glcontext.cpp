@@ -128,7 +128,7 @@ void GLContext::pollEvents()
 			mouse_released(event.button.button, event.button.x, event.button.y);
 			break;
 		case SDL_QUIT:
-			g_active_context = nullptr;
+			close();
 			break;
 		}
 	}
@@ -229,14 +229,14 @@ bool GLContext::isOpen() const
 bool GLContext::isKeyPressed(int scancode) const
 {
 	 const unsigned char *kbs = SDL_GetKeyboardState(NULL);
-	 return kbs[scancode];
+	 return kbs[scancode] != 0;
 }
 
 bool GLContext::isKeyPressed(char key) const
 {
 	 const unsigned char *kbs = SDL_GetKeyboardState(NULL);
 	 int index = SDL_SCANCODE_A + int(tolower(key)) - int('a');
-	 return kbs[index];
+	 return kbs[index] != 0;
 }
 
 bool GLContext::isMousePressed(int button) const

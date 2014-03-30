@@ -1,6 +1,7 @@
 #include <graphics/mesh.h>
 #include <common/typedefs.h>
 #include <common/helpers.h>
+#include <stdexcept>
 
 Mesh::Mesh() : positions(), normals(), colors(), texels(), indices(), drawMode(GL_TRIANGLES) { }
 Mesh::Mesh(GLenum mode) { }
@@ -226,11 +227,13 @@ void Mesh::calculateTangentVectors()
 {
 	tangents.clear();
 	bitangents.clear();
+	throw std::runtime_error("Not yet implemented");
 }
 
 void Mesh::calculateNormalVectors()
 {
 	normals.clear();
+	throw std::runtime_error("Not yet implemented");
 }
 
 Mesh Mesh::genUnitColoredCube()
