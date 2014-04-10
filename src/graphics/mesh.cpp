@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 Mesh::Mesh() : positions(), normals(), colors(), texels(), indices(), drawMode(GL_TRIANGLES) { }
-Mesh::Mesh(GLenum mode) { }
+Mesh::Mesh(GLenum mode) : drawMode(mode) { }
 
 // http://paulbourke.net/dataformats/obj/
 bool loadMeshObj(const std::string &filename, Mesh &mesh)

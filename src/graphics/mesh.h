@@ -26,7 +26,6 @@ public:
 
 	bool loadFromFile(const std::string &filename);
 
-	// TODO: remove?
 	void setDrawMode(GLenum mode);
 
 	void addPosition(float x, float y, float z);

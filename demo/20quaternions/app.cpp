@@ -9,7 +9,7 @@ http://antongerdelan.net/opengl/quaternions.html
 #include <common/typedefs.h>
 #include <common/quaternion.h>
 #include <app/log.h>
-#include "../fpcamera.h"
+#include <camera/freecamera.h>
 
 MeshBuffer cubebuffer;
 MeshBuffer inner_gridbuffer;
@@ -26,6 +26,8 @@ ShaderProgram shader_default;
 
 Font font;
 SpriteBatch spritebatch;
+
+FreeCamera camera;
 
 bool load()
 {
@@ -67,7 +69,7 @@ void init(Renderer &gfx, Context &ctx)
 {
 	vao.create();
 	vao.bind();
-	resetCamera(-PI, 0.0f, vec3(0.0f, 0.0f, -2.0f));
+	camera.reset(-PI, 0.0f, vec3(0.0f, 0.0f, -2.0f));
 }
 
 float roll = 0.0f;
@@ -90,7 +92,8 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		yaw -= dt;
 	else if (ctx.isKeyPressed(SDL_SCANCODE_E))
 		yaw += dt;
-	updateCamera(gfx, ctx, dt);
+
+	camera.update(gfx, ctx, dt);
 }
 
 void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
@@ -143,7 +146,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.clearColorAndDepth();
 
 	gfx.beginCustomShader(shader_default);
-	gfx.setUniform("view", getCameraView());
+	gfx.setUniform("view", camera.getViewMatrix());
 	gfx.setUniform("projection", glm::perspective(45.0f, 720 / 480.0f, 0.05f, 10.0f));
 	inner_grid.draw();
 	outer_grid.draw();

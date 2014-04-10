@@ -70,7 +70,7 @@ bool Texture::loadFromFile(const std::string &filename)
 
 	if (tex == 0)
 	{
-		std::cerr << "Failed to load texture: " << SOIL_last_result() << std::endl;
+		std::cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << std::endl;
 		return false;
 	}
 
