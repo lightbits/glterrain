@@ -128,6 +128,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("model", mat_model);
 	gfx.setUniform("view", mat_view);
 	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("time", ctx.getElapsedTime());
 	buffer_terrain.draw();
 	tex_height.unbind();
 	gfx.endCustomShader();

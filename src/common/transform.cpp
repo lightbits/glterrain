@@ -49,3 +49,8 @@ mat4 transform::scale(float s)
 {
 	return transform::scale(s, s, s);
 }
+
+mat4 transform::perspective(float fov_y, float aspect_ratio, float z_near, float z_far)
+{
+	return glm::perspective(fov_y, aspect_ratio, z_near, z_far);
+}

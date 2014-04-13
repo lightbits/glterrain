@@ -4,6 +4,7 @@
 #include <common/matrix.h>
 #include <common/quaternion.h>
 #include <common/vec.h>
+#include <common/transform.h>
 
 /*
 A matrix stack allows you to hierarchically perform matrix transformations, accumulating

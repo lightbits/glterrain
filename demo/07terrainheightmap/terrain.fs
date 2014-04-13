@@ -2,17 +2,21 @@
 
 in vec2 v_texel;
 in vec3 v_world_pos;
+in vec3 v_dir_to_viewer;
 out vec4 out_color;
 
 uniform sampler2D tex_normal;
 uniform sampler2D tex_diffuse;
+uniform float time;
 
 vec4 getLightContribution(vec3 light_pos, vec4 light_col, vec4 diffuse, vec3 p, vec3 n)
 {
 	vec3 dir = normalize(light_pos - p);
 	float intensity = dot(dir, n);
 	intensity = max(intensity, 0.0);
-	return intensity * light_col * diffuse;
+	float specular = dot(normalize(v_dir_to_viewer), n);
+	specular = pow(specular, 100.0f);
+	return (intensity + specular) * light_col * diffuse;
 }
 
 void main()
@@ -22,7 +26,7 @@ void main()
 
 	vec4 color = vec4(0.0);
 	color += getLightContribution(
-		vec3(0.0, 0.8, 0.3), 
+		vec3(10.0, 10.8, sin(time)), 
 		vec4(1.0, 0.8, 0.5, 1.0),
 		diffuse,
 		v_world_pos,
