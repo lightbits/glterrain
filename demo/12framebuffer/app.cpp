@@ -66,11 +66,11 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void drawModel(Renderer &gfx, Context &ctx)
 {
-	model.pushTransform();
-	model.rotateY(ctx.getElapsedTime());
-	model.scale(0.1f);
+	model.transform.push();
+	model.transform.rotateY(ctx.getElapsedTime());
+	model.transform.scale(0.1f);
 	model.draw();
-	model.popTransform();
+	model.transform.pop();
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)

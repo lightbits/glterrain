@@ -24,7 +24,8 @@ Color::Color(unsigned char s) :
 	r(s / 255.0f), g(s / 255.0f), b(s / 255.0f), a(1.0f) 
 { }
 
-Color Color::fromHex(unsigned int hex) {
+Color Color::fromHex(unsigned int hex) 
+{
 	return Color(
 		((hex>>24) & 0xFF) / 255.0f, 
 		((hex>>16) & 0xFF) / 255.0f, 

@@ -36,8 +36,11 @@ public:
 	void setClearColor(float r, float g, float b, float a = 1.0f);
 	void setClearDepth(double depth);
 
+	/* Draws the currently bound vertex buffer */
+	void drawVertexBuffer(GLenum drawMode, int indexCount);
+
 	/* Draws the currently bound vertex and index buffer data */
-	void drawIndexedGeometry(GLenum drawMode, int indexCount, GLenum indexType);
+	void drawIndexedVertexBuffer(GLenum drawMode, int indexCount, GLenum indexType);
 
 	/* Allocates a buffer for the vertex data in the mesh and renders */
 	void draw(Mesh &mesh, GLenum drawMode);
@@ -48,6 +51,9 @@ public:
 	/* Renders a set of meshes */
 	void draw(std::vector<MeshBuffer> &meshes);
 
+	/* Draws a single model with an associated model transformation */
+	void draw(Model &model);
+
 	/* Draws a single line very slowly */
 	void drawLine(const vec3 &v0, const vec3 &v1, const Color &color);
 
@@ -57,7 +63,10 @@ public:
 	/* Draws a set of lines pretty slowly */
 	void drawLines(const std::vector<vec3> &lines);
 
-	/* Draws a single flat quad very slowly */
+	/* Drawss a isngle flat quad very slowly */
+	void drawQuad(float x, float y, float w, float h);
+
+	/* Draws a single flat textured quad very slowly */
 	void drawTexQuad(float x, float y, float w, float h);
 
 	/* Sets the current shader to be used while rendering */
@@ -75,6 +84,7 @@ public:
 	void setUniform(const std::string &name, const mat4 &mat);
 	void setUniform(const std::string &name, const mat3 &mat);
 	void setUniform(const std::string &name, const mat2 &mat);
+	void setUniform(const std::string &name, const Color &color);
 	void setUniform(const std::string &name, const vec4 &vec);
 	void setUniform(const std::string &name, const vec3 &vec);
 	void setUniform(const std::string &name, const vec2 &vec);

@@ -236,62 +236,133 @@ void Mesh::calculateNormalVectors()
 	throw std::runtime_error("Not yet implemented");
 }
 
-Mesh Mesh::genUnitColoredCube()
+Mesh genUnitCubeBase()
 {
 	Mesh mesh;
 	mesh.setDrawMode(GL_TRIANGLES);
-	const float halfSize = 0.5f;
+	const float hs = 0.5f;
 
 	// All faces are oriented counter-clockwise outwards
-	
-	// Front face
-	mesh.addPosition(-halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
-	mesh.addPosition( halfSize, -halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
-	mesh.addPosition( halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f); 
-	mesh.addPosition(-halfSize,  halfSize, halfSize); mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
-	mesh.addTriangle(0, 1, 2);
-	mesh.addTriangle(2, 3, 0);
+	float positions[] = {
+		// Front
+		-hs, -hs,  hs,
+		 hs, -hs,  hs,
+		 hs,  hs,  hs,
+		-hs,  hs,  hs,
 
-	// Back face
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
-	mesh.addTriangle(4, 5, 6);
-	mesh.addTriangle(6, 7, 4);
+		// Back
+		 hs, -hs, -hs,
+		-hs, -hs, -hs,
+		-hs,  hs, -hs,
+		 hs,  hs, -hs,
 
-	// Left face
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
-	mesh.addTriangle(8, 9, 10);
-	mesh.addTriangle(10, 11, 8);
+		 // Left
+		 -hs, -hs, -hs,
+		 -hs, -hs,  hs,
+		 -hs,  hs,  hs,
+		 -hs,  hs, -hs,
 
-	// Right face
-	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
-	mesh.addTriangle(12, 13, 14);
-	mesh.addTriangle(14, 15, 12);
+		 // Right
+		  hs, -hs,  hs,
+		  hs, -hs, -hs,
+		  hs,  hs, -hs,
+		  hs,  hs,  hs,
 
-	// Top face
-	mesh.addPosition(-halfSize,  halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition( halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize,  halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addTriangle(16, 17, 18);
-	mesh.addTriangle(18, 19, 16);
+		  // Top
+		  -hs,  hs,  hs,
+		   hs,  hs,  hs,
+		   hs,  hs, -hs,
+		  -hs,  hs, -hs,
 
-	// Bottom face
-	mesh.addPosition( halfSize, -halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize,  halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition(-halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addPosition( halfSize, -halfSize, -halfSize); mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
-	mesh.addTriangle(20, 21, 22);
-	mesh.addTriangle(22, 23, 20);
+		  // Bottom
+		   hs, -hs,  hs,
+		  -hs, -hs,  hs,
+		  -hs, -hs, -hs,
+		   hs, -hs, -hs
+	};
 
+	uint32 indices[] = {
+		0, 1, 2, 2, 3, 0, // Front
+		4, 5, 6, 6, 7, 4, // Back
+		8, 9, 10, 10, 11, 8, // Left
+		12, 13, 14, 14, 15, 12, // Right
+		16, 17, 18, 18, 19, 16, // Top
+		20, 21, 22, 22, 23, 20, // Bottom
+	};
+
+	mesh.addPositions((vec3*)(positions), 24);
+	mesh.addIndices(indices, 36);
+
+	return mesh;
+}
+
+Mesh Mesh::genUnitCube(bool colors, bool normals)
+{
+	Mesh mesh = genUnitCubeBase();
+	if (colors)
+	{
+		mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);
+
+		mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(0.4f, 1.0f, 0.4f, 1.0f);
+
+		mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(1.0f, 0.4f, 1.0f, 1.0f);
+
+		mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+		mesh.addColor(1.0f, 1.0f, 0.4f, 1.0f);
+
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+		mesh.addColor(0.4f, 0.4f, 1.0f, 1.0f);
+	}
+	if (normals)
+	{
+		mesh.addNormal(0, 0, 1);
+		mesh.addNormal(0, 0, 1);
+		mesh.addNormal(0, 0, 1);
+		mesh.addNormal(0, 0, 1);
+
+		mesh.addNormal(0, 0, -1);
+		mesh.addNormal(0, 0, -1);
+		mesh.addNormal(0, 0, -1);
+		mesh.addNormal(0, 0, -1);
+
+		mesh.addNormal(-1, 0, 0);
+		mesh.addNormal(-1, 0, 0);
+		mesh.addNormal(-1, 0, 0);
+		mesh.addNormal(-1, 0, 0);
+
+		mesh.addNormal(1, 0, 0);
+		mesh.addNormal(1, 0, 0);
+		mesh.addNormal(1, 0, 0);
+		mesh.addNormal(1, 0, 0);
+
+		mesh.addNormal(0, 1, 0);
+		mesh.addNormal(0, 1, 0);
+		mesh.addNormal(0, 1, 0);
+		mesh.addNormal(0, 1, 0);
+
+		mesh.addNormal(0, -1, 0);
+		mesh.addNormal(0, -1, 0);
+		mesh.addNormal(0, -1, 0);
+		mesh.addNormal(0, -1, 0);
+	}
 	return mesh;
 }
 
@@ -355,6 +426,53 @@ Mesh Mesh::genUnitGrid(const Color &color, int lines)
 		mesh.addColor(color);
 		mesh.addLine(index, index + 1);
 		mesh.addLine(index + 2, index + 3);
+	}
+	return mesh;
+}
+
+Mesh Mesh::genPlane(float width, float height)
+{
+	float a = width / 2.0f;
+	float b = height / 2.0f;
+	const float positions[] = {
+		-a, 0.0f, +b,
+		+a, 0.0f, +b,
+		+a, 0.0f, -b,
+		-a, 0.0f, -b
+	};
+	const uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+	Mesh mesh;
+	mesh.addPositions((vec3*)positions, 4);
+	mesh.addIndices(indices, 6);
+	return mesh;
+}
+
+Mesh Mesh::genUnitSphere(int tSamples, int sSamples)
+{
+	Mesh mesh;
+	float dtheta = TWO_PI / float(tSamples);
+	float dphi = PI / float(sSamples);
+	for (int t = 0; t < tSamples; ++t)
+	{
+		for (int s = 0; s < sSamples; ++s)
+		{
+			float theta = t * dtheta;
+			float phi = s * dphi;
+
+			float r0 = sin(phi);
+			float r1 = sin(phi + dphi);
+
+			vec3 v00(r0 * cos(theta), cos(phi), r0 * sin(theta));
+			vec3 v10(r0 * cos(theta + dtheta), cos(phi), r0 * sin(theta + dtheta));
+			vec3 v01(r1 * cos(theta), cos(phi + dphi), r1 * sin(theta));
+			vec3 v11(r1 * cos(theta + dtheta), cos(phi + dphi), r1 * sin(theta + dtheta));
+			
+			vec3 vertices[] = { v00, v01, v11, v10 };
+			uint32 j = mesh.getPositionCount();
+			uint32 indices[] = { j, j + 1, j + 2, j + 2, j + 3, j };
+			mesh.addIndices(indices, 6);
+			mesh.addPositions(vertices, 4);
+		}
 	}
 	return mesh;
 }

@@ -10,8 +10,12 @@ public:
 	bool loadFromSource(const std::string &vertSrc, const std::string &fragSrc);
 	bool loadFromFile(const std::string &vertName, const std::string &fragName);
 
-	// Loads from files baseName.vs and baseName.fs
+	// Load shaders from files with names <baseName>.vs and <baseName>.fs
 	bool loadFromFile(const std::string &baseName);
+
+	// Load shaders from files with names <baseName>.vs and <baseName>.fs
+	// and performs shader compilation and linking into a program.
+	bool loadAndLinkFromFile(const std::string &baseName);
 
 	bool linkAndCheckStatus();
 	void dispose();
@@ -19,7 +23,11 @@ public:
 	void begin();
 	void end();
 
-	// Binds the attribute with the given name to the given location
+	// Bind a user-defined varying out variable to a fragment shader color number.
+	// 'colorNumber' must be less than GL_MAX_DRAW_BUFFERS.
+	// The binding will have no effect until the program is next linked.
+	void bindFragDataLocation(const std::string &name, GLuint colorNumber);
+
 	void bindAttribute(GLuint location, const std::string &name);
 
 	// Returns (a cached) uniform location for the given name

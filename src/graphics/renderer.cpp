@@ -1,15 +1,20 @@
 #include <graphics/renderer.h>
-
+static const std::string NO_ACTIVE_SHADER = "No active shader program";
+static const std::string NO_ACTIVE_RENDERER = "No active renderer";
 static Renderer *activeRenderer = nullptr;
 
-Renderer *getActiveRenderer() { return activeRenderer; }
+Renderer *getActiveRenderer() 
+{
+	if (activeRenderer == nullptr)
+		throw std::runtime_error(NO_ACTIVE_RENDERER);
+
+	return activeRenderer; 
+}
+
 void setActiveRenderer(Renderer *r) { activeRenderer = r; }
 
-ShaderProgram *getActiveShader() { 
-	if(activeRenderer)
-		return activeRenderer->getCurrentShaderProgram();
-	else
-		return nullptr;
+ShaderProgram *getActiveShader() {
+	return getActiveRenderer()->getCurrentShaderProgram();
 }
 
 Renderer::Renderer() : currentShaderProgram(nullptr)
@@ -91,8 +96,17 @@ void Renderer::endCustomShader()
 	currentShaderProgram = nullptr;
 }
 
-void Renderer::drawIndexedGeometry(GLenum drawMode, int indexCount, GLenum indexType)
+void Renderer::drawVertexBuffer(GLenum drawMode, int indexCount)
 {
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error(NO_ACTIVE_SHADER);
+	glDrawArrays(drawMode, 0, indexCount);
+}
+
+void Renderer::drawIndexedVertexBuffer(GLenum drawMode, int indexCount, GLenum indexType)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error(NO_ACTIVE_SHADER);
 	glDrawElements(drawMode, indexCount, indexType, 0);
 }
 
@@ -105,7 +119,7 @@ void Renderer::draw(Mesh &mesh, GLenum drawMode)
 void Renderer::draw(MeshBuffer &mesh, GLenum drawMode)
 {
 	if (currentShaderProgram == nullptr)
-		throw std::runtime_error("No active shader");
+		throw std::runtime_error(NO_ACTIVE_SHADER);
 
 	//mesh.vbo.bind();
 	//mesh.ibo.bind();
@@ -139,12 +153,43 @@ void Renderer::draw(std::vector<MeshBuffer> &meshes)
 
 }
 
+void Renderer::draw(Model &model)
+{
+	if (model.mesh == nullptr)
+		throw std::runtime_error("Model has no associated mesh buffer");
+
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error(NO_ACTIVE_SHADER);
+
+	setUniform("model", model.transform.top());
+	model.mesh->draw();
+}
+
+void Renderer::drawQuad(float x, float y, float w, float h)
+{
+	BufferObject vbo;
+	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+	vbo.bind();
+	static const float data[] = {
+		x,     y,
+		x + w, y,
+		x + w, y + h,
+		x + w, y + h,
+		x,     y + h,
+		x,     y
+	};
+	vbo.bufferData(sizeof(data), data);
+	currentShaderProgram->setAttributefv("position", 2, 0, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	vbo.dispose();
+}
+
 void Renderer::drawTexQuad(float x, float y, float w, float h)
 {
 	BufferObject vbo;
 	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
 	vbo.bind();
-	float data[] = {
+	static const float data[] = {
 		x,     y,     0.0f, 0.0f,
 		x + w, y,     1.0f, 0.0f,
 		x + w, y + h, 1.0f, 1.0f,
@@ -260,6 +305,13 @@ void Renderer::setUniform(const std::string &name, const mat2 &mat)
 	if (currentShaderProgram == nullptr)
 		throw std::runtime_error("No active shader program");
 	currentShaderProgram->setUniform(name, mat);
+}
+
+void Renderer::setUniform(const std::string &name, const Color &color)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setUniform(name, vec4(color.r, color.g, color.b, color.a));
 }
 
 void Renderer::setUniform(const std::string &name, const vec4 &vec)

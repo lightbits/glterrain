@@ -14,6 +14,7 @@ bool ShaderProgram::loadFromSource(const std::string &vertSrc, const std::string
 	if(!vertexShader.loadFromSource(vertSrc) || 
 	   !fragmentShader.loadFromSource(fragSrc))
 		return false;
+	program.create();
 	return true;
 }
 
@@ -24,6 +25,7 @@ bool ShaderProgram::loadFromFile(const std::string &vertName, const std::string 
 	if(!vertexShader.loadFromFile(vertName) || 
 	   !fragmentShader.loadFromFile(fragName))
 		return false;
+	program.create();
 	return true;
 }
 
@@ -32,9 +34,17 @@ bool ShaderProgram::loadFromFile(const std::string &baseName)
 	return loadFromFile(baseName + ".vs", baseName + ".fs");
 }
 
+bool ShaderProgram::loadAndLinkFromFile(const std::string &baseName)
+{
+	if (!loadFromFile(baseName))
+		return false;
+	if (!linkAndCheckStatus())
+		return false;
+	return true;
+}
+
 bool ShaderProgram::linkAndCheckStatus()
 {
-	program.create();
 	return program.linkAndCheckStatus(vertexShader, fragmentShader);
 }
 
@@ -60,6 +70,11 @@ void ShaderProgram::end()
 	program.unuse();
 	//Renderer *r = getActiveRenderer();
 	//if(r) r->endCustomShader();
+}
+
+void ShaderProgram::bindFragDataLocation(const std::string &name, GLuint colorNumber)
+{
+	glBindFragDataLocation(program.getHandle(), colorNumber, name.c_str());
 }
 
 void ShaderProgram::bindAttribute(GLuint location, const std::string &name)

@@ -97,7 +97,9 @@ public:
 	void calculateTangentVectors();
 	void calculateNormalVectors();
 
-	static Mesh genUnitColoredCube();
+	static Mesh genPlane(float width, float height);
+	static Mesh genUnitSphere(int tSamples, int sSamples);
+	static Mesh genUnitCube(bool colors, bool normals);
 	static Mesh genUnitColoredPlane(const Color &color);
 	static Mesh genUnitCylinder(const Color &color, int levels);
 	static Mesh genUnitGrid(const Color &color, int lines);

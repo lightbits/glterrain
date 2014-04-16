@@ -34,13 +34,14 @@ void Texture::create(GLenum target, int width, int height)
 	height_ = height;
 }
 
-void Texture::create2d(GLint level,
-		GLint internalFormat, 
-		GLsizei width, 
-		GLsizei height, 
-		GLenum format, 
-		GLenum type, 
-		const GLvoid *data)
+void Texture::create2d(
+	GLint level,
+	GLint internalFormat, 
+	GLsizei width, 
+	GLsizei height,
+	GLenum format,
+	GLenum type, 
+	const GLvoid *data)
 {
 	dispose();
 	create(GL_TEXTURE_2D, width, height);

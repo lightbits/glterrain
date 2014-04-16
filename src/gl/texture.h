@@ -12,14 +12,23 @@ public:
 	void create(GLuint texture, GLenum target, int width, int height);
 	void create(GLenum target, int width, int height);
 
+	/*
+	'level' The level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
+
+	'internalFormat' The number of color components in the texture. (e.g. GL_RGB)
+
+	'format' The format of the pixel data (e.g. GL_BGR)
+
+	'type' The data type of the pixel data (e.g. GL_FLOAT)
+	*/
 	void create2d(
-		GLint level,			// Level-of-detail number
-		GLint internalFormat,	// Color component type in the texture
-		GLsizei width,			// Width of the texture
-		GLsizei height,			// Height of the texture
-		GLenum format,			// The composition of each element in data
-		GLenum type,			// The data type of the pixel data
-		const GLvoid *data);	// A pointer to the pixel data in memory
+		GLint level,
+		GLint internalFormat,
+		GLsizei width,
+		GLsizei height,
+		GLenum format,
+		GLenum type,
+		const GLvoid *data);
 
 	// Replaces a rectangular portion of the texture image
 	void copyFromFramebuffer(

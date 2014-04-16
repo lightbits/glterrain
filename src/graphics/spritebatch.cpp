@@ -253,7 +253,7 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 	renderer->setCullState(CullStates::CullNone);
 	renderer->setRasterizerState(RasterizerStates::Default);
 	renderer->setDepthTestState(DepthTestStates::Always);
-	renderer->drawIndexedGeometry(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT);
+	renderer->drawIndexedVertexBuffer(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT);
 
 	vertexBuffer.unbind();
 	indexBuffer.unbind();

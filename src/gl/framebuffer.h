@@ -8,7 +8,9 @@ http://www.songho.ca/opengl/gl_fbo.html
 #include <gl/texture.h>
 
 /*
-Allows to render a scene directly to a renderbuffer object, instead of rendering to a texture object. Renderbuffer is simply a data storage object containing a single image of a renderable internal format. It is used to store OpenGL logical buffers that do not have corresponding texture format, such as stencil or depth buffer.
+Allows to render a scene directly to a renderbuffer object, instead of rendering to a texture object. 
+Renderbuffer is simply a data storage object containing a single image of a renderable internal format. 
+It is used to store OpenGL logical buffers that do not have corresponding texture format, such as stencil or depth buffer.
 */
 class Renderbuffer
 {
@@ -78,30 +80,18 @@ private:
 class Framebuffer
 {
 public:
-	Framebuffer() : handle(0) { }
-
-	void create()
-	{
-		dispose();
-		glGenFramebuffers(1, &handle);
-	}
-
-	void dispose()
-	{
-		glDeleteFramebuffers(1, &handle);
-	}
+	Framebuffer();
+	void create();
+	void dispose();
 
 	/*
-	attachmentPoint is where to connect the texture image.
+	'attachmentPoint' Where to connect the texture image. 
 	Must be either a color attachment point (GL_COLOR_ATTACHMENT<n>),
 	GL_DEPTH_ATTACHMENT or GL_STENCIL_ATTACHMENT.
 
-	level is the mipmap level of the texture to be attached.
+	'level' The mipmap level of the texture to be attached.
 	*/
-	void attachTexture2D(GLenum attachmentPoint, const Texture &texture, GLint level)
-	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentPoint, GL_TEXTURE_2D, texture.getHandle(), level);
-	}
+	void attachTexture2D(GLenum attachmentPoint, const Texture &texture, GLint level);
 
 	/*
 	If a texture object is deleted while it is still attached to a FBO, then, 
@@ -109,25 +99,16 @@ public:
 	However, if it is attached to multiple FBOs and deleted, then it will be detached 
 	from only the bound FBO, but will not be detached from any other un-bound FBOs.
 	*/
-	void detachTexture2D(GLenum attachmentPoint)
-	{
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentPoint, GL_TEXTURE_2D, 0, 0);
-	}
+	void detachTexture2D(GLenum attachmentPoint);
 
-	void attachRenderbuffer(GLenum attachmentPoint, const Renderbuffer &renderbuffer)
-	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentPoint, GL_RENDERBUFFER, renderbuffer.getHandle());
-	}
+	void attachRenderbuffer(GLenum attachmentPoint, const Renderbuffer &renderbuffer);
 
 	/*
 	If a renderbuffer object is deleted while it is still attached in a FBO, 
 	then it will be automatically detached from the bound FBO. However, 
 	it will not be detached from any other non-bound FBOs.
 	*/
-	void detachRenderbuffer(GLenum attachmentPoint)
-	{
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentPoint, GL_RENDERBUFFER, 0);
-	}
+	void detachRenderbuffer(GLenum attachmentPoint);
 
 	/*
 	Once attachable images (textures and renderbuffers) are attached to a FBO and 
@@ -149,27 +130,15 @@ public:
 	Note that even though all conditions above may be satisfied, your OpenGL driver might not support all
 	combinations of internal formats and parameters. In that case, the function returns GL_FRAMEBUFFER_UNSUPPORTED.
 	*/
-	GLenum checkStatus()
-	{
-		return glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	}
+	GLenum checkStatus();
 
-	/*
-	Once a FBO is bound, all OpenGL operations affect onto the current bound framebuffer object.
-	*/
-	void bind()
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, handle);
-	}
+	/* Once a FBO is bound, all OpenGL operations affect onto the current bound framebuffer object. */
+	void bind();
 
-	/*
-	Binds default window-system framebuffer
-	*/
-	void unbind()
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
+	/* Binds default window-system framebuffer */
+	void unbind();
 private:
+	static Framebuffer *bound;
 	GLuint handle;	
 };
 
