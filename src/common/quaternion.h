@@ -1,9 +1,9 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
+#include <common/typedefs.h>
 #include <common/vec.h>
 #include <common/matrix.h>
 #include <glm/gtx/quaternion.hpp>
-#include <common/typedefs.h>
 typedef glm::quat quat;
 
 static quat quaternion(float angle, const vec3 &axis)

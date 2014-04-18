@@ -30,7 +30,7 @@ private:
 	RenderTexture(const RenderTexture &copy) { }
 	RenderTexture &operator=(const RenderTexture &copy) { }
 private:
-	Texture colorBuffer;
+	Texture2D colorBuffer;
 	Renderbuffer depthBuffer;
 	Framebuffer frameBuffer;
 };

@@ -1,27 +1,24 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
+#include <common/typedefs.h>
+#include <common/vec.h>
 #include <gl/opengl.h>
-#include <string>
 
-class Texture
+class Texture2D
 {
 public:
-	Texture();
+	Texture2D();
 
 	void dispose();
-	void create(GLuint texture, GLenum target, int width, int height);
-	void create(GLenum target, int width, int height);
+	bool loadFromFile(const string &filename);
 
 	/*
 	'level' The level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
-
-	'internalFormat' The number of color components in the texture. (e.g. GL_RGB)
-
-	'format' The format of the pixel data (e.g. GL_BGR)
-
-	'type' The data type of the pixel data (e.g. GL_FLOAT)
+	'internalFormat' The number of color components in the texture. (e.g. GL_RGB16f)
+	'format' The format of the pixel data (i.e. GL_RGB)
+	'type' The data type of the pixel data (i.e. GL_FLOAT)
 	*/
-	void create2d(
+	void create(
 		GLint level,
 		GLint internalFormat,
 		GLsizei width,
@@ -39,11 +36,9 @@ public:
 		GLsizei width,			// Width of texture subimage
 		GLsizei height);		// Height of texture subimage
 
-	bool loadFromFile(const std::string &filename);
-
-	int getWidth() const;
-	int getHeight() const;
-	void getInternalSize(int *width, int *height) const;
+	int    getWidth()  const;
+	int    getHeight() const;
+	vec2i  getSize()   const;
 	GLuint getHandle() const;
 
 	/*
@@ -54,16 +49,16 @@ public:
 	*/
 	void setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT);
 
-	// Bind texture object to the active texture unit location
-	void bind() const;
+	void bind()             const;
+	void bind(GLint unit)   const;
 
-	// Binds null object to the target
-	void unbind() const;
+	// Bind the default texture (0) to the default unit (GL_TEXTURE0)
+	static void unbind();
 private:
-	GLenum target_;
-	GLuint handle_;
-	int width_;
-	int height_;
+	const static Texture2D *bound;
+	GLuint m_handle;
+	int    m_width;
+	int    m_height;
 };
 
 #endif

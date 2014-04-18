@@ -21,14 +21,10 @@ Second pass:
 */
 
 #include "app.h"
+#include <gl/gbuffer.h>
 
-MeshBuffer 
-	cube_buffer,
-	sphere_buffer;
-
-Model 
-	cube,
-	sphere;
+MeshBuffer cube_buffer;
+Model cube;
 
 ShaderProgram
 	shader_fp,
@@ -39,25 +35,15 @@ mat4
 	view;
 
 VertexArray vao;
+GBuffer gbuffer;
 
-// Framebuffer to contain the output textures
-Framebuffer framebuffer;
-
-// Renderbuffer to enable depth-sorting for the fb
-Renderbuffer renderbuffer;
-
-// Textures to hold position and normal data
-Texture 
-	tex_p, // Position
-	tex_n, // Normal
-	tex_d; // Diffuse
-
-const int num_lights = 48;
+const int num_lights = 32;
 float light_r[num_lights]; // Radii
 mat4 light_m[num_lights]; // World-transformations
 vec3 light_p[num_lights]; // Positions
 vec3 light_d[num_lights]; // Diffuse colors
 vec3 light_s[num_lights]; // Specular colors
+vec3 light_v[num_lights]; // Velocities
 
 bool load()
 {
@@ -65,7 +51,7 @@ bool load()
 		!shader_sp.loadFromFile("./demo/21deferred/second_pass"))
 		return false;
 
-	// setup output variables
+	// Output variables (color numbers)
 	shader_fp.bindFragDataLocation("out_p", 0);
 	shader_fp.bindFragDataLocation("out_n", 1);
 	shader_fp.bindFragDataLocation("out_d", 2);
@@ -87,8 +73,7 @@ void init(Renderer &gfx, Context &ctx)
 	cube_buffer = MeshBuffer(mesh);
 	cube = Model(cube_buffer);
 
-	sphere_buffer = MeshBuffer(Mesh::genUnitSphere(8, 8));
-	sphere = Model(sphere_buffer);
+	gbuffer.create(ctx.getWidth(), ctx.getHeight());
 
 	// Default vertex array object
 	vao.create();
@@ -96,59 +81,12 @@ void init(Renderer &gfx, Context &ctx)
 
 	projection = glm::perspective(45.0f, (float)ctx.getWidth() / ctx.getHeight(), 0.1f, 20.0f);
 
-	// Create texture that will hold fragment position output
-	tex_p.create2d(0, GL_RGB16F, ctx.getWidth(), ctx.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	tex_p.bind();
-	tex_p.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	tex_p.unbind();
-
-	// Create texture that will hold fragment normal output
-	tex_n.create2d(0, GL_RGB16F, ctx.getWidth(), ctx.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	tex_n.bind();
-	tex_n.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	tex_n.unbind();
-
-	// Create texture that will hold fragment diffuse output
-	tex_d.create2d(0, GL_RGB16F, ctx.getWidth(), ctx.getHeight(), GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	tex_d.bind();
-	tex_d.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	tex_d.unbind();
-
-	// The renderbuffer is actually just used to depth testing
-	renderbuffer.create();
-	renderbuffer.bind();
-	renderbuffer.storage(GL_DEPTH_COMPONENT, ctx.getWidth(), ctx.getHeight());
-	renderbuffer.unbind();
-
-	// Create framebuffer that will be used to render to these textures
-	framebuffer.create();
-	framebuffer.bind();
-	framebuffer.attachTexture2D(GL_COLOR_ATTACHMENT0, tex_p, 0); // position is colornumber 0
-	framebuffer.attachTexture2D(GL_COLOR_ATTACHMENT1, tex_n, 0); // normal is colornumber 1
-	framebuffer.attachTexture2D(GL_COLOR_ATTACHMENT2, tex_d, 0); // normal is colornumber 1
-	framebuffer.attachRenderbuffer(GL_DEPTH_ATTACHMENT, renderbuffer);
-
-	// Specify output targets
-	GLenum drawBuffers[] = { 
-		GL_COLOR_ATTACHMENT0, 
-		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2 
-	};
-	glDrawBuffers(3, drawBuffers);
-
-	GLenum status = framebuffer.checkStatus();
-	if (status != GL_FRAMEBUFFER_COMPLETE)
-		throw std::runtime_error("Framebuffer not complete");
-
-	//renderbuffer.unbind();
-	framebuffer.unbind();
-
 	// Setup light matrices and world positions
 	for (int i = 0; i < num_lights; ++i)
 	{
-		float x = 3.0f * sin(4.0f * TWO_PI * i / num_lights);
-		float y = 0.3f + 0.1f * cos(4.0f * TWO_PI * i / num_lights);
-		float z = -4.0f + 9.0f * i / num_lights;
+		float x = -2.5f + 2.0f * (i % 4);
+		float y = 0.5f + 0.2f * cos(4.0f * TWO_PI * i / num_lights);
+		float z = -3.6f + (i / 4);
 		light_p[i] = vec3(x, y, z);
 		light_d[i] = vec3(
 			0.5 + 0.5 * sin(TWO_PI * i / num_lights),
@@ -157,18 +95,32 @@ void init(Renderer &gfx, Context &ctx)
 		light_s[i] = vec3(1.0, 1.0, 1.0);
 		light_r[i] = 0.6f + 0.1f * sin(i);
 		light_m[i] = transform::translate(light_p[i]) * transform::scale(light_r[i]);
+		light_v[i] = vec3(0.0, 0.8 * sin(i), 0.0);
 
 	}
 
 	// The coolest light of the bunch
-	light_r[3] = 8.0f;
-	light_p[3] = vec3(0.0f, 3.0f, 0.0f);
+	light_r[3] = 12.0f;
+	light_p[3] = vec3(0.0f, 4.0f, 0.0f);
 	light_d[3] = vec3(0.8f, 0.7f, 0.5f);
 	light_m[3] = transform::translate(light_p[3]) * transform::scale(light_r[3]);
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
+	// Simulate bouncing of the lights
+	//for (int i = 0; i < num_lights; ++i)
+	//{
+	//	light_p[i].y += light_v[i].y * dt;
+	//	light_v[i] -= 2.0 * dt;
+	//	if (light_p[i].y - 0.4 < 0.0)
+	//	{
+	//		light_p[i].y = 0.4;
+	//		light_v[i] *= -0.99;
+	//	}
+	//	light_m[i] = transform::translate(light_p[i]) * transform::scale(light_r[i]);
+	//}
+
 	view = 
 		transform::translate(0.0f, -1.5f, -10.0f) * 
 		transform::rotateX(-0.44f) * 
@@ -177,7 +129,9 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void renderGeometry(Renderer &gfx, Context &ctx, double dt)
 {
-	gfx.setUniform("diffuse", vec3(1.0));
+	// Spinning cube
+	gfx.setUniform("emissivity", 0.0f);
+	gfx.setUniform("diffuse", vec3(0.63f, 0.06f, 0.04f));
 	cube.transform.push();
 	cube.transform.translate(0.0f, 0.4f, 0.0f);
 	cube.transform.rotateX(sin(ctx.getElapsedTime() * 1.5f));
@@ -217,11 +171,13 @@ void renderGeometry(Renderer &gfx, Context &ctx, double dt)
 	cube.draw();
 	cube.transform.pop();
 
+	// Shining lights
 	for (int i = 0; i < num_lights; ++i)
 	{
-		gfx.setUniform("diffuse", light_d[i] * 10.0f);
+		gfx.setUniform("diffuse", light_d[i]);
+		gfx.setUniform("emissivity", 1.0f);
 		cube.transform.push();
-		cube.transform.multiply(light_m[i]);
+		cube.transform.translate(light_p[i]);
 		cube.transform.scale(0.2f);
 		cube.draw();
 		cube.transform.pop();
@@ -231,18 +187,20 @@ void renderGeometry(Renderer &gfx, Context &ctx, double dt)
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	// Geometry pass
+	gbuffer.begin();
 	gfx.beginCustomShader(shader_fp);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setBlendState(BlendStates::Default);
 	gfx.setClearDepth(1.0);
+
+	// Clear fragment output buffers to all zero (!)
 	gfx.setClearColor(0.0f, 0.0f, 0.0f);
-	framebuffer.bind();
 	gfx.clearColorAndDepth();
 	gfx.setUniform("projection", projection);
 	gfx.setUniform("view", view);
 	renderGeometry(gfx, ctx, dt);
 	gfx.endCustomShader();
-	framebuffer.unbind();
+	gbuffer.end();
 
 	// Deferred pass
 	gfx.setDepthTestState(DepthTestStates::Disabled);
@@ -252,17 +210,28 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.clearColorBuffer();
 
 	gfx.beginCustomShader(shader_sp);
-	glActiveTexture(GL_TEXTURE0); tex_p.bind();
-	glActiveTexture(GL_TEXTURE1); tex_n.bind();
-	glActiveTexture(GL_TEXTURE2); tex_d.bind();
+	gbuffer.bindTextures();
 	gfx.setUniform("projection", projection);
 	gfx.setUniform("view", view);
 	gfx.setUniform("tex_p", 0);
 	gfx.setUniform("tex_n", 1);
 	gfx.setUniform("tex_d", 2);
 
-	// Draw each point light as a sphere
-	// Anything within a sphere will be lit
+	/*
+	The light model matrix is used to transform the quad.
+	Here I multiply by the inverse view rotation, to orient the quad towards the viewer.
+	The last column of the view matrix is a translation vector, while the first 
+	three define rotations and scaling. 
+
+	Because we don't do any scaling here, we can get the rotation matrix with the 
+	first three columns. A rotation matrix has orthonormal columns, which means that 
+	its transpose is its inverse!
+	*/
+	mat4 inverse_view_r = mat4(view[0], view[1], view[2], vec4(0, 0, 0, 1));
+	inverse_view_r = glm::transpose(inverse_view_r);
+
+	// For each pointlight a quad is rendered that covers a bit more
+	// than the range of the light. Anything inside the quad will be lit.
 	for (int i = 0; i < num_lights; ++i)
 	{
 		// Yeah this is pretty bad for parallelism!
@@ -270,10 +239,14 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		gfx.setUniform("light_d", light_d[i]);
 		gfx.setUniform("light_r", light_r[i]);
 		gfx.setUniform("light_s", light_s[i]);
-		gfx.setUniform("model", light_m[i] * transform::rotateY(-sin(ctx.getElapsedTime() * 0.5f) * 0.8f) * 
-			transform::rotateX(+0.34f)); // For transforming the quad to cover the light range
-
+		gfx.setUniform("model", light_m[i] * inverse_view_r);
 		gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f);
+
+		// Project the quad manually... kinda almost worked!
+		//vec4 pc = projection * view * vec4(light_p[i], 1.0);
+		//vec4 size = projection * vec4(light_r[i], light_r[i], 0.0, 1.0);
+		//float z = (view * vec4(light_p[i], 1.0)).z;
+		// gfx.drawQuad(pc.x - size.x, pc.y + size.y, 2.0f * size.x, 2.0f * size.y);
 	}
 
 	gfx.endCustomShader();

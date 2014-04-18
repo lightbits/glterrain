@@ -34,7 +34,7 @@ struct SpriteInfo
 	Rectanglef destination;
 	float zAxisRotation;
 	Color color;
-	const Texture *texture;
+	const Texture2D *texture;
 };
 
 /*
@@ -60,7 +60,7 @@ public:
 	void begin(BlendState blendMode = BlendStates::AlphaBlend, const mat4 &view = mat4(1.0f));
 	// void begin(const ShaderProgram &customShader, SpriteBlendMode blendMode = SpriteBlendMode.AlphaBlend, const mat4 &view = mat4(1.0f));
 
-	void drawTexture(const Texture &texture,
+	void drawTexture(const Texture2D &texture,
 					 const Color &color,
 					 const Rectanglef &dest,
 					 float uLeft, float uRight,
@@ -69,7 +69,7 @@ public:
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
-	void drawTexture(const Texture &texture, 
+	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
 					 const Rectanglef &dest, 
 					 const Rectanglei &src, 
@@ -77,14 +77,14 @@ public:
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
-	void drawTexture(const Texture &texture, 
+	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
 					 const Rectanglef &dest, 
 					 float depth = 0.0f, 
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
-	void drawTexture(const Texture &texture, 
+	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
 					 const vec2 &pos, 
 					 const Rectanglei &src, 
@@ -92,7 +92,7 @@ public:
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
-	void drawTexture(const Texture &texture, 
+	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
 					 const vec2 &pos, 
 					 float depth = 0.0f, 
@@ -114,7 +114,7 @@ private:
 
 	/* Builds up the vertex and index data buffers with sprite data, and issues a drawcall
 	using glDrawElements. */
-	void renderBatch(const Texture *batchTexture, SpriteInfo *first, int count);
+	void renderBatch(const Texture2D *batchTexture, SpriteInfo *first, int count);
 
 	/* Adds a single sprite's data to the vertex and index data buffers */
 	void renderSprite(const SpriteInfo *sprite);

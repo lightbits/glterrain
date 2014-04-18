@@ -17,7 +17,7 @@ void Framebuffer::dispose()
 	glDeleteFramebuffers(1, &handle);
 }
 
-void Framebuffer::attachTexture2D(GLenum attachmentPoint, const Texture &texture, GLint level)
+void Framebuffer::attachTexture2D(GLenum attachmentPoint, const Texture2D &texture, GLint level)
 {
 	if (!bound) throw std::runtime_error(FRAMEBUFFER_NOT_BOUND);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentPoint, GL_TEXTURE_2D, texture.getHandle(), level);

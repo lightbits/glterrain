@@ -32,12 +32,12 @@ public:
 
 	/* Calculate the width (TODO: and height) of the string, in pixel units */
 	int measureString(const std::string &str) const;
-	const Texture *getTexture() const;
+	const Texture2D *getTexture() const;
 
 	bool loadFromFile(const std::string &filename, const std::string &charSet = 
 		" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 private:
-	Texture *texture;
+	Texture2D *texture;
 	std::unordered_map<char, Glyph> glyphs;
 };
 

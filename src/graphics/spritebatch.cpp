@@ -116,11 +116,11 @@ void SpriteBatch::end()
 
 	// sortSprites();
 
-	const Texture *currentTexture = nullptr;
+	const Texture2D *currentTexture = nullptr;
 	unsigned int first = 0;
 	for(unsigned int i = 0; i < spriteQueue.size(); ++i)
 	{
-		const Texture *texture = spriteQueue[i].texture;
+		const Texture2D *texture = spriteQueue[i].texture;
 
 		// Issue draw call if there is a texture change and batch count > 0
 		/*if(currentTexture == nullptr || (texture->getHandle() != currentTexture->getHandle()))
@@ -144,22 +144,15 @@ void SpriteBatch::end()
 	}
 }
 
-void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int count)
+void SpriteBatch::renderBatch(const Texture2D *texture, SpriteInfo *first, int count)
 {
 	Renderer *renderer = getActiveRenderer();
-	if(!renderer)
-		throw std::exception("No active renderer");
-
 	currentShader->begin();
 
-	// Prepare buffers
+	// Prepare buffers and enable texture
 	vertexBuffer.bind();
 	indexBuffer.bind();
-
-	// Enable texture and get texture dimensions for calculating UV-coordinates
 	texture->bind();
-	int textureWidth, textureHeight;
-	texture->getInternalSize(&textureWidth, &textureHeight);
 
 	struct Vertex
 	{
@@ -264,7 +257,7 @@ void SpriteBatch::renderBatch(const Texture *texture, SpriteInfo *first, int cou
 	delete[] indices;
 }
 
-void SpriteBatch::drawTexture(const Texture &texture,
+void SpriteBatch::drawTexture(const Texture2D &texture,
 					 const Color &color,
 					 const Rectanglef &dest,
 					 float uLeft, float uRight,
@@ -294,7 +287,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	spriteQueue.push_back(spriteInfo);
 }
 
-void SpriteBatch::drawTexture(const Texture &texture, 
+void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
 					const Rectanglef &dest, 
 					const Rectanglei &src, 
@@ -310,7 +303,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	drawTexture(texture, color, dest, uLeft, uRight, vBottom, vTop, depth, orientation, center);
 }
 
-void SpriteBatch::drawTexture(const Texture &texture, 
+void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
 					const Rectanglef &dest,
 					float depth, float orientation,
@@ -319,7 +312,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
 }
 
-void SpriteBatch::drawTexture(const Texture &texture, 
+void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
 					const vec2 &pos,
 					const Rectanglei &src,
@@ -330,7 +323,7 @@ void SpriteBatch::drawTexture(const Texture &texture,
 	drawTexture(texture, color, dest, src, depth, orientation, center);
 }
 
-void SpriteBatch::drawTexture(const Texture &texture, 
+void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
 					const vec2 &pos,
 					float depth, float orientation,
@@ -356,7 +349,7 @@ void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Col
 
 	float posY = pos.y;
 	float lineHeight = (float)currentFont->getGlyph('a').height;
-	const Texture *texture = currentFont->getTexture();
+	const Texture2D *texture = currentFont->getTexture();
 	float txtwidth = (float)texture->getWidth();
 	float txtheight = (float)texture->getHeight();
 	for(unsigned int i = 0; i < lines.size(); ++i)

@@ -37,7 +37,7 @@ int Font::measureString(const std::string &str) const
 	return width;
 }
 
-const Texture *Font::getTexture() const
+const Texture2D *Font::getTexture() const
 {
 	return texture;
 }
@@ -78,7 +78,7 @@ bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 	if(texture != nullptr)
 		delete texture;
 
-	texture = new Texture();
+	texture = new Texture2D();
 	if(!texture->loadFromFile(filename))
 		return false;
 

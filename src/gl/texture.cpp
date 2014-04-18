@@ -1,40 +1,23 @@
 #include <gl/texture.h>
 #include <SOIL.h>
-#include <iostream>
-#include <string>
 
-Texture::Texture() : width_(0), height_(0), handle_(0), target_(GL_TEXTURE_2D)
+const std::string TEXTURE_NOT_BOUND = "Texture not bound";
+const Texture2D *Texture2D::bound = nullptr;
+
+Texture2D::Texture2D() : 
+	m_width(0), 
+	m_height(0), 
+	m_handle(0)
+{ }
+
+void Texture2D::dispose()
 {
-
+	glDeleteTextures(1, &m_handle);
+	m_width  = 0;
+	m_height = 0;
 }
 
-void Texture::dispose()
-{
-	glDeleteTextures(1, &handle_);
-	width_ = 0;
-	height_ = 0;
-	target_ = GL_TEXTURE_2D;
-}
-
-void Texture::create(GLuint handle, GLenum target, int width, int height)
-{
-	dispose();
-	target_ = target;
-	handle_ = handle;
-	width_ = width;
-	height_ = height;
-}
-
-void Texture::create(GLenum target, int width, int height)
-{
-	dispose();
-	glGenTextures(1, &handle_);
-	target_ = target;
-	width_ = width;
-	height_ = height;
-}
-
-void Texture::create2d(
+void Texture2D::create(
 	GLint level,
 	GLint internalFormat, 
 	GLsizei width, 
@@ -44,76 +27,85 @@ void Texture::create2d(
 	const GLvoid *data)
 {
 	dispose();
-	create(GL_TEXTURE_2D, width, height);
-	bind();
-	glTexImage2D(target_, level, internalFormat, width, height, 0, format, type, data);
-	unbind();
+	glGenTextures(1, &m_handle);
+	glBindTexture(GL_TEXTURE_2D, m_handle);
+	glTexImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, 0, format, type, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	m_width  = width;
+	m_height = height;
 }
 
-void Texture::copyFromFramebuffer(			
+void Texture2D::copyFromFramebuffer(			
 		GLint level,			
 		GLint xoffset,			
 		GLint yoffset,			
 		GLint x, GLint y,		
-		GLsizei width,			
-		GLsizei height)
+		GLsizei width_,			
+		GLsizei height_)
 {
 	// http://www.opengl.org/sdk/docs/man/xhtml/glCopyTexSubImage2D.xml
-	glCopyTexSubImage2D(target_, level, xoffset, yoffset, x, y, width, height);
+	throw std::runtime_error("copyFromFramebuffer not implemented");
+	//glBindTexture(GL_TEXTURE_2D, m_handle);
+	//glCopyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, x, y, width_, height_);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool Texture::loadFromFile(const std::string &filename)
+bool Texture2D::loadFromFile(const std::string &filename)
 {
 	GLuint tex = SOIL_load_OGL_texture(
-		filename.c_str(), SOIL_LOAD_RGBA,
+		filename.c_str(), 
+		SOIL_LOAD_RGBA,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y);
 
 	if (tex == 0)
 	{
-		std::cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << std::endl;
+		cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << endl;
 		return false;
 	}
 
 	// Retreive the dimensions
+	dispose();
 	glBindTexture(GL_TEXTURE_2D, tex);
-	GLint w = 0;
-	GLint h = 0;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	create(tex, GL_TEXTURE_2D, w, h);
+	m_handle = tex;
 	
 	return true;
 }
 
-void Texture::setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT)
+void Texture2D::setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT)
 {
-	//bind();
-	glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, minFilter);
-	glTexParameteri(target_, GL_TEXTURE_MAG_FILTER, magFilter);
-	glTexParameteri(target_, GL_TEXTURE_WRAP_S, wrapS);
-	glTexParameteri(target_, GL_TEXTURE_WRAP_T, wrapT);
-	//unbind();
+	if (bound != this)
+		bind();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
 }
 
-void Texture::getInternalSize(int *width, int *height) const
+vec2i  Texture2D::getSize()      const { return vec2i(m_width, m_height); }
+int    Texture2D::getWidth()     const { return getSize().x; }
+int    Texture2D::getHeight()    const { return getSize().y; }
+GLuint Texture2D::getHandle()    const { return m_handle; }
+
+void Texture2D::bind(GLint unit) const 
 {
-	*width = 0; 
-	*height = 0;
-	//bind();
-	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, width);
-	glGetTexLevelParameteriv(target_, 0, GL_TEXTURE_WIDTH, height);
-	//unbind();
+	bound = this;
+	glActiveTexture(unit);
+	glBindTexture(GL_TEXTURE_2D, m_handle);
 }
 
-int Texture::getWidth() const { return width_; }
+void Texture2D::bind() const 
+{
+	bound = this;
+	glBindTexture(GL_TEXTURE_2D, m_handle); 
+}
 
-int Texture::getHeight() const { return height_; }
-
-GLuint Texture::getHandle() const { return handle_; }
-
-void Texture::bind() const { glBindTexture(target_, handle_); }
-
-void Texture::unbind() const { glBindTexture(target_, 0); }
+void Texture2D::unbind() 
+{
+	bound = nullptr;
+	glBindTexture(GL_TEXTURE_2D, 0); 
+}

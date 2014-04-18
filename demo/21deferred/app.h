@@ -3,10 +3,6 @@
 #include <iostream>
 #include <graphics/renderer.h>
 #include <app/glcontext.h>
-using std::cout;
-using std::endl;
-using std::vector;
-using std::string;
 
 bool load();
 void free();

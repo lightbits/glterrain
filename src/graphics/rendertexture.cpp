@@ -4,7 +4,7 @@ RenderTexture::RenderTexture() { }
 
 void RenderTexture::create(int width, int height)
 {
-	colorBuffer.create2d(0, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	colorBuffer.create(0, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	colorBuffer.bind();
 	colorBuffer.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 	colorBuffer.unbind();

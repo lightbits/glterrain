@@ -91,7 +91,7 @@ public:
 
 	'level' The mipmap level of the texture to be attached.
 	*/
-	void attachTexture2D(GLenum attachmentPoint, const Texture &texture, GLint level);
+	void attachTexture2D(GLenum attachmentPoint, const Texture2D &texture, GLint level);
 
 	/*
 	If a texture object is deleted while it is still attached to a FBO, then, 

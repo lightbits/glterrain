@@ -5,9 +5,7 @@ uniform vec3 light_p; // Light position in world
 uniform vec3 light_d; // Diffuse color
 uniform vec3 light_s; // Specular color
 
-uniform mat4 model;
 uniform mat4 view;
-uniform mat4 projection;
 
 uniform sampler2D tex_p; // Position texture
 uniform sampler2D tex_n; // Normal texture
@@ -17,7 +15,7 @@ out vec4 out_color;
 
 const vec3 ks = vec3(1.0, 1.0, 1.0); // Specular reflection
 const vec3 kd = vec3(1.0, 1.0, 1.0); // Diffuse reflection
-const float se = 100.0f; // Specular exponent
+const float se = 100.0; // Specular exponent
 
 vec3 phong(in vec3 P, in vec3 N)
 {
@@ -37,8 +35,8 @@ vec3 phong(in vec3 P, in vec3 N)
 	vec3 Is = specular * ks * light_s;			// Specular intensity
 
 	// Attenuation
-	// float attenuation = 1.0 - (dist / light_r);
-	float attenuation = -log(min(1.0, dist / light_r));
+	float attenuation = max(1.0 - (dist / light_r), 0.0);
+	// float attenuation = -log(min(1.0, dist / light_r));
 
 	return (Is + Id) * attenuation;
 }
@@ -56,11 +54,22 @@ void main()
 	vec3 N = (texture(tex_n, uv)).xyz; // Vertex normal in view-space
 	N = normalize(N);
 
-	vec3 C = (texture(tex_d, uv)).xyz; // Diffuse color
+	vec4 dsample = texture(tex_d, uv);
+	vec3 diffuse = dsample.xyz;
+	vec3 emissivity = dsample.www;
 
-	out_color.rgb = phong(P, N) * C;
+	out_color.rgb = phong(P, N) * diffuse;
 	out_color.a = 1.0;
 
+	// This looks off when using additive blending, because
+	// the color is added regardless of being in range of the light or not.
+	// If quads overlap, the emissive color will be twice as strong
+	out_color.rgb += emissivity * diffuse;
+
+	// Gamma
+	// out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));
+
+	// Debug: show light ranges as white squares (also disable the discard above)
 	// out_color *= 0.001;
 	// out_color += vec4(1.0);
 }

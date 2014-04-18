@@ -7,15 +7,15 @@ class ShaderProgram
 {
 public:
 	ShaderProgram();
-	bool loadFromSource(const std::string &vertSrc, const std::string &fragSrc);
-	bool loadFromFile(const std::string &vertName, const std::string &fragName);
+	bool loadFromSource(const string &vertSrc, const string &fragSrc);
+	bool loadFromFile(const string &vertName, const string &fragName);
 
 	// Load shaders from files with names <baseName>.vs and <baseName>.fs
-	bool loadFromFile(const std::string &baseName);
+	bool loadFromFile(const string &baseName);
 
 	// Load shaders from files with names <baseName>.vs and <baseName>.fs
 	// and performs shader compilation and linking into a program.
-	bool loadAndLinkFromFile(const std::string &baseName);
+	bool loadAndLinkFromFile(const string &baseName);
 
 	bool linkAndCheckStatus();
 	void dispose();
@@ -23,44 +23,45 @@ public:
 	void begin();
 	void end();
 
-	// Bind a user-defined varying out variable to a fragment shader color number.
-	// 'colorNumber' must be less than GL_MAX_DRAW_BUFFERS.
-	// The binding will have no effect until the program is next linked.
-	void bindFragDataLocation(const std::string &name, GLuint colorNumber);
+	/*
+	Binds the out variable of the given name to the given color number. This can either be done
+	in-shader, by using layout (location = x) out vec4 diffusecolor,
+	automatically, by letting OpenGL assign an arbitrary color number, or
+	through pre-link specification, using this function before linking the program.
+	*/
+	void bindFragDataLocation(const string &name, GLuint colorNumber);
 
-	void bindAttribute(GLuint location, const std::string &name);
+	// Bind the attribute 'name' to 'location'
+	void bindAttribute(GLuint location, const string &name);
 
-	// Returns (a cached) uniform location for the given name
-	GLint getUniformLocation(const std::string &name);
+	// Returns the cached uniform location
+	GLint getUniformLocation(const string &name);
 
-	// Returns (a cached) attribute location for the given name
-	GLint getAttributeLocation(const std::string &name);
+	// Returns the cached attribute location
+	GLint getAttributeLocation(const string &name);
 
 	/*
 	stride: number of components between the first element in each attribute
 	offset: number of components into the array the component is found
 	note: not byte offset
 	*/
-	void setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void setAttributefv(const string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	void setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	/*void unsetAttribute(const std::string &name);
 	void unsetAttribute(GLint location);*/
 
-	void setUniform(const std::string &name, const mat4 &mat);
-	void setUniform(const std::string &name, const mat3 &mat);
-	void setUniform(const std::string &name, const mat2 &mat);
-	void setUniform(const std::string &name, const vec4 &vec);
-	void setUniform(const std::string &name, const vec3 &vec);
-	void setUniform(const std::string &name, const vec2 &vec);
-	void setUniform(const std::string &name, GLdouble d);
-	void setUniform(const std::string &name, GLfloat f);
-	void setUniform(const std::string &name, GLint i);
-
-	GLuint getProgram() const;
-	GLuint getShader(GLenum type) const;
+	void setUniform(const string &name, const mat4 &mat);
+	void setUniform(const string &name, const mat3 &mat);
+	void setUniform(const string &name, const mat2 &mat);
+	void setUniform(const string &name, const vec4 &vec);
+	void setUniform(const string &name, const vec3 &vec);
+	void setUniform(const string &name, const vec2 &vec);
+	void setUniform(const string &name, GLdouble d);
+	void setUniform(const string &name, GLfloat f);
+	void setUniform(const string &name, GLint i);
 private:
-	std::unordered_map<std::string, GLint> attribLocations;
-	std::unordered_map<std::string, GLint> uniformLocations;
+	std::unordered_map<string, GLint> attribLocations;
+	std::unordered_map<string, GLint> uniformLocations;
 	Program program;
 	Shader vertexShader;
 	Shader fragmentShader;

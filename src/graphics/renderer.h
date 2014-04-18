@@ -63,8 +63,11 @@ public:
 	/* Draws a set of lines pretty slowly */
 	void drawLines(const std::vector<vec3> &lines);
 
-	/* Drawss a isngle flat quad very slowly */
+	/* Drawss a single flat quad very slowly */
 	void drawQuad(float x, float y, float w, float h);
+
+	/* Drawss a single flat quad, with depth, very slowly */
+	void drawQuad(float x, float y, float w, float h, float z);
 
 	/* Draws a single flat textured quad very slowly */
 	void drawTexQuad(float x, float y, float w, float h);

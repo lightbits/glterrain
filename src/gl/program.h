@@ -4,9 +4,8 @@
 #include <gl/shader.h>
 #include <common/matrix.h>
 #include <common/vec.h>
-#include <string>
+#include <common/typedefs.h>
 #include <unordered_map>
-#include <vector>
 
 // Holds precomputed attrib/uniform locations
 class ProgramLayout

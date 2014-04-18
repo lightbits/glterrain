@@ -7,7 +7,7 @@ ShaderProgram::ShaderProgram() : program(),
 	uniformLocations(),
 	attribLocations() { }
 
-bool ShaderProgram::loadFromSource(const std::string &vertSrc, const std::string &fragSrc)
+bool ShaderProgram::loadFromSource(const string &vertSrc, const string &fragSrc)
 {
 	uniformLocations.clear();
 	attribLocations.clear();
@@ -18,7 +18,7 @@ bool ShaderProgram::loadFromSource(const std::string &vertSrc, const std::string
 	return true;
 }
 
-bool ShaderProgram::loadFromFile(const std::string &vertName, const std::string &fragName)
+bool ShaderProgram::loadFromFile(const string &vertName, const string &fragName)
 {
 	uniformLocations.clear();
 	attribLocations.clear();
@@ -29,12 +29,12 @@ bool ShaderProgram::loadFromFile(const std::string &vertName, const std::string 
 	return true;
 }
 
-bool ShaderProgram::loadFromFile(const std::string &baseName)
+bool ShaderProgram::loadFromFile(const string &baseName)
 {
 	return loadFromFile(baseName + ".vs", baseName + ".fs");
 }
 
-bool ShaderProgram::loadAndLinkFromFile(const std::string &baseName)
+bool ShaderProgram::loadAndLinkFromFile(const string &baseName)
 {
 	if (!loadFromFile(baseName))
 		return false;
@@ -72,19 +72,19 @@ void ShaderProgram::end()
 	//if(r) r->endCustomShader();
 }
 
-void ShaderProgram::bindFragDataLocation(const std::string &name, GLuint colorNumber)
+void ShaderProgram::bindFragDataLocation(const string &name, GLuint colorNumber)
 {
 	glBindFragDataLocation(program.getHandle(), colorNumber, name.c_str());
 }
 
-void ShaderProgram::bindAttribute(GLuint location, const std::string &name)
+void ShaderProgram::bindAttribute(GLuint location, const string &name)
 {
 	glBindAttribLocation(program.getHandle(), location, name.c_str());
 }
 
-GLint ShaderProgram::getUniformLocation(const std::string &name)
+GLint ShaderProgram::getUniformLocation(const string &name)
 {
-	std::unordered_map<std::string, GLint>::iterator it = uniformLocations.find(name);
+	std::unordered_map<string, GLint>::iterator it = uniformLocations.find(name);
 	if(it != uniformLocations.end())
 	{
 		return it->second;
@@ -99,9 +99,9 @@ GLint ShaderProgram::getUniformLocation(const std::string &name)
 	}
 }
 
-GLint ShaderProgram::getAttributeLocation(const std::string &name)
+GLint ShaderProgram::getAttributeLocation(const string &name)
 {
-	std::unordered_map<std::string, GLint>::iterator it = attribLocations.find(name);
+	std::unordered_map<string, GLint>::iterator it = attribLocations.find(name);
 	if(it != attribLocations.end())
 	{
 		return it->second;
@@ -116,12 +116,18 @@ GLint ShaderProgram::getAttributeLocation(const std::string &name)
 	}
 }
 
-void ShaderProgram::setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset)
+void ShaderProgram::setAttributefv(const string &name, 
+								   GLsizei numComponents, 
+								   GLsizei stride, 
+								   GLsizei offset)
 {
 	setAttributefv(getAttributeLocation(name), numComponents, stride, offset);
 }
 
-void ShaderProgram::setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset)
+void ShaderProgram::setAttributefv(GLint location, 
+								   GLsizei numComponents, 
+								   GLsizei stride, 
+								   GLsizei offset)
 {
 	// Debug
 	//if(location < 0)
@@ -136,25 +142,12 @@ void ShaderProgram::setAttributefv(GLint location, GLsizei numComponents, GLsize
 	                      reinterpret_cast<void*>(offset * sizeof(GLfloat)));
 }
 
-void ShaderProgram::setUniform(const std::string &name, const mat4 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const std::string &name, const mat3 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const std::string &name, const mat2 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const std::string &name, const vec4 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const std::string &name, const vec3 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const std::string &name, const vec2 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const std::string &name, GLdouble d) { program.uniform(getUniformLocation(name), d); }
-void ShaderProgram::setUniform(const std::string &name, GLfloat f) { program.uniform(getUniformLocation(name), f); }
-void ShaderProgram::setUniform(const std::string &name, GLint i) { program.uniform(getUniformLocation(name), i); }
-
-GLuint ShaderProgram::getProgram() const
-{
-	return program.getHandle();
-}
-
-GLuint ShaderProgram::getShader(GLenum type) const
-{
-	if(type == GL_VERTEX_SHADER)
-		return vertexShader.getHandle();
-	else
-		return fragmentShader.getHandle();
-}
+void ShaderProgram::setUniform(const string &name, const mat4 &mat) { program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const mat3 &mat) { program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const mat2 &mat) { program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const vec4 &vec) { program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, const vec3 &vec) { program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, const vec2 &vec) { program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, GLdouble d)      { program.uniform(getUniformLocation(name), d); }
+void ShaderProgram::setUniform(const string &name, GLfloat f)       { program.uniform(getUniformLocation(name), f); }
+void ShaderProgram::setUniform(const string &name, GLint i)         { program.uniform(getUniformLocation(name), i); }

@@ -170,7 +170,7 @@ void Renderer::drawQuad(float x, float y, float w, float h)
 	BufferObject vbo;
 	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
 	vbo.bind();
-	static const float data[] = {
+	float data[] = {
 		x,     y,
 		x + w, y,
 		x + w, y + h,
@@ -184,12 +184,31 @@ void Renderer::drawQuad(float x, float y, float w, float h)
 	vbo.dispose();
 }
 
+void Renderer::drawQuad(float x, float y, float w, float h, float z)
+{
+	BufferObject vbo;
+	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+	vbo.bind();
+	float data[] = {
+		x,     y, z,
+		x + w, y, z,
+		x + w, y + h, z,
+		x + w, y + h, z,
+		x,     y + h, z,
+		x,     y, z
+	};
+	vbo.bufferData(sizeof(data), data);
+	currentShaderProgram->setAttributefv("position", 3, 0, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	vbo.dispose();
+}
+
 void Renderer::drawTexQuad(float x, float y, float w, float h)
 {
 	BufferObject vbo;
 	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
 	vbo.bind();
-	static const float data[] = {
+	float data[] = {
 		x,     y,     0.0f, 0.0f,
 		x + w, y,     1.0f, 0.0f,
 		x + w, y + h, 1.0f, 1.0f,
