@@ -1,57 +1,62 @@
 #version 140
 
 in vec2 v_texel;
-in vec3 v_world_pos;
-in vec3 v_dir_to_viewer;
+in vec3 v_view_pos;
+in vec3 v_view_dir;
+in vec3 T; // Tangent
+in vec3 B; // Bitangent
+in vec3 U; // Up
+
 out vec4 out_color;
 
+uniform mat4 model;
+uniform mat4 view;
 uniform sampler2D tex_normal;
 uniform sampler2D tex_diffuse;
-uniform float time;
 
-vec4 getLightContribution(vec3 light_pos, vec4 light_col, vec4 diffuse, vec3 p, vec3 n)
+const vec3 ks = vec3(1.0, 1.0, 1.0); // Specular reflectance
+const vec3 kd = vec3(1.0, 1.0, 1.0); // Diffuse reflectance
+const float specular_exp = 100.0;
+
+/*
+Lp: Light position in view space
+Ld: Light diffuse color
+Ls: Light specular color
+P: Vertex position in view space
+V: Direction to camera
+N: Normal in view-space
+*/
+vec3 phong(in vec3 Lp, in vec3 Ld, in vec3 Ls, in vec3 P, in vec3 V, in vec3 N)
 {
-	vec3 dir = normalize(light_pos - p);
-	float intensity = dot(dir, n);
-	intensity = max(intensity, 0.0);
-	float specular = dot(normalize(v_dir_to_viewer), n);
-	specular = pow(specular, 100.0f);
-	return (intensity + specular) * light_col * diffuse;
+	// Diffuse
+	vec3 L = normalize(Lp - P);
+	float LdotN = max(dot(L, N), 0.0);
+	vec3 Id = LdotN * kd * Ld;
+
+	// Specular
+	vec3 R = normalize(reflect(-L, N));
+	float RdotV = max(dot(R, V), 0.0);
+	float specular = pow(RdotV, specular_exp);
+	vec3 Is = specular * ks * Ls;
+
+	return (Id + Is);
 }
 
 void main()
 {
-	vec4 diffuse = texture(tex_diffuse, v_texel);
-	vec3 normal = texture(tex_normal, v_texel).xyz * 2.0 - vec3(1.0);
+	vec3 albedo = texture(tex_diffuse, v_texel).rgb;
 
-	vec4 color = vec4(0.0);
-	color += getLightContribution(
-		vec3(10.0, 10.8, sin(time)), 
-		vec4(1.0, 0.8, 0.5, 1.0),
-		diffuse,
-		v_world_pos,
-		normal);
+	// Calculate final view-space normal
+	vec3 Ns = texture(tex_normal, v_texel).xyz * 2.0 - vec3(1.0);
+	vec3 N = Ns.x * T + Ns.y * B + Ns.z * U;
+	N = normalize(view * model * vec4(N, 0.0)).xyz;
 
-	color += getLightContribution(
-		vec3(1.0, 0.8, 0.3), 
-		vec4(1.4, 1.2, 1.1, 1.0),
-		diffuse,
-		v_world_pos,
-		normal);
+	// Main light (sun)
+	vec3 Lp0 = (view * vec4(0.0, 20.0, 0.0, 1.0)).xyz;
+	vec3 Ld0 = vec3(1.0, 0.8, 0.5);
+	vec3 Ls0 = vec3(1.0, 1.0, 1.0);
 
-	color += getLightContribution(
-		vec3(-1.0, 0.8, -0.3), 
-		vec4(1.4, 1.2, 1.1, 1.0),
-		diffuse,
-		v_world_pos,
-		normal);
-
-	color += getLightContribution(
-		vec3(0.0, 2.5, -0.8), 
-		vec4(1.4, 1.2, 1.1, 1.0),
-		diffuse,
-		v_world_pos,
-		normal);
-
-	out_color = color;
+	out_color.rgb = vec3(0.0);
+	out_color.rgb += albedo * phong(Lp0, Ld0, Ls0, v_view_pos, v_view_dir, N);
+	out_color.a = 1.0;
 }

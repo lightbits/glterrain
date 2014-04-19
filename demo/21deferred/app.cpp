@@ -84,10 +84,13 @@ void init(Renderer &gfx, Context &ctx)
 	// Setup light matrices and world positions
 	for (int i = 0; i < num_lights; ++i)
 	{
+		// Grid positions
 		float x = -2.5f + 2.0f * (i % 4);
 		float y = 0.5f + 0.2f * cos(4.0f * TWO_PI * i / num_lights);
 		float z = -3.6f + (i / 4);
 		light_p[i] = vec3(x, y, z);
+
+		// Nice colors
 		light_d[i] = vec3(
 			0.5 + 0.5 * sin(TWO_PI * i / num_lights),
 			0.5 + 0.5 * sin(PI / 2.0f + TWO_PI * i / num_lights),

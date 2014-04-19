@@ -162,8 +162,8 @@ namespace CullStates
 {
 	static const CullState Default = CullState(false);
 	static const CullState CullNone = CullState(false);
-	static const CullState CullClockwise = CullState(true, GL_CW, GL_BACK);
-	static const CullState CullCounterClockwise = CullState(true, GL_CCW, GL_BACK);
+	static const CullState CullClockwise = CullState(true, GL_CCW, GL_BACK);
+	static const CullState CullCounterClockwise = CullState(true, GL_CW, GL_BACK);
 }
 
 namespace RasterizerStates

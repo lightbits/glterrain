@@ -6,9 +6,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-const float z_near = 0.1f;
-const float z_far = 20.0f;
-
 void main()
 {
 	gl_Position = projection * view * model * vec4(position, 0.0, 1.0);

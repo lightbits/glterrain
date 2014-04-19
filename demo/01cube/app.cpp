@@ -27,7 +27,7 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 	
-	Mesh cube_mesh = Mesh::genUnitColoredCube();
+	Mesh cube_mesh = Mesh::genUnitCube(true, false);
 	cube_buffer.create(cube_mesh);
 	cube = Model(cube_buffer);
 }
@@ -48,10 +48,10 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader);
 	gfx.setUniform("view", mat4(1.0f));
 	gfx.setUniform("projection", glm::perspective(45.0f, ctx.getWidth() / (float)ctx.getHeight(), 0.05f, 10.0f));
-	cube.pushTransform();
-	cube.translate(0.0f, 0.0f, -3.5f);
-	cube.rotateY(ctx.getElapsedTime());
+	cube.transform.push();
+	cube.transform.translate(0.0f, 0.0f, -3.5f);
+	cube.transform.rotateY(ctx.getElapsedTime());
 	cube.draw();
-	cube.popTransform();
+	cube.transform.pop();
 	gfx.endCustomShader();
 }

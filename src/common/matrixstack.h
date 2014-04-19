@@ -49,9 +49,12 @@ class MatrixStack
 {
 public:
 	// Initializes the stack with the identity matrix
-	MatrixStack() : current(1.0f)
-	{
+	MatrixStack() : current(1.0f) { }
 
+	// Set the top of the stack to the matrix 'transform'
+	void operator=(const mat4 &transform)
+	{
+		current = transform;
 	}
 
 	// Applies a rotation transformation to the current matrix

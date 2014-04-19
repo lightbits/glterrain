@@ -26,6 +26,7 @@ void BufferObject::bufferData(GLsizeiptr size, const void *data)
 
 void BufferObject::bufferSubData(GLintptr offset, GLsizeiptr size, const void *data)
 {
+	// assert(bound);
 	glBufferSubData(target, offset, size, data);
 }
 
