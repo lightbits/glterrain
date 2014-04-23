@@ -2,23 +2,21 @@
 using namespace transform;
 
 VertexArray vao;
-ShaderProgram 
-	shader_billboard,
-	shader_simple;
+ShaderProgram shader_arealight;
 
 Model cube;
 MeshBuffer cube_buffer;
+
+Model plane;
+MeshBuffer plane_buffer;
 
 mat4 
 	projection,
 	view;
 
-vec3 quad_p;
-
 bool load()
 {
-	if (!shader_billboard.loadAndLinkFromFile("./demo/23billboards/billboard") ||
-		!shader_simple.loadAndLinkFromFile("./demo/23billboards/simple"))
+	if (!shader_arealight.loadAndLinkFromFile("./demo/24arealights/arealight"))
 		return false;
 
 	return true;
@@ -27,6 +25,8 @@ bool load()
 void free()
 {
 	cube_buffer.dispose();
+	plane_buffer.dispose();
+	shader_arealight.dispose();
 	vao.dispose();
 }
 
@@ -35,11 +35,17 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 	
-	Mesh cube_mesh = Mesh::genUnitCube(false, false);
-	cube_buffer.create(cube_mesh);
+	cube_buffer.create(Mesh::genUnitCube(false, true));
 	cube = Model(cube_buffer);
 
-	quad_p = vec3(0.5f, 0.5f, 0.5f);
+	Mesh mesh_plane = Mesh::genPlane(1.0f, 1.0f);
+	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
+	plane_buffer.create(mesh_plane);
+	plane = Model(plane_buffer);
+
 	view = translate(0.0f, 0.0f, -5.0f);
 	projection = perspective(45.0f, ctx.getWidth() / (float)ctx.getHeight(), 0.1f, 10.0f);
 }
@@ -49,7 +55,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	view = 
 		transform::translate(0.0f, 0.0f, -5.0f) *
 		transform::rotateY(sin(ctx.getElapsedTime())) * 
-		transform::rotateX(cos(ctx.getElapsedTime()));
+		transform::rotateX(-0.3f);
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)
@@ -59,28 +65,13 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.clearColorAndDepth();
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setCullState(CullStates::CullClockwise);
-	gfx.setRasterizerState(RasterizerStates::LineBoth);
 
-	gfx.beginCustomShader(shader_simple);
+	gfx.beginCustomShader(shader_arealight);
 	gfx.setUniform("view", view);
 	gfx.setUniform("projection", projection);
-	cube.transform = scale(2.0f);
-	cube.draw();
-	gfx.endCustomShader();
-
-	gfx.beginCustomShader(shader_billboard);
-	gfx.setUniform("view", view);
-	gfx.setUniform("projection", projection);
-
-	// Draw a viewer-oriented quad at the top-front-right corner of the cube
-	gfx.setUniform("scale", vec2(1.0, 1.0));
-	gfx.setUniform("model", scale(2.0f) * translate(0.5f, 0.5f, 0.5f));
-	gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f); // Draw fullscreen quad
-
-	// Top-back-left corner
-	gfx.setUniform("scale", vec2(0.5, 0.5));
-	gfx.setUniform("model", scale(2.0f) * translate(-0.5f, 0.5f, -0.5f));
-	gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f);
-
+	plane.transform = scale(4.0f);
+	plane.draw();
+	plane.transform = translate(0.0f, 0.5f, -0.5f) * rotateX(-0.4f) * scale(1.0f, 1.0f, 0.5f);
+	plane.draw();
 	gfx.endCustomShader();
 }

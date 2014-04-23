@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
 	Log log("log.txt", true);
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Billboards", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Arealights", true, true))
 	{
 		log << "Failed to open context\n";
 		return EXIT_FAILURE;
