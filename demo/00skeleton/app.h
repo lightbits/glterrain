@@ -11,8 +11,8 @@ using std::string;
 bool load();
 void free();
 void init(Renderer &gfx, Context &ctx);
-void update(Renderer &gfx, Context &ctx, double dt);
-void render(Renderer &gfx, Context &ctx, double dt);
+void update(Renderer &gfx, Context &ctx, float dt);
+void render(Renderer &gfx, Context &ctx, float dt);
 
 /* See SDL_KeyboardEvent for values of mod and key */
 void keyPressed(int mod, SDL_Keycode key);

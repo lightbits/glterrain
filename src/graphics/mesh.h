@@ -2,7 +2,7 @@
 #define MESH_H
 #include <vector>
 #include <graphics/color.h>
-#include <common/vec.h>
+#include <common/matrix.h>
 #include <gl/opengl.h>
 
 //enum ElementDrawMode

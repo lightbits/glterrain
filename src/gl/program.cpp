@@ -1,32 +1,8 @@
 #include <gl/program.h>
 #include <iostream>
 
-void ProgramLayout::setAttrib(const std::string &name, GLint attrib)
-{
-	attribs[name] = attrib;
-}
-
-void ProgramLayout::setUniform(const std::string &name, GLint uniform)
-{
-	uniforms[name] = uniform;
-}
-
-GLint ProgramLayout::getAttribLoc(const std::string &name) const
-{
-	std::unordered_map<std::string, GLint>::const_iterator i = attribs.find(name);
-	return i != attribs.end() ? i->second : -1;
-}
-
-GLint ProgramLayout::getUniformLoc(const std::string &name) const
-{
-	std::unordered_map<std::string, GLint>::const_iterator i = uniforms.find(name);
-	return i != uniforms.end() ? i->second : -1;
-}
-
 Program::Program() : program(0)
-{
-	
-}
+{ }
 
 void Program::dispose() const
 {

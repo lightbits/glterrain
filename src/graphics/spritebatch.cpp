@@ -64,7 +64,7 @@ void SpriteBatch::create()
 
 	// Render states
 	blendState = BlendStates::Default;
-	sortMode = SpriteSortMode::None;
+	sortMode = SpriteSortMode_None;
 
 	// State variables
 	currentFont = nullptr;

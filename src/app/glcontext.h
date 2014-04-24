@@ -17,6 +17,8 @@ public:
 	void pollEvents();
 	void display();
 
+	void screenshot(const char *filename, int x = 0, int y = 0, int w = 0, int h = 0);
+
 	void setCursorEnabled(bool cursor);
 	void setWindowTitle(const char *title);
 	void setWindowPosition(int x, int y);

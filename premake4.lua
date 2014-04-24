@@ -1,6 +1,5 @@
 -- see http://glsdk.sourceforge.net/docs/html/pg_use.html
 
-dofile("../../glsdk/links.lua") -- Make sure this path is correct!
 solution "glterrain"
 	configurations {"Debug", "Release"}
 
@@ -15,17 +14,18 @@ solution "glterrain"
 		language "c++"
 		files {"**.cpp", "**.h"} -- recursively add files
 
-		UseLibs {"glfw", "glload", "glimage", "glm"}
+		includedirs {"../../glm", "../../sdl/include", "../../soil/include", "../../glew/include", "./src"}
+		libdirs {"../../sdl/lib/x86", "../../soil/lib", "../../glew/lib/x86"}
 
 		configuration "windows"
-			defines "WIN32" -- WIN32
-			links {"opengl32"} -- might have to link glu32.lib if old
+			defines {"GLEW_STATIC", "WIN32"}
+			links {"opengl32", "glew32s", "SDL2", "SDL2main", "SOIL"}
 
 		configuration "Debug"
 			targetsuffix "D"
 			defines "_DEBUG"
 			flags "Symbols"
-
+			
 		configuration "Release"
 			defines "NDEBUG"
 			flags {"OptimizeSpeed", "NoFramePointer", "ExtraWarnings", "NoEditAndContinue"}

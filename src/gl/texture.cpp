@@ -50,17 +50,17 @@ void Texture2D::copyFromFramebuffer(
 	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool Texture2D::loadFromFile(const std::string &filename)
+bool Texture2D::loadFromFile(const char *filename)
 {
 	GLuint tex = SOIL_load_OGL_texture(
-		filename.c_str(), 
+		filename, 
 		SOIL_LOAD_RGBA,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_INVERT_Y);
 
 	if (tex == 0)
 	{
-		cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << endl;
+		std::cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << std::endl;
 		return false;
 	}
 

@@ -2,6 +2,8 @@
 #define SHADER_PROGRAM_H
 #include <gl/program.h>
 #include <gl/shader.h>
+#include <common/typedefs.h>
+#include <unordered_map>
 
 class ShaderProgram
 {

@@ -96,9 +96,9 @@ void init(Renderer &gfx, Context &ctx)
 			0.5 + 0.5 * sin(PI / 2.0f + TWO_PI * i / num_lights),
 			0.5 + 0.5 * sin(PI + TWO_PI * i / num_lights));
 		light_s[i] = vec3(1.0, 1.0, 1.0);
-		light_r[i] = 0.6f + 0.1f * sin(i);
+		light_r[i] = 0.6f + 0.1f * sin(float(i));
 		light_m[i] = transform::translate(light_p[i]) * transform::scale(light_r[i]);
-		light_v[i] = vec3(0.0, 0.8 * sin(i), 0.0);
+		light_v[i] = vec3(0.0, 0.8 * sin(float(i)), 0.0);
 
 	}
 
@@ -235,6 +235,22 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	// For each pointlight a quad is rendered that covers a bit more
 	// than the range of the light. Anything inside the quad will be lit.
+	BufferObject vbo;
+	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+	vbo.bind();
+	float data[] = {
+		-1.0f, -1.0f,
+		+1.0f, -1.0f,
+		+1.0f, +1.0f,
+		+1.0f, +1.0f,
+		-1.0f, +1.0f,
+		-1.0f, -1.0f
+	};
+	vbo.bufferData(sizeof(data), data);
+	gfx.setAttributefv("position", 2, 0, 0);
+	
+	// This stutters on ATI HD 6850 for some reason!
+
 	for (int i = 0; i < num_lights; ++i)
 	{
 		// Yeah this is pretty bad for parallelism!
@@ -243,14 +259,11 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		gfx.setUniform("light_r", light_r[i]);
 		gfx.setUniform("light_s", light_s[i]);
 		gfx.setUniform("model", light_m[i] * inverse_view_r);
+		//glDrawArrays(GL_TRIANGLES, 0, 6);
 		gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f);
-
-		// Project the quad manually... kinda almost worked!
-		//vec4 pc = projection * view * vec4(light_p[i], 1.0);
-		//vec4 size = projection * vec4(light_r[i], light_r[i], 0.0, 1.0);
-		//float z = (view * vec4(light_p[i], 1.0)).z;
-		// gfx.drawQuad(pc.x - size.x, pc.y + size.y, 2.0f * size.x, 2.0f * size.y);
 	}
 
+	vbo.dispose();
+	vbo.unbind();
 	gfx.endCustomShader();
 }

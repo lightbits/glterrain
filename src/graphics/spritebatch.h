@@ -1,7 +1,6 @@
 #ifndef SPRITE_BATCH_H
 #define SPRITE_BATCH_H
 #include <common/rectangle.h>
-#include <common/vec.h>
 #include <common/matrix.h>
 #include <gl/bufferobject.h>
 #include <gl/shaderprogram.h>
@@ -14,7 +13,12 @@
 Sprites can be sorted before drawing them. Sorting methods use the sprite's
 z-coordinate or texture. Sorting by texture usually gives best performance.
 */
-enum class SpriteSortMode { BackToFront, FrontToBack, Texture, None };
+enum SpriteSortMode { 
+	SpriteSortMode_BackToFront, 
+	SpriteSortMode_FrontToBack, 
+	SpriteSortMode_Texture, 
+	SpriteSortMode_None 
+};
 
 struct SpriteInfo
 {

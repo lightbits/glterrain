@@ -7,7 +7,7 @@ void FreeCamera::reset(float theta, float phi, const vec3 &position)
 	setPosition(position);
 }
 
-void FreeCamera::update(Renderer &gfx, Context &ctx, double dt)
+void FreeCamera::update(Renderer &gfx, Context &ctx, float dt)
 {
 	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{

@@ -1,7 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
-#include <common/typedefs.h>
-#include <common/vec.h>
+#include <common/matrix.h> // for vec2i
 #include <gl/opengl.h>
 
 class Texture2D
@@ -10,7 +9,7 @@ public:
 	Texture2D();
 
 	void dispose();
-	bool loadFromFile(const string &filename);
+	bool loadFromFile(const char *filename);
 
 	/*
 	'level' The level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.

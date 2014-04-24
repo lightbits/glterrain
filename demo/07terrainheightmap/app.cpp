@@ -34,6 +34,8 @@ bool load()
 		!tex_diffuse.loadFromFile("./demo/07terrainheightmap/terrainDiffuse.png"))
 		return false;
 
+	tex_height.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
 	return true;
 }
 
@@ -109,8 +111,10 @@ void init(Renderer &gfx, Context &ctx)
 	terrain_height = 0.25f;
 }
 
-void update(Renderer &gfx, Context &ctx, double dt)
+void update(Renderer &gfx, Context &ctx, float dt)
 {
+	mat_model = transform::scale(2.0f);
+
 	mat_view = 
 		transform::translate(0.0f, -0.2f, -0.8f) *
 		transform::rotateX(-0.5f) *
@@ -122,9 +126,9 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		terrain_height -= dt;
 }
 
-void render(Renderer &gfx, Context &ctx, double dt)
+void render(Renderer &gfx, Context &ctx, float dt)
 {
-	gfx.setRasterizerState(RasterizerStates::FillBoth);
+	gfx.setRasterizerState(RasterizerStates::LineBoth);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setClearColor(0.71f, 0.68f, 0.68f);
 	gfx.setClearDepth(1.0);
@@ -148,21 +152,21 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.endCustomShader();
 
 	// Render normals
-	gfx.beginCustomShader(shader_normals);
-	tex_height.bind(GL_TEXTURE0);
-	tex_normal.bind(GL_TEXTURE1);
-	gfx.setUniform("tex_height", 0);
-	gfx.setUniform("tex_normal", 1);
-	gfx.setUniform("terrain_res_x", terrain_res_x);
-	gfx.setUniform("terrain_res_y", terrain_res_y);
-	gfx.setUniform("terrain_height", terrain_height);
-	gfx.setUniform("model", mat_model);
-	gfx.setUniform("view", mat_view);
-	gfx.setUniform("projection", mat_projection);
-	normals_vbo.bind();
-	gfx.setAttributefv("position", 3, 5, 0);
-	gfx.setAttributefv("texel", 2, 5, 3);
-	gfx.drawVertexBuffer(GL_LINES, 2 * terrain_res_x * terrain_res_y);
-	normals_vbo.unbind();
-	gfx.endCustomShader();
+	//gfx.beginCustomShader(shader_normals);
+	//tex_height.bind(GL_TEXTURE0);
+	//tex_normal.bind(GL_TEXTURE1);
+	//gfx.setUniform("tex_height", 0);
+	//gfx.setUniform("tex_normal", 1);
+	//gfx.setUniform("terrain_res_x", terrain_res_x);
+	//gfx.setUniform("terrain_res_y", terrain_res_y);
+	//gfx.setUniform("terrain_height", terrain_height);
+	//gfx.setUniform("model", mat_model);
+	//gfx.setUniform("view", mat_view);
+	//gfx.setUniform("projection", mat_projection);
+	//normals_vbo.bind();
+	//gfx.setAttributefv("position", 3, 5, 0);
+	//gfx.setAttributefv("texel", 2, 5, 3);
+	//gfx.drawVertexBuffer(GL_LINES, 2 * terrain_res_x * terrain_res_y);
+	//normals_vbo.unbind();
+	//gfx.endCustomShader();
 }

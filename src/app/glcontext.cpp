@@ -139,6 +139,37 @@ void GLContext::display()
 	SDL_GL_SwapWindow(window);
 }
 
+void GLContext::screenshot(const char *filename, int x, int y, int w, int h)
+{
+	w = w == 0 ? getWidth() : w;
+	h = h == 0 ? getHeight() : h;
+	unsigned char *pixels = new unsigned char[w * h * 3];
+	glReadPixels(x, y, w, h, GL_BGR, GL_UNSIGNED_BYTE, pixels);
+
+	// Flip pixel buffer
+	unsigned char *flipped_pixels = new unsigned char[w * h * 3];
+	int num_pixels = w * h;
+	for (int i = 0; i < num_pixels; ++i)
+	{
+		int x = i % w;
+		int y = i / w;
+
+		int offset0 = (y * w + x) * 3;
+		int offset1 = ((h - 1 - y) * w + x) * 3;
+
+		flipped_pixels[offset0] = pixels[offset1];
+		flipped_pixels[offset0 + 1] = pixels[offset1 + 1];
+		flipped_pixels[offset0 + 2] = pixels[offset1 + 2];
+	}
+
+	SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(flipped_pixels, w, h, 24, w * 3, 0, 0, 0, 0);
+	SDL_SaveBMP(surface, filename);
+
+	SDL_FreeSurface(surface);
+	delete[] pixels;
+	delete[] flipped_pixels;
+}
+
 void GLContext::setCursorEnabled(bool cursor)
 {
 	SDL_ShowCursor(cursor);

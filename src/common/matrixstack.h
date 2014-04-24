@@ -1,10 +1,7 @@
-#ifndef SLGL_COMMON_MATRIX_STACK_H
-#define SLGL_COMMON_MATRIX_STACK_H
-#include <stack>
+#ifndef COMMON_MATRIXSTACK_H
+#define COMMON_MATRIXSTACK_H
 #include <common/matrix.h>
-#include <common/quaternion.h>
-#include <common/vec.h>
-#include <common/transform.h>
+#include <stack> // For MatrixStack
 
 /*
 A matrix stack allows you to hierarchically perform matrix transformations, accumulating

@@ -1,6 +1,6 @@
 #include <graphics/mesh.h>
 #include <common/typedefs.h>
-#include <common/helpers.h>
+#include <common/utils.h>
 #include <stdexcept>
 
 Mesh::Mesh() : positions(), normals(), colors(), texels(), indices(), drawMode(GL_TRIANGLES) { }

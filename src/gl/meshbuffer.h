@@ -10,7 +10,6 @@ http://stackoverflow.com/questions/18853713/does-interleaving-in-vbos-speed-up-p
 #include <gl/bufferobject.h>
 #include <gl/program.h>
 #include <graphics/mesh.h>
-#include <graphics/trimesh.h>
 
 class ShaderProgram;
 

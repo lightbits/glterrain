@@ -1,6 +1,5 @@
 #ifndef SPRITE_H
 #define SPRITE_H
-#include <common/vec.h>
 #include <common/matrix.h>
 #include <graphics/color.h>
 #include <gl/texture.h>

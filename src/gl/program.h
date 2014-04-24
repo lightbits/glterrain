@@ -3,23 +3,11 @@
 #include <gl/opengl.h>
 #include <gl/shader.h>
 #include <common/matrix.h>
-#include <common/vec.h>
-#include <common/typedefs.h>
-#include <unordered_map>
+#include <vector>
 
-// Holds precomputed attrib/uniform locations
-class ProgramLayout
-{
-public:
-	void setAttrib(const std::string &name, GLint attrib);
-	void setUniform(const std::string &name, GLint uniform);
-	GLint getAttribLoc(const std::string &name) const;
-	GLint getUniformLoc(const std::string &name) const;
-private:
-	std::unordered_map<std::string, GLint> attribs;
-	std::unordered_map<std::string, GLint> uniforms;
-};
-
+/*
+A wrapper class around OpenGL program objects
+*/
 class Program
 {
 public:

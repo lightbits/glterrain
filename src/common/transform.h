@@ -1,7 +1,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 #include <common/matrix.h>
-#include <common/vec.h>
+#include <common/matrix.h>
 
 namespace transform
 {

@@ -15,12 +15,12 @@ void init(Renderer &gfx, Context &ctx)
 
 }
 
-void update(Renderer &gfx, Context &ctx, double dt)
+void update(Renderer &gfx, Context &ctx, float dt)
 {
 
 }
 
-void render(Renderer &gfx, Context &ctx, double dt)
+void render(Renderer &gfx, Context &ctx, float dt)
 {
 	gfx.setClearColor(0.2f, 0.2f, 0.3f);
 	gfx.clearColorBuffer();

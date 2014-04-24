@@ -1,5 +1,5 @@
-#ifndef COMMON_HELPERS_H
-#define COMMON_HELPERS_H
+#ifndef COMMON_UTILS_H
+#define COMMON_UTILS_H
 #include <vector>
 #include <string>
 #include <sstream>

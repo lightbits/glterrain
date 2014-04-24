@@ -16,7 +16,7 @@ public:
 	void reset(float theta, float phi, const vec3 &position);
 
 	/* Respond to player input */
-	void update(Renderer &gfx, Context &ctx, double dt);
+	void update(Renderer &gfx, Context &ctx, float dt);
 };
 
 #endif

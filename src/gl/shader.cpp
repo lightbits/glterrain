@@ -1,8 +1,10 @@
 #include <gl/shader.h>
-#include <common/helpers.h> // for readFile
+#include <common/utils.h> // for readFile
 #include <iostream> // for cerr
 
-Shader::Shader(GLenum shaderType_) : shader(0), shaderType(shaderType_) { }
+Shader::Shader(GLenum shaderType_) : 
+	shader(0), shaderType(shaderType_) 
+{ }
 
 void Shader::dispose()
 {

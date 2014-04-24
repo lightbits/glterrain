@@ -79,7 +79,7 @@ bool Font::loadFromFile(const std::string &filename, const std::string &charSet)
 		delete texture;
 
 	texture = new Texture2D();
-	if(!texture->loadFromFile(filename))
+	if(!texture->loadFromFile(filename.c_str()))
 		return false;
 
 	texture->bind();

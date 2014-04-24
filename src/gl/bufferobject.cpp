@@ -1,14 +1,13 @@
 #include <gl/bufferobject.h>
 #include <iostream>
 
-BufferObject::BufferObject() : bound(false), handle(0), target(GL_ARRAY_BUFFER), usage(GL_STATIC_DRAW)
+BufferObject::BufferObject() : handle(0), target(GL_ARRAY_BUFFER), usage(GL_STATIC_DRAW)
 {
 
 }
 
 void BufferObject::dispose()
 {
-	bound = false;
 	glDeleteBuffers(1, &handle);
 }
 
@@ -32,12 +31,10 @@ void BufferObject::bufferSubData(GLintptr offset, GLsizeiptr size, const void *d
 
 void BufferObject::bind()
 {
-	bound = true;
 	glBindBuffer(target, handle);
 }
 
 void BufferObject::unbind()
 {
-	bound = false;
 	glBindBuffer(target, 0);
 }

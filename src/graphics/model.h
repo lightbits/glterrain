@@ -3,7 +3,8 @@
 #include <gl/shaderprogram.h>
 #include <gl/meshbuffer.h>
 #include <common/matrixstack.h>
-#include <common/vec.h>
+#include <common/matrix.h>
+#include <common/transform.h>
 
 /*
 Convenience class for drawable mesh buffer and an associated model transformation

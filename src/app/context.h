@@ -1,7 +1,6 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 #include <app/videomode.h>
-#include <string>
 #include <SDL.h>
 #include <functional>
 
@@ -26,6 +25,9 @@ public:
 
 	virtual void pollEvents() = 0;
 	virtual void display() = 0;
+
+	/* Saves a screenshot to the path 'filename' */
+	virtual void screenshot(const char *filename, int x = 0, int y = 0, int w = 0, int h = 0) = 0;
 
 	virtual void setCursorEnabled(bool cursor) = 0;
 	virtual void setWindowTitle(const char *title) = 0;

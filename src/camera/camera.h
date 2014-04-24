@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 #include <common/matrix.h>
-#include <common/vec.h>
+#include <common/matrix.h>
 
 class Camera
 {
