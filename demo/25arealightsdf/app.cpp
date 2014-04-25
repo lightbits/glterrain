@@ -58,8 +58,7 @@ struct AreaLight
 	vec3 m_intensity;
 };
 
-const int NUM_LIGHTS = 3;
-AreaLight lights[NUM_LIGHTS];
+vector<AreaLight> lights;
 
 bool load()
 {
@@ -114,9 +113,10 @@ void init(Renderer &gfx, Context &ctx)
 	gbuffer.create(ctx.getWidth(), ctx.getHeight());
 
 	// Setup lights
-	lights[0] = AreaLight(1.0f, 0.3f, vec3(0.8, 0.7, 0.5) * 0.7f, vec3(0.0, 10.2, 0.0), vec3(-0.4, 0.0, 0.0));
-	lights[1] = AreaLight(10.0f, 10.0f, vec3(0.5, 0.7, 0.8) * 0.4f, vec3(0.0, 7.2, 0.0), vec3(-0.4, 0.0, 0.0));
-	lights[2] = AreaLight(1.0f, 0.3f, vec3(0.9, 0.3, 0.35) * 0.6f, vec3(0.0, 1.2, 0.0), vec3(0, 0, 0));
+	lights.push_back(AreaLight(1.0f, 0.3f, vec3(0.8, 0.7, 0.5) * 1.5f, vec3(0.0, 10.2, 0.0), vec3(-0.4, 0.0, 0.0)));
+	lights.push_back(AreaLight(10.0f, 10.0f, vec3(0.5, 0.7, 0.8) * 2.5f, vec3(0.0, 7.2, 0.0), vec3(-0.4, 0.0, 0.0)));
+	lights.push_back(AreaLight(1.0f, 0.3f, vec3(0.9, 0.3, 0.35) * 1.8f, vec3(0.0, 1.2, 0.0), vec3(0, 0, 0)));
+	lights.push_back(AreaLight(10.0f, 10.0f, vec3(0.9, 0.92, 1.0) * 0.01f, vec3(0.0, 10.0, 0.0), vec3(0, 0, 0)));
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
@@ -129,21 +129,21 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 	// Back light
 	lights[0].m_transform = 
-		translate(0.8f * sin(t), 1.2f + 0.2f * cos(t), -3.8f) * 
-		rotateX(PI / 2.0f - 0.3f) * 
+		translate(0.8f * sin(t + 0.3f), 1.1f + 0.2f * cos(t + 0.3f), -2.5f) * 
+		rotateX(PI / 2.0f - 0.79f) * 
 		scale(2.0, 0.01, 1.0);
 
 	// Right light
 	lights[1].m_transform = 
-		translate(3.8f, 1.2f + 0.2f * cos(t), 0.8f * sin(t)) * 
-		rotateZ(-PI / 2.0 + 0.3f) * 
+		translate(2.5f, 1.1f + 0.2f * cos(t), 0.8f * sin(t)) * 
+		rotateZ(-PI / 2.0 + 0.72f) * 
 		rotateY(PI / 2.0) * 
 		scale(2.0, 0.01, 1.0);
 
 	// Left light
 	lights[2].m_transform = 
-		translate(-3.8f, 1.2f + 0.2f * cos(t), 0.8f * sin(t)) * 
-		rotateZ(PI / 2.0 - 0.3f) * 
+		translate(-2.5f, 1.1f + 0.2f * cos(t + 0.9f), 0.8f * sin(t + 0.9f)) * 
+		rotateZ(PI / 2.0 - 0.75f) * 
 		rotateY(PI / 2.0) * 
 		scale(2.0, 0.01, 1.0);
 }
@@ -151,7 +151,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 void renderGeometry(Renderer &gfx, Context &ctx, double dt)
 {
 	// Floor
-	gfx.setUniform("diffuse", vec3(0.76f, 0.75f, 0.5f));
+	gfx.setUniform("diffuse", vec3(0.5f, 0.5f, 0.5f));
 	cube.transform = scale(8.0f, 0.2f, 8.0f);
 	cube.draw();
 
@@ -204,7 +204,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("tex_n", 1);
 	gfx.setUniform("tex_d", 2);
 
-	for (int i = 0; i < NUM_LIGHTS; ++i)
+	for (int i = 0; i < lights.size(); ++i)
 	{
 		// Yeah this is pretty bad for parallelism!
 		gfx.setUniform("light_i", lights[i].m_intensity);
@@ -219,7 +219,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader_color);
 	gfx.setUniform("projection", projection);
 	gfx.setUniform("view", view);
-	for (int i = 0; i < NUM_LIGHTS; ++i)
+	for (int i = 0; i < lights.size(); ++i)
 	{
 		gfx.setUniform("color", lights[i].m_intensity);
 		plane.transform = lights[i].m_transform;
