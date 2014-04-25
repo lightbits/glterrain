@@ -2,7 +2,9 @@
 using namespace transform;
 
 VertexArray vao;
-ShaderProgram shader_arealight;
+ShaderProgram 
+	shader_arealight, // Render arealit geometry
+	shader_color; // Render the light sources as colored planes
 
 Model cube;
 MeshBuffer cube_buffer;
@@ -14,9 +16,33 @@ mat4
 	projection,
 	view;
 
+//struct AreaLight
+//{
+//	AreaLight(const vec3 &position, 
+//		      const vec3 &color, 
+//			  const vec3 &size, 
+//			  const vec3 &up,
+//			  const vec3 &right) : 
+//		Position(position), Color(color), Size(size), Up(up), Right(right)
+//	{ }
+//
+//	vec3 Position,
+//		 Color,
+//		 Size,
+//		 Up,
+//		 Right;
+//};
+
+vec3 
+	light_pos[2],
+	light_color[2];
+
+mat4 light_m[2];
+
 bool load()
 {
-	if (!shader_arealight.loadAndLinkFromFile("./demo/24arealights/arealight"))
+	if (!shader_arealight.loadAndLinkFromFile("./demo/24arealights/arealight") || 
+		!shader_color.loadAndLinkFromFile("./demo/24arealights/color"))
 		return false;
 
 	return true;
@@ -27,51 +53,108 @@ void free()
 	cube_buffer.dispose();
 	plane_buffer.dispose();
 	shader_arealight.dispose();
+	shader_color.dispose();
 	vao.dispose();
 }
 
 void init(Renderer &gfx, Context &ctx)
 {
+	// Default VAO
 	vao.create();
 	vao.bind();
 	
 	cube_buffer.create(Mesh::genUnitCube(false, true));
 	cube = Model(cube_buffer);
 
+	// Create plane mesh with normals
 	Mesh mesh_plane = Mesh::genPlane(1.0f, 1.0f);
-	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
-	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
-	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
-	mesh_plane.addNormal(0.0f, 1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, -1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, -1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, -1.0f, 0.0f);
+	mesh_plane.addNormal(0.0f, -1.0f, 0.0f);
 	plane_buffer.create(mesh_plane);
 	plane = Model(plane_buffer);
 
 	view = translate(0.0f, 0.0f, -5.0f);
-	projection = perspective(45.0f, ctx.getWidth() / (float)ctx.getHeight(), 0.1f, 10.0f);
+	projection = perspective(45.0f, ctx.getWidth() / (float)ctx.getHeight(), 0.1f, 20.0f);
+
+	// Setup lights
+	light_pos[0] = vec3(0.0, 1.2, 0.0);
+	light_color[0] = vec3(0.8, 0.7, 0.5);
+	light_m[0] = translate(light_pos[0]) * rotateX(-0.4) * scale(1.0, 0.01, 0.3);
+
+	light_pos[1] = vec3(0.0, 7.2, 0.0);
+	light_color[1] = vec3(0.5, 0.7, 0.8) * 0.3f;
+	light_m[1] = translate(light_pos[1]) * rotateX(-0.4) * scale(10.0, 0.01, 10.0);
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
+	float t = ctx.getElapsedTime();
 	view = 
-		transform::translate(0.0f, 0.0f, -5.0f) *
-		transform::rotateY(sin(ctx.getElapsedTime())) * 
-		transform::rotateX(-0.3f);
+		transform::translate(0.0f, -0.2f, -8.0f) *
+		transform::rotateX(-0.5f) *
+		transform::rotateY(sin(t) * 0.4);
+
+	light_m[0] = translate(light_pos[0]) * rotateX(t * PI * 0.5) * scale(2.0, 0.01, 1.0);
+}
+
+void renderGeometry(Renderer &gfx, Context &ctx, double dt)
+{
+	// Floor
+	gfx.setUniform("diffuse", vec3(0.76f, 0.75f, 0.5f));
+	cube.transform = scale(8.0f, 0.2f, 8.0f);
+	cube.draw();
+
+	// Back wall
+	gfx.setUniform("diffuse", vec3(0.76f, 0.75f, 0.5f));
+	cube.transform = translate(0.0f, 1.0f, -4.0f) * scale(8.0f, 2.0f, 0.2f);
+	cube.draw();
+
+	// Left wall
+	gfx.setUniform("diffuse", vec3(0.63f, 0.06f, 0.04f));
+	cube.transform = translate(-4.0f, 1.0f, 0.0f) * scale(0.2f, 2.0f, 8.0f);
+	cube.draw();
+
+	// Right wall
+	gfx.setUniform("diffuse", vec3(0.15f, 0.48f, 0.09f));
+	cube.transform = translate(4.0f, 1.0f, 0.0f) * scale(0.2f, 2.0f, 8.0f);
+	cube.draw();
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	gfx.setClearDepth(1.0);
-	gfx.setClearColor(0.71f, 0.68f, 0.68f);
+	gfx.setClearColor(Color::fromHex(0x1e3b49ff));
 	gfx.clearColorAndDepth();
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
-	gfx.setCullState(CullStates::CullClockwise);
+	gfx.setCullState(CullStates::CullNone);
 
+	gfx.setRasterizerState(RasterizerStates::FillBoth);
 	gfx.beginCustomShader(shader_arealight);
 	gfx.setUniform("view", view);
 	gfx.setUniform("projection", projection);
-	plane.transform = scale(4.0f);
-	plane.draw();
-	plane.transform = translate(0.0f, 0.5f, -0.5f) * rotateX(-0.4f) * scale(1.0f, 1.0f, 0.5f);
-	plane.draw();
+
+	gfx.setUniform("light_pos0", light_pos[0]);
+	gfx.setUniform("light_color0", light_color[0]);
+	gfx.setUniform("light_m0", light_m[0]);
+
+	gfx.setUniform("light_pos1", light_pos[1]);
+	gfx.setUniform("light_color1", light_color[1]);
+	gfx.setUniform("light_m1", light_m[1]);
+	renderGeometry(gfx, ctx, dt);
+	gfx.endCustomShader();
+
+	// Render arealights
+	gfx.setRasterizerState(RasterizerStates::LineBoth);
+	gfx.beginCustomShader(shader_color);
+	gfx.setUniform("projection", projection);
+	gfx.setUniform("view", view);
+	for (int i = 0; i < 2; ++i)
+	{
+		gfx.setUniform("color", light_color[i]);
+		plane.transform = light_m[i];
+		plane.draw();
+	}
 	gfx.endCustomShader();
 }
