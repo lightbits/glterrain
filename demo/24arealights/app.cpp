@@ -1,3 +1,10 @@
+/*
+Arealight implementation based on 
+	* http://stackoverflow.com/questions/17021264/improved-area-lighting-in-webgl-threejs
+	* http://www.gamedev.net/topic/552315-glsl-area-light-implementation/
+This demo uses forward shading. See demo 25 for deferred shading.
+*/
+
 #include "app.h"
 using namespace transform;
 
@@ -108,17 +115,17 @@ void renderGeometry(Renderer &gfx, Context &ctx, double dt)
 
 	// Back wall
 	gfx.setUniform("diffuse", vec3(0.76f, 0.75f, 0.5f));
-	cube.transform = translate(0.0f, 1.0f, -4.0f) * scale(8.0f, 2.0f, 0.2f);
+	cube.transform = translate(0.0f, 1.0f, -3.9f) * scale(8.0f, 2.0f, 0.2f);
 	cube.draw();
 
 	// Left wall
 	gfx.setUniform("diffuse", vec3(0.63f, 0.06f, 0.04f));
-	cube.transform = translate(-4.0f, 1.0f, 0.0f) * scale(0.2f, 2.0f, 8.0f);
+	cube.transform = translate(-3.9f, 1.0f, 0.1f) * scale(0.2f, 2.0f, 7.9f);
 	cube.draw();
 
 	// Right wall
 	gfx.setUniform("diffuse", vec3(0.15f, 0.48f, 0.09f));
-	cube.transform = translate(4.0f, 1.0f, 0.0f) * scale(0.2f, 2.0f, 8.0f);
+	cube.transform = translate(3.9f, 1.0f, 0.1f) * scale(0.2f, 2.0f, 7.9f);
 	cube.draw();
 }
 
