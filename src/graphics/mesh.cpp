@@ -430,6 +430,22 @@ Mesh Mesh::genUnitGrid(const Color &color, int lines)
 	return mesh;
 }
 
+Mesh Mesh::genPlane(const vec3 &up, const vec3 &right)
+{
+	vec3 v0 = up * (-1.0f) + right * (-1.0f);
+	vec3 v1 = up * (-1.0f) + right * (+1.0f);
+	vec3 v2 = up * (+1.0f) + right * (+1.0f);
+	vec3 v3 = up * (+1.0f) + right * (-1.0f);
+	const vec3 positions[] = {
+		v0, v1, v2, v3
+	};
+	const uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+	Mesh mesh;
+	mesh.addPositions(positions, 4);
+	mesh.addIndices(indices, 6);
+	return mesh;
+}
+
 Mesh Mesh::genPlane(float width, float height)
 {
 	float a = width / 2.0f;

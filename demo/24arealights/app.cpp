@@ -23,23 +23,6 @@ mat4
 	projection,
 	view;
 
-//struct AreaLight
-//{
-//	AreaLight(const vec3 &position, 
-//		      const vec3 &color, 
-//			  const vec3 &size, 
-//			  const vec3 &up,
-//			  const vec3 &right) : 
-//		Position(position), Color(color), Size(size), Up(up), Right(right)
-//	{ }
-//
-//	vec3 Position,
-//		 Color,
-//		 Size,
-//		 Up,
-//		 Right;
-//};
-
 vec3 
 	light_pos[2],
 	light_color[2];
@@ -142,11 +125,9 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("view", view);
 	gfx.setUniform("projection", projection);
 
-	gfx.setUniform("light_pos0", light_pos[0]);
 	gfx.setUniform("light_color0", light_color[0]);
 	gfx.setUniform("light_m0", light_m[0]);
 
-	gfx.setUniform("light_pos1", light_pos[1]);
 	gfx.setUniform("light_color1", light_color[1]);
 	gfx.setUniform("light_m1", light_m[1]);
 	renderGeometry(gfx, ctx, dt);

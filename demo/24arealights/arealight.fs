@@ -3,11 +3,9 @@
 in vec3 v_position;
 in vec3 v_normal;
 
-uniform vec3 light_pos0;
 uniform vec3 light_color0;
 uniform mat4 light_m0;
 
-uniform vec3 light_pos1;
 uniform vec3 light_color1;
 uniform mat4 light_m1;
 
@@ -18,7 +16,7 @@ out vec4 out_color;
 // See [1]. Look at figure 1 and read a few paragraphs of Section 1.2
 // [1]: The Irradiance Jacobian for Partially Occluded Polyhedral Sources 
 //      (graphics.cornell.edu/pubs/1994/Arv94.pdf)
-vec3 arealight(in vec3 Lp, in vec3 Ld, in mat4 M, in vec3 P, in vec3 N)
+vec3 arealight(in vec3 Ld, in mat4 M, in vec3 P, in vec3 N)
 {
 	// Compute corners of arealight in world-space
 	// Assuming the arealight's identity transform is flat down the -y axis
@@ -60,8 +58,8 @@ void main()
 	vec3 N = normalize(v_normal);
 
 	out_color = vec4(0.0);
-	out_color.rgb += arealight(light_pos0, light_color0, light_m0, v_position, N) * diffuse;
-	out_color.rgb += arealight(light_pos1, light_color1, light_m1, v_position, N) * diffuse;
+	out_color.rgb += arealight(light_color0, light_m0, v_position, N) * diffuse;
+	out_color.rgb += arealight(light_color1, light_m1, v_position, N) * diffuse;
 
 	// Gamma
 	out_color.rgb = pow(out_color.rgb, vec3(1.0 / 2.2));

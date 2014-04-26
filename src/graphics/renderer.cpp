@@ -167,7 +167,6 @@ void Renderer::draw(Model &model)
 
 void Renderer::drawQuad(float x, float y, float w, float h)
 {
-	// This is suspicious on AMD...?
 	BufferObject vbo;
 	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
 	vbo.bind();

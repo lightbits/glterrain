@@ -6,17 +6,16 @@
 class Shader
 {
 public:
-	Shader(GLenum shaderType_);
-
+	Shader();
 	void dispose();
-	void create();
-	bool loadFromSource(const std::string &src);
-	bool loadFromFile(const std::string &filename);
+
+	bool loadFromSource(const std::string &src, GLenum type);
+	bool loadFromFile(const std::string &filename, GLenum type);
 	bool compileAndCheckStatus(const std::string &src);
 	GLuint getHandle() const;
 private:
-	GLuint shader;
-	GLenum shaderType;
+	GLuint m_handle;
+	GLenum m_type;
 };
 
 #endif

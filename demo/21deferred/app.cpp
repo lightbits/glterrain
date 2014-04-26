@@ -23,7 +23,9 @@ Second pass:
 #include "app.h"
 #include <gl/gbuffer.h>
 
-MeshBuffer cube_buffer;
+MeshBuffer 
+	cube_buffer,
+	quad_buffer;
 Model cube;
 
 ShaderProgram
@@ -69,8 +71,8 @@ void free()
 
 void init(Renderer &gfx, Context &ctx)
 {
-	Mesh mesh = Mesh::genUnitCube(false, true);
-	cube_buffer = MeshBuffer(mesh);
+	cube_buffer = MeshBuffer(Mesh::genUnitCube(false, true));
+	quad_buffer = MeshBuffer(Mesh::genPlane(vec3(0, 1, 0), vec3(1, 0, 0)));
 	cube = Model(cube_buffer);
 
 	gbuffer.create(ctx.getWidth(), ctx.getHeight());
@@ -229,28 +231,16 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	Because we don't do any scaling here, we can get the rotation matrix with the 
 	first three columns. A rotation matrix has orthonormal columns, which means that 
 	its transpose is its inverse!
+	
+	In retrospect, we probably could have done this simpler by using
+	glPointSize(size of quad in pixels), and drawing the center of each quad with
+	GL_POINTS.
 	*/
 	mat4 inverse_view_r = mat4(view[0], view[1], view[2], vec4(0, 0, 0, 1));
 	inverse_view_r = glm::transpose(inverse_view_r);
 
 	// For each pointlight a quad is rendered that covers a bit more
 	// than the range of the light. Anything inside the quad will be lit.
-	BufferObject vbo;
-	vbo.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-	vbo.bind();
-	float data[] = {
-		-1.0f, -1.0f,
-		+1.0f, -1.0f,
-		+1.0f, +1.0f,
-		+1.0f, +1.0f,
-		-1.0f, +1.0f,
-		-1.0f, -1.0f
-	};
-	vbo.bufferData(sizeof(data), data);
-	gfx.setAttributefv("position", 2, 0, 0);
-	
-	// This stutters on ATI HD 6850 for some reason!
-
 	for (int i = 0; i < num_lights; ++i)
 	{
 		// Yeah this is pretty bad for parallelism!
@@ -259,11 +249,8 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		gfx.setUniform("light_r", light_r[i]);
 		gfx.setUniform("light_s", light_s[i]);
 		gfx.setUniform("model", light_m[i] * inverse_view_r);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-		gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f);
+		quad_buffer.draw();
 	}
 
-	vbo.dispose();
-	vbo.unbind();
 	gfx.endCustomShader();
 }

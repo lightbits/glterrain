@@ -2,6 +2,8 @@
 #include <iostream>
 #include <graphics/renderer.h>
 
+const MeshBuffer *MeshBuffer::bound = nullptr;
+
 MeshBuffer::MeshBuffer() : 
 	vaoOk(false), interleavedVertexData(false), vbo(), ibo(), stride(0), 
 	positionCount(0), normalCount(0), colorCount(0), texelCount(0), tangentsCount(0),
@@ -161,7 +163,7 @@ void MeshBuffer::update(Mesh &mesh, int startIndex, int endIndex)
 {
 	// Todo: add index selection support
 
-	if(!isBound())
+	if(!bound)
 		throw std::runtime_error("Mesh must be bound before updating");
 
 	bufferMeshBlock(mesh);
@@ -293,6 +295,7 @@ void MeshBuffer::setupVao()
 
 void MeshBuffer::bind()
 {
+	bound = this;
 	if(hasVao())
 	{
 		vao.bind();
@@ -306,6 +309,7 @@ void MeshBuffer::bind()
 
 void MeshBuffer::unbind()
 {
+	bound = nullptr;
 	if(hasVao())
 	{
 		vao.unbind();

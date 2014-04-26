@@ -54,22 +54,22 @@ public:
 	/* Draws a single model with an associated model transformation */
 	void draw(Model &model);
 
-	/* Draws a single line very slowly */
+	/* Draws a single line very slowly. Warning: might cause stuttering. */
 	void drawLine(const vec3 &v0, const vec3 &v1, const Color &color);
 
-	/* Draws a single line (as a rectangle) very slowly, with a given thickness */
+	/* Draws a single line (as a rectangle) very slowly, with a given thickness. Warning: might cause stuttering. */
 	void drawLine(const vec3 &v0, const vec3 &v1, const Color &color, float thickness);
 
-	/* Draws a set of lines pretty slowly */
+	/* Draws a set of lines pretty slowly. Warning: might cause stuttering. */
 	void drawLines(const std::vector<vec3> &lines);
 
-	/* Drawss a single flat quad very slowly */
+	/* Drawss a single flat quad very slowly. Warning: might cause stuttering. */
 	void drawQuad(float x, float y, float w, float h);
 
-	/* Drawss a single flat quad, with depth, very slowly */
+	/* Drawss a single flat quad, with depth, very slowly. Warning: might cause stuttering. */
 	void drawQuad(float x, float y, float w, float h, float z);
 
-	/* Draws a single flat textured quad very slowly */
+	/* Draws a single flat textured quad very slowly. Warning: might cause stuttering. */
 	void drawTexQuad(float x, float y, float w, float h);
 
 	/* Sets the current shader to be used while rendering */

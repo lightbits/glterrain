@@ -16,6 +16,16 @@ void Model::draw()
 {
 	Renderer *ar = getActiveRenderer();
 	ar->draw(*this);
+
+	//if (mesh == nullptr)
+	//	throw std::runtime_error("Model has no associated mesh buffer");
+
+	//ShaderProgram *sp = getActiveShader();
+	//if (sp == nullptr)
+	//	throw std::runtime_error(NO_ACTIVE_SHADER);
+
+	//setUniform("model", model.transform.top());
+	//model.mesh->draw();
 }
 
 //Model::Model(MeshBuffer &mesh) : 

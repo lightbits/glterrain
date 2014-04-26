@@ -21,7 +21,8 @@ Model
 
 MeshBuffer 
 	cube_buffer,
-	plane_buffer;
+	plane_buffer,
+	screen_quad;
 
 mat4 
 	projection,
@@ -98,6 +99,8 @@ void init(Renderer &gfx, Context &ctx)
 	cube_buffer.create(Mesh::genUnitCube(false, true));
 	cube = Model(cube_buffer);
 
+	screen_quad.create(Mesh::genPlane(vec3(0, 1, 0), vec3(1, 0, 0)));
+
 	// Create plane mesh with normals
 	Mesh mesh_plane = Mesh::genPlane(1.0f, 1.0f);
 	mesh_plane.addNormal(0.0f, -1.0f, 0.0f);
@@ -116,7 +119,7 @@ void init(Renderer &gfx, Context &ctx)
 	lights.push_back(AreaLight(1.0f, 0.3f, vec3(0.8, 0.7, 0.5) * 1.5f, vec3(0.0, 10.2, 0.0), vec3(-0.4, 0.0, 0.0)));
 	lights.push_back(AreaLight(10.0f, 10.0f, vec3(0.5, 0.7, 0.8) * 2.5f, vec3(0.0, 7.2, 0.0), vec3(-0.4, 0.0, 0.0)));
 	lights.push_back(AreaLight(1.0f, 0.3f, vec3(0.9, 0.3, 0.35) * 1.8f, vec3(0.0, 1.2, 0.0), vec3(0, 0, 0)));
-	lights.push_back(AreaLight(10.0f, 10.0f, vec3(0.9, 0.92, 1.0) * 0.01f, vec3(0.0, 10.0, 0.0), vec3(0, 0, 0)));
+	lights.push_back(AreaLight(10.0f, 10.0f, vec3(0.9, 0.92, 1.0) * 0.04f, vec3(0.0, 10.0, 0.0), vec3(0, 0, 0)));
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
@@ -209,7 +212,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		// Yeah this is pretty bad for parallelism!
 		gfx.setUniform("light_i", lights[i].m_intensity);
 		gfx.setUniform("light_m", lights[i].m_transform);
-		gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f); // Render fullscreen quad
+		screen_quad.draw();
 	}
 	gfx.endCustomShader();
 

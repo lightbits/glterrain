@@ -7,7 +7,9 @@ ShaderProgram
 	shader_simple;
 
 Model cube;
-MeshBuffer cube_buffer;
+MeshBuffer 
+	cube_buffer,
+	screenquad;
 
 mat4 
 	projection,
@@ -35,8 +37,8 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 	
-	Mesh cube_mesh = Mesh::genUnitCube(false, false);
-	cube_buffer.create(cube_mesh);
+	cube_buffer.create(Mesh::genUnitCube(false, false));
+	screenquad.create(Mesh::genPlane(vec3(0, 1, 0), vec3(1, 0, 0)));
 	cube = Model(cube_buffer);
 
 	quad_p = vec3(0.5f, 0.5f, 0.5f);
@@ -75,12 +77,12 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	// Draw a viewer-oriented quad at the top-front-right corner of the cube
 	gfx.setUniform("scale", vec2(1.0, 1.0));
 	gfx.setUniform("model", scale(2.0f) * translate(0.5f, 0.5f, 0.5f));
-	gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f); // Draw fullscreen quad
+	screenquad.draw();
 
 	// Top-back-left corner
 	gfx.setUniform("scale", vec2(0.5, 0.5));
 	gfx.setUniform("model", scale(2.0f) * translate(-0.5f, 0.5f, -0.5f));
-	gfx.drawQuad(-1.0f, -1.0f, 2.0f, 2.0f);
+	screenquad.draw();
 
 	gfx.endCustomShader();
 }

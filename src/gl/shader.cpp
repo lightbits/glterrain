@@ -2,50 +2,45 @@
 #include <common/utils.h> // for readFile
 #include <iostream> // for cerr
 
-Shader::Shader(GLenum shaderType_) : 
-	shader(0), shaderType(shaderType_) 
+Shader::Shader() : 
+	m_handle(0)
 { }
 
 void Shader::dispose()
 {
-	glDeleteShader(shader);
+	glDeleteShader(m_handle);
 }
 
-void Shader::create()
+bool Shader::loadFromSource(const std::string &src, GLenum type)
 {
-	dispose();
-	shader = glCreateShader(shaderType);
-}
-
-bool Shader::loadFromSource(const std::string &src)
-{
-	create();
+	m_type = type;
+	m_handle = glCreateShader(type);
 	return compileAndCheckStatus(src);
 }
 
-bool Shader::loadFromFile(const std::string &filename)
+bool Shader::loadFromFile(const std::string &filename, GLenum type)
 {
 	std::string src;
 	if(!readFile(filename, src))
 		return false;
 
-	return loadFromSource(src);
+	return loadFromSource(src, type);
 }
 
 bool Shader::compileAndCheckStatus(const std::string &src)
 {
 	const char *srcCStr = src.c_str();
-	glShaderSource(shader, 1, &srcCStr, NULL);
-	glCompileShader(shader);
+	glShaderSource(m_handle, 1, &srcCStr, NULL);
+	glCompileShader(m_handle);
 
 	GLint status;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	glGetShaderiv(m_handle, GL_COMPILE_STATUS, &status);
 	if(status == GL_FALSE)
 	{
 		GLint length;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+		glGetShaderiv(m_handle, GL_INFO_LOG_LENGTH, &length);
 		std::vector<GLchar> log(length);
-		glGetShaderInfoLog(shader, length, NULL, &log[0]);
+		glGetShaderInfoLog(m_handle, length, NULL, &log[0]);
 		std::cerr<<"Compile failure: "<<&log[0]<<std::endl;
 		return false;
 	}
@@ -55,5 +50,5 @@ bool Shader::compileAndCheckStatus(const std::string &src)
 
 GLuint Shader::getHandle() const
 {
-	return shader;
+	return m_handle;
 }

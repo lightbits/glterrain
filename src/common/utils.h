@@ -15,6 +15,7 @@ float bezier(float v0, float v1, float v2, float v3, float t);
 // I/O
 bool readFile(const std::string &filename, std::string &dest);
 bool readFile(const std::string &filename, std::vector<std::string> &dest);
+bool fileExists(const std::string &filename);
 
 // Strings
 // Does this work?

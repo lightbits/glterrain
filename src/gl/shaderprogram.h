@@ -9,14 +9,27 @@ class ShaderProgram
 {
 public:
 	ShaderProgram();
-	bool loadFromSource(const string &vertSrc, const string &fragSrc);
-	bool loadFromFile(const string &vertName, const string &fragName);
+	ShaderProgram(const Program &program);
 
-	// Load shaders from files with names <baseName>.vs and <baseName>.fs
+	/* Loads shaders from an array of sources with corresponding types  */
+	bool loadFromSource(const string *sources, GLenum *types, int count);
+	bool loadFromSource(const string &vertSrc, const string &fragSrc);
+	bool loadFromSource(const string &vertSrc, const string &fragSrc, const string &geomSrc);
+
+	bool loadFromFile(const string *paths, GLenum *types, int count);
+	bool loadFromFile(const string &vertPath, const string &fragPath);
+	bool loadFromFile(const string &vertPath, const string &fragPath, const string &geomPath);
+
+	/* 
+	Load shaders from files with names <baseName>.<ext>, where ext is any of the following:
+	.vs, .fs, .gs, .cs.
+	*/
 	bool loadFromFile(const string &baseName);
 
-	// Load shaders from files with names <baseName>.vs and <baseName>.fs
-	// and performs shader compilation and linking into a program.
+	/* 
+	Load shaders from files with names <baseName>.<ext>, where ext is any of the following: .vs, .fs, .gs, .cs.,
+	and performs shader compilation and linking into a program.
+	*/
 	bool loadAndLinkFromFile(const string &baseName);
 
 	bool linkAndCheckStatus();
@@ -62,11 +75,10 @@ public:
 	void setUniform(const string &name, GLfloat f);
 	void setUniform(const string &name, GLint i);
 private:
-	std::unordered_map<string, GLint> attribLocations;
-	std::unordered_map<string, GLint> uniformLocations;
-	Program program;
-	Shader vertexShader;
-	Shader fragmentShader;
+	std::unordered_map<string, GLint> m_attrib_locs;
+	std::unordered_map<string, GLint> m_uniform_locs;
+	Program m_program;
+	std::vector<Shader> m_shaders;
 };
 
 #endif

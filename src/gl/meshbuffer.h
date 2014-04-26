@@ -15,7 +15,6 @@ class ShaderProgram;
 
 class MeshBuffer
 {
-	//friend class Renderer;
 public:
 	MeshBuffer();
 	MeshBuffer(Mesh &mesh);
@@ -41,9 +40,8 @@ public:
 	void bind();
 	void unbind();
 	void draw();
-
-	bool isBound() const { return vbo.isBound() && ibo.isBound(); }
 private:
+	static const MeshBuffer *bound;
 	void bufferMeshBlock(Mesh &mesh/*, int first, int count*/);
 	void bufferMeshInterleaved(Mesh &mesh/*, int first, int count*/);
 

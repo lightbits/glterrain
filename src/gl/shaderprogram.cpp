@@ -1,37 +1,79 @@
 #include <gl/shaderprogram.h>
 #include <graphics/renderer.h>
+#include <common/utils.h>
 
-ShaderProgram::ShaderProgram() : program(), 
-	fragmentShader(GL_FRAGMENT_SHADER), 
-	vertexShader(GL_VERTEX_SHADER), 
-	uniformLocations(),
-	attribLocations() { }
+ShaderProgram::ShaderProgram() : 
+	m_program(),
+	m_shaders(),
+	m_uniform_locs(),
+	m_attrib_locs() 
+{ }
 
-bool ShaderProgram::loadFromSource(const string &vertSrc, const string &fragSrc)
+bool ShaderProgram::loadFromSource(const string *sources, GLenum *types, int count)
 {
-	uniformLocations.clear();
-	attribLocations.clear();
-	if(!vertexShader.loadFromSource(vertSrc) || 
-	   !fragmentShader.loadFromSource(fragSrc))
-		return false;
-	program.create();
+	m_shaders.clear();
+	m_uniform_locs.clear();
+	m_attrib_locs.clear();
+	for (int i = 0; i < count; ++i)
+	{
+		Shader shader;
+		if (!shader.loadFromSource(sources[i], types[i]))
+			return false;
+		m_shaders.push_back(shader);
+	}
+	m_program.create();
 	return true;
 }
 
-bool ShaderProgram::loadFromFile(const string &vertName, const string &fragName)
+bool ShaderProgram::loadFromFile(const string *paths, GLenum *types, int count)
 {
-	uniformLocations.clear();
-	attribLocations.clear();
-	if(!vertexShader.loadFromFile(vertName) || 
-	   !fragmentShader.loadFromFile(fragName))
-		return false;
-	program.create();
+	m_shaders.clear();
+	m_uniform_locs.clear();
+	m_attrib_locs.clear();
+	for (int i = 0; i < count; ++i)
+	{
+		Shader shader;
+		if (!shader.loadFromFile(paths[i], types[i]))
+			return false;
+		m_shaders.push_back(shader);
+	}
+	m_program.create();
 	return true;
+}
+
+bool ShaderProgram::loadFromSource(const string &vertSrc, const string &fragSrc)
+{
+	string sources[] = { vertSrc, fragSrc };
+	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	return loadFromSource(sources, types, 2);
+}
+
+bool ShaderProgram::loadFromSource(const string &vertSrc, const string &fragSrc, const string &geomSrc)
+{
+	string sources[] = { vertSrc, fragSrc, geomSrc };
+	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER };
+	return loadFromSource(sources, types, 3);
+}
+
+bool ShaderProgram::loadFromFile(const string &vertPath, const string &fragPath)
+{
+	string paths[] = { vertPath, fragPath };
+	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	return loadFromFile(paths, types, 2);
+}
+
+bool ShaderProgram::loadFromFile(const string &vertPath, const string &fragPath, const string &geomPath)
+{
+	string sources[] = { vertPath, fragPath, geomPath };
+	GLenum types[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER };
+	return loadFromFile(sources, types, 3);
 }
 
 bool ShaderProgram::loadFromFile(const string &baseName)
 {
-	return loadFromFile(baseName + ".vs", baseName + ".fs");
+	string vs_path = baseName + ".vs";
+	string fs_path = baseName + ".fs";
+	return loadFromFile(vs_path, fs_path);
 }
 
 bool ShaderProgram::loadAndLinkFromFile(const string &baseName)
@@ -45,73 +87,72 @@ bool ShaderProgram::loadAndLinkFromFile(const string &baseName)
 
 bool ShaderProgram::linkAndCheckStatus()
 {
-	return program.linkAndCheckStatus(vertexShader, fragmentShader);
+	return m_program.linkAndCheckStatus(m_shaders);
 }
 
 void ShaderProgram::dispose()
 {
-	// if(inUse) throw std::exception...
-	uniformLocations.clear();
-	attribLocations.clear();
-	fragmentShader.dispose();
-	vertexShader.dispose();
-	program.dispose();
+	m_uniform_locs.clear();
+	m_attrib_locs.clear();
+	for (int i = 0; i < m_shaders.size(); ++i)
+		m_shaders[i].dispose();
+	m_program.dispose();
 }
 
 void ShaderProgram::begin()
 {
-	program.use();
+	m_program.use();
 	//Renderer *r = getActiveRenderer();
 	//if(r) r->beginCustomShader(*this);
 }
 
 void ShaderProgram::end()
 {
-	program.unuse();
+	m_program.unuse();
 	//Renderer *r = getActiveRenderer();
 	//if(r) r->endCustomShader();
 }
 
 void ShaderProgram::bindFragDataLocation(const string &name, GLuint colorNumber)
 {
-	glBindFragDataLocation(program.getHandle(), colorNumber, name.c_str());
+	glBindFragDataLocation(m_program.getHandle(), colorNumber, name.c_str());
 }
 
 void ShaderProgram::bindAttribute(GLuint location, const string &name)
 {
-	glBindAttribLocation(program.getHandle(), location, name.c_str());
+	glBindAttribLocation(m_program.getHandle(), location, name.c_str());
 }
 
 GLint ShaderProgram::getUniformLocation(const string &name)
 {
-	std::unordered_map<string, GLint>::iterator it = uniformLocations.find(name);
-	if(it != uniformLocations.end())
+	std::unordered_map<string, GLint>::iterator it = m_uniform_locs.find(name);
+	if(it != m_uniform_locs.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		GLint location = glGetUniformLocation(program.getHandle(), name.c_str());
+		GLint location = glGetUniformLocation(m_program.getHandle(), name.c_str());
 		if(location < 0)
 			throw std::runtime_error("Invalid shader uniform [" + name + "] (not used or bad name)");
-		uniformLocations[name] = location;
+		m_uniform_locs[name] = location;
 		return location;
 	}
 }
 
 GLint ShaderProgram::getAttributeLocation(const string &name)
 {
-	std::unordered_map<string, GLint>::iterator it = attribLocations.find(name);
-	if(it != attribLocations.end())
+	std::unordered_map<string, GLint>::iterator it = m_attrib_locs.find(name);
+	if(it != m_attrib_locs.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		GLint location = glGetAttribLocation(program.getHandle(), name.c_str());
+		GLint location = glGetAttribLocation(m_program.getHandle(), name.c_str());
 		if(location < 0)
 			throw std::runtime_error("Invalid shader attribute [" + name + "] (not used or bad name)");
-		attribLocations[name] = location;
+		m_attrib_locs[name] = location;
 		return location;
 	}
 }
@@ -142,12 +183,12 @@ void ShaderProgram::setAttributefv(GLint location,
 	                      reinterpret_cast<void*>(offset * sizeof(GLfloat)));
 }
 
-void ShaderProgram::setUniform(const string &name, const mat4 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const string &name, const mat3 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const string &name, const mat2 &mat) { program.uniform(getUniformLocation(name), mat); }
-void ShaderProgram::setUniform(const string &name, const vec4 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const string &name, const vec3 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const string &name, const vec2 &vec) { program.uniform(getUniformLocation(name), vec); }
-void ShaderProgram::setUniform(const string &name, GLdouble d)      { program.uniform(getUniformLocation(name), d); }
-void ShaderProgram::setUniform(const string &name, GLfloat f)       { program.uniform(getUniformLocation(name), f); }
-void ShaderProgram::setUniform(const string &name, GLint i)         { program.uniform(getUniformLocation(name), i); }
+void ShaderProgram::setUniform(const string &name, const mat4 &mat) { m_program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const mat3 &mat) { m_program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const mat2 &mat) { m_program.uniform(getUniformLocation(name), mat); }
+void ShaderProgram::setUniform(const string &name, const vec4 &vec) { m_program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, const vec3 &vec) { m_program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, const vec2 &vec) { m_program.uniform(getUniformLocation(name), vec); }
+void ShaderProgram::setUniform(const string &name, GLdouble d)      { m_program.uniform(getUniformLocation(name), d); }
+void ShaderProgram::setUniform(const string &name, GLfloat f)       { m_program.uniform(getUniformLocation(name), f); }
+void ShaderProgram::setUniform(const string &name, GLint i)         { m_program.uniform(getUniformLocation(name), i); }

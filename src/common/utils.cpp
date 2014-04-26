@@ -68,6 +68,14 @@ bool readFile(const std::string &filename, std::vector<std::string> &dest)
 	return true;
 }
 
+bool fileExists(const std::string &filename)
+{
+	std::ifstream in(filename, std::ios::in);
+	bool ok = in.good();
+	in.close();
+	return ok;
+}
+
 bool endsWith(const std::string &s, const std::string &end)
 {
 	std::string::size_type e = end.size() - 1;
