@@ -55,6 +55,8 @@ public:
 	// Returns the cached attribute location
 	GLint getAttributeLocation(const string &name);
 
+	GLuint getHandle() const;
+
 	/*
 	stride: number of components between the first element in each attribute
 	offset: number of components into the array the component is found

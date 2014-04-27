@@ -110,7 +110,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	gfx.setClearDepth(1.0);
-	gfx.setClearColor(0.2f, 0.2f, 0.3f);
+	gfx.setClearColor(0.2f, 0.2f, 0.2f);
 	gfx.clearColorAndDepth();
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setCullState(CullStates::CullNone);

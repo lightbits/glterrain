@@ -157,6 +157,11 @@ GLint ShaderProgram::getAttributeLocation(const string &name)
 	}
 }
 
+GLuint ShaderProgram::getHandle() const
+{
+	return m_program.getHandle();
+}
+
 void ShaderProgram::setAttributefv(const string &name, 
 								   GLsizei numComponents, 
 								   GLsizei stride, 

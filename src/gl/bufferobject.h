@@ -54,6 +54,7 @@ public:
 	// Binds the default (0) buffer for the set target buffer
 	void unbind();
 
+	GLuint getHandle() const;
 	bool isBound() const;
 private:
 	static const BufferObject *bound;

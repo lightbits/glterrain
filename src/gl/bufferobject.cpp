@@ -47,6 +47,11 @@ void BufferObject::unbind()
 	glBindBuffer(target, 0);
 }
 
+GLuint BufferObject::getHandle() const
+{
+	return handle;
+}
+
 bool BufferObject::isBound() const
 {
 	return bound != nullptr;
