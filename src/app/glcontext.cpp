@@ -35,7 +35,7 @@ bool GLContext::create(const VideoMode &mode, const char *title, bool decorated,
 		return false;
 
 	context = SDL_GL_CreateContext(window);
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0);
 
 	GLenum glew_status = glewInit();
 	if (glew_status != GLEW_OK)

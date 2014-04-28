@@ -10,7 +10,8 @@ struct VideoMode
 			  int fsaaSamples = 0,
 			  int glMajor = 3,
 			  int glMinor = 1,
-			  bool fullscreen = false)
+			  bool fullscreen = false,
+			  bool vsync = true)
 			  : 
 		Width(width),
 		Height(height),
@@ -19,7 +20,8 @@ struct VideoMode
 		FsaaSamples(fsaaSamples),
 		GlMajor(glMajor),
 		GlMinor(glMinor),
-		Fullscreen(fullscreen) { }
+		Fullscreen(fullscreen),
+		Vsync(vsync) { }
 			  
 
 	int Width, 
@@ -30,6 +32,7 @@ struct VideoMode
 		GlMajor,
 		GlMinor;
 	bool Fullscreen;
+	bool Vsync;
 };
 
 #endif
