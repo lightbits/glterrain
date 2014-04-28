@@ -21,25 +21,27 @@ enum SpriteSortMode {
 };
 
 struct SpriteInfo
-{
-	SpriteInfo() : 
-		z(1.0f),
-		zAxisRotation(0.0f), 
-		uLeft(0.0f), uRight(1.0f),
-		vBottom(0.0f), vTop(1.0f),
-		center(0.0f, 0.0f),
-		destination(0.0f, 0.0f, 0.0f, 0.0f), 
-		color(1.0f, 1.0f, 1.0f, 1.0f), 
-		texture(nullptr) { }
-	float z;
-	float uLeft, uRight;
-	float vBottom, vTop;
-	vec2 center;
-	Rectanglef destination;
-	float zAxisRotation;
-	Color color;
-	const Texture2D *texture;
-};
+	{
+		SpriteInfo() : 
+			z(1.0f),
+			zAxisRotation(0.0f), 
+			uLeft(0.0f), uRight(1.0f),
+			vBottom(0.0f), vTop(1.0f),
+			scale(1.0f),
+			center(0.0f, 0.0f),
+			destination(0.0f, 0.0f, 0.0f, 0.0f), 
+			color(1.0f, 1.0f, 1.0f, 1.0f), 
+			texture(nullptr) { }
+		float z;
+		float uLeft, uRight;
+		float vBottom, vTop;
+		float scale;
+		vec2 center;
+		Rectanglef destination;
+		float zAxisRotation;
+		Color color;
+		const Texture2D *texture;
+	};
 
 /*
 Renders textured quads in optimized batches, using an orthographic projection.
@@ -47,9 +49,20 @@ Renders textured quads in optimized batches, using an orthographic projection.
 class SpriteBatch
 {
 public:
+	struct Vertex
+	{
+		Vertex() : x(0), y(0), z(0), r(0), g(0), b(0), a(0), u(0), v(0), s(0) { }
+		Vertex(float X, float Y, float Z, float R, float G, float B, float A, float U, float V, float S) : 
+			x(X), y(Y), z(Z), r(R), g(G), b(B), a(A), u(U), v(V), s(S) { }
+		float x, y, z; // Window position and depth
+		float r, g, b, a; // Color
+		float u, v; // Texel
+		float s; // Scale
+	};
+
 	static const int SPRITE_COUNT = 512;
 	static const int VERTICES_PER_SPRITE = 4;
-	static const int VERTEX_SIZE = 9 * sizeof(float);
+	static const int VERTEX_SIZE = 10 * sizeof(float);
 	static const int INDICES_PER_SPRITE = 6;
 	static const int INDEX_SIZE = sizeof(unsigned int); // TODO: Use unsigned short instead?
 public:
@@ -69,6 +82,7 @@ public:
 					 const Rectanglef &dest,
 					 float uLeft, float uRight,
 					 float vBottom, float vTop,
+					 float scale = 1.0f,
 					 float depth = 0.0f,
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
@@ -77,21 +91,15 @@ public:
 					 const Color &color, 
 					 const Rectanglef &dest, 
 					 const Rectanglei &src, 
+					 float scale = 1.0f,
 					 float depth = 0.0f, 
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
 	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
-					 const Rectanglef &dest, 
-					 float depth = 0.0f, 
-					 float orientation = 0.0f,
-					 vec2 center = vec2(0.0f, 0.0f));
-
-	void drawTexture(const Texture2D &texture, 
-					 const Color &color, 
-					 const vec2 &pos, 
-					 const Rectanglei &src, 
+					 const Rectanglef &dest,  
+					 float scale = 1.0f,
 					 float depth = 0.0f, 
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
@@ -99,11 +107,21 @@ public:
 	void drawTexture(const Texture2D &texture, 
 					 const Color &color, 
 					 const vec2 &pos, 
+					 const Rectanglei &src,    
+					 float scale = 1.0f,
 					 float depth = 0.0f, 
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
-	 void drawString(const std::string &text, const vec2 &pos, const Color &color);
+	void drawTexture(const Texture2D &texture, 
+					 const Color &color, 
+					 const vec2 &pos, 	  
+					 float scale = 1.0f,
+					 float depth = 0.0f, 
+					 float orientation = 0.0f,
+					 vec2 center = vec2(0.0f, 0.0f));
+
+	 void drawString(const std::string &text, const vec2 &pos, const Color &color, float scale = 1.0f);
 
 	/* Draws all buffered sprite data, using the default shader program,
 	unless a different one was bound in the process - in which case it uses

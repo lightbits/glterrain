@@ -2,33 +2,40 @@
 #include <app/glcontext.h>
 #include <graphics/renderer.h>
 #include <sstream> // For drawstring
+#define GLSL(src) "#version 150 core\n" #src
 
-static const char *spritebatchFragShaderSrc =
-	"#version 150\n"
-	"in vec4 vertColor;\n"
-	"in vec2 vertTexCoord;\n"
-	"out vec4 outColor;\n"
-	"uniform sampler2D tex;\n"
-	"void main()\n"
-	"{\n"
-	"	outColor = texture(tex, vertTexCoord) * vertColor;\n"
-	"}\n";
+// Default vertex shader
+static const char *VERTEX_SHADER_SRC = GLSL(
+	in vec3 position;
+	in vec4 color;
+	in vec2 texel;
+	in float scale;
 
-static const char *spritebatchVertexShaderSrc =
-	"#version 150\n"
-	"in vec3 position;\n"
-	"in vec4 color;\n"
-	"in vec2 texel;\n"
-	"out vec4 vertColor;\n"
-	"out vec2 vertTexCoord;\n"
-	"uniform mat4 projection;\n"
-	"uniform mat4 view;\n"
-	"void main()\n"
-	"{\n"
-	"	vertColor = color;\n"
-	"	vertTexCoord = texel;\n"
-	"	gl_Position = projection * view * vec4(position.xyz, 1.0f);\n"
-	"}\n";
+	out vec4 v_color;
+	out vec2 v_texel;
+
+	uniform mat4 projection;
+	uniform mat4 view;
+
+	void main() {
+		v_color = color;
+		v_texel = texel;
+		gl_Position = projection * view * vec4(scale * position, 1.0f);
+	}
+);
+
+// Default fragment shader
+static const char *FRAGMENT_SHADER_SRC = GLSL(
+	in vec4 v_color;
+	in vec2 v_texel;
+
+	uniform sampler2D tex;
+	out vec4 out_color;
+
+	void main() {
+		out_color = texture(tex, v_texel) * v_color;
+	}
+);
 
 SpriteBatch::SpriteBatch()
 {
@@ -44,23 +51,19 @@ SpriteBatch::~SpriteBatch()
 
 void SpriteBatch::create()
 {
-	if(!defaultShader.loadFromSource(spritebatchVertexShaderSrc, spritebatchFragShaderSrc))
-		throw std::exception("Failure loading default spritebatch shader");
+	if(!defaultShader.loadFromSource(VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC))
+		throw std::runtime_error("Failure loading default spritebatch shader");
 
 	if(!defaultShader.linkAndCheckStatus())
-		throw std::exception("Failure linking default spritebatch shader");
+		throw std::runtime_error("Failure linking default spritebatch shader");
 	
-	// Get window dimensions
-	GLContext *ar = getActiveContext();
-	if(!ar)
-		throw std::exception("There is no active context");
-	int windowWidth, windowHeight;
-	ar->getSize(&windowWidth, &windowHeight);
+	// For window size
+	GLContext *ctx = getActiveContext();
 
 	viewMatrix = mat4(1.0f);
 
 	// Orthographic projection, with y-axis positive from top to bottom of window
-	projectionMatrix = glm::ortho(0.0f, float(windowWidth), float(windowHeight), 0.0f, 0.0f, 1.0f);
+	projectionMatrix = glm::ortho(0.0f, float(ctx->getWidth()), float(ctx->getHeight()), 0.0f, 0.0f, 1.0f);
 
 	// Render states
 	blendState = BlendStates::Default;
@@ -71,15 +74,18 @@ void SpriteBatch::create()
 	currentShader = nullptr;
 	inBeginEndPair = false;
 
-	// Preallocate buffers
-	vertexBuffer.create(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
-	vertexBuffer.bind();
-	vertexBuffer.bufferData(SPRITE_COUNT * VERTICES_PER_SPRITE * VERTEX_SIZE, NULL);
-	vertexBuffer.unbind();
-	indexBuffer.create(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
-	indexBuffer.bind();
-	indexBuffer.bufferData(SPRITE_COUNT * INDICES_PER_SPRITE * INDEX_SIZE, NULL);
-	indexBuffer.unbind();
+	// Allocate buffers on the GPU to hold vertex and index data
+	vertexBuffer.create(
+		GL_ARRAY_BUFFER, 
+		GL_STREAM_DRAW, 
+		SPRITE_COUNT * VERTICES_PER_SPRITE * VERTEX_SIZE, 
+		NULL);
+
+	indexBuffer.create(
+		GL_ELEMENT_ARRAY_BUFFER, 
+		GL_STREAM_DRAW,
+		SPRITE_COUNT * INDICES_PER_SPRITE * INDEX_SIZE,
+		NULL);
 }
 
 void SpriteBatch::dispose()
@@ -146,71 +152,69 @@ void SpriteBatch::end()
 
 void SpriteBatch::renderBatch(const Texture2D *texture, SpriteInfo *first, int count)
 {
-	Renderer *renderer = getActiveRenderer();
-	currentShader->begin();
+	Renderer *gfx = getActiveRenderer();
+	gfx->beginCustomShader(*currentShader);
 
 	// Prepare buffers and enable texture
 	vertexBuffer.bind();
 	indexBuffer.bind();
 	texture->bind();
 
-	struct Vertex
-	{
-		Vertex() : x(0), y(0), z(0), r(0), g(0), b(0), a(0), u(0), v(0) { }
-		Vertex(float X, float Y, float Z, float R, float G, float B, float A, float U, float V) : 
-			x(X), y(Y), z(Z), r(R), g(G), b(B), a(A), u(U), v(V) { }
-		float x, y, z;
-		float r, g, b, a;
-		float u, v;
-	};
-
 	// Calculate vertex data on CPU before uploading to GPU
-	Vertex *vertices = new Vertex[count * 4];
-	unsigned int *indices = new unsigned int[count * 6];
+	Vertex *vertices      = new Vertex[count * VERTICES_PER_SPRITE];
+	unsigned int *indices = new unsigned int[count * INDICES_PER_SPRITE];
 
 	// Iterate over each sprite in the batch, and calculate the vertices
 	int vi = 0;
 	int ii = 0;
 	for(int i = 0; i < count; ++i)
 	{
-		SpriteInfo *sprite = (first + i);
-		Rectanglef dest = sprite->destination;
-		float zAxisRotation = sprite->zAxisRotation;
+		SpriteInfo *sprite = (first + i);		
 		Color color = sprite->color;
 		vec2 center = sprite->center;
-		float z = sprite->z;
-		float r = color.r;
-		float g = color.g;
-		float b = color.b;
-		float a = color.a;
-		float ul = sprite->uLeft;
-		float ur = sprite->uRight;
-		float vb = sprite->vBottom;
-		float vt = sprite->vTop;
+		float z     = sprite->z;
+		float r     = color.r;
+		float g     = color.g;
+		float b     = color.b;
+		float a     = color.a;
+		float ul    = sprite->uLeft;
+		float ur    = sprite->uRight;
+		float vb    = sprite->vBottom;
+		float vt    = sprite->vTop;
+		float s     = sprite->scale;
 
-		indices[ii++] = vi; indices[ii++] = vi + 1; indices[ii++] = vi + 2;
+		Rectanglef dest     = sprite->destination;
+		float zAxisRotation = sprite->zAxisRotation;
+
+		// Fill index array with quad indices
+		indices[ii++] = vi;     indices[ii++] = vi + 1; indices[ii++] = vi + 2;
 		indices[ii++] = vi + 2; indices[ii++] = vi + 3; indices[ii++] = vi;
 
 		// Rotate the vertices if the rotation is nonzero
 		if(abs(zAxisRotation) > 1.0e-3)
 		{
-			vec2 vert0((-center.x) * dest.w, (-center.y) * dest.h);
+			// Corners of the quad
+			vec2 vert0((-center.x) * dest.w,       (-center.y) * dest.h);
 			vec2 vert1((1.0f - center.x) * dest.w, (-center.y) * dest.h);
 			vec2 vert2((1.0f - center.x) * dest.w, (1.0f - center.y) * dest.h);
-			vec2 vert3((-center.x) * dest.w, (1.0f - center.y) * dest.h);
+			vec2 vert3((-center.x) * dest.w,       (1.0f - center.y) * dest.h);
 
 			//vec2 center(0.0f, 0.0f);
 
+			// The rotation matrix
 			float cost = cos(zAxisRotation);
 			float sint = -sin(zAxisRotation);
 			mat2 rot(cost, sint, -sint, cost);
+
+			// Transform the vertices
 			vert0 = rot * vert0; vert1 = rot * vert1;
 			vert2 = rot * vert2; vert3 = rot * vert3;
 
-			vertices[vi++] = Vertex(vert0.x + dest.x, vert0.y + dest.y, z, r, g, b, a, ul, vt); // Top-left
-			vertices[vi++] = Vertex(vert1.x + dest.x, vert1.y + dest.y, z, r, g, b, a, ur, vt); // Top-right
-			vertices[vi++] = Vertex(vert2.x + dest.x, vert2.y + dest.y, z, r, g, b, a, ur, vb); // Bottom-right
-			vertices[vi++] = Vertex(vert3.x + dest.x, vert3.y + dest.y, z, r, g, b, a, ul, vb); // Bottom-left
+			// Fill vertex buffer
+			vertices[vi++] = Vertex(vert0.x + dest.x, vert0.y + dest.y, z, r, g, b, a, ul, vt, s); // Top-left
+			vertices[vi++] = Vertex(vert1.x + dest.x, vert1.y + dest.y, z, r, g, b, a, ur, vt, s); // Top-right
+			vertices[vi++] = Vertex(vert2.x + dest.x, vert2.y + dest.y, z, r, g, b, a, ur, vb, s); // Bottom-right
+			vertices[vi++] = Vertex(vert3.x + dest.x, vert3.y + dest.y, z, r, g, b, a, ul, vb, s); // Bottom-left
 		}
 		else
 		{
@@ -219,21 +223,22 @@ void SpriteBatch::renderBatch(const Texture2D *texture, SpriteInfo *first, int c
 			float y0 = dest.y - center.y * dest.h;
 			float y1 = dest.y + dest.h - center.y * dest.h;
 
-			vertices[vi++] = Vertex(x0, y0, z, r, g, b, a, ul, vt); // Top-left
-			vertices[vi++] = Vertex(x1, y0, z, r, g, b, a, ur, vt); // Top-right
-			vertices[vi++] = Vertex(x1, y1, z, r, g, b, a, ur, vb); // Bottom-right
-			vertices[vi++] = Vertex(x0, y1, z, r, g, b, a, ul, vb); // Bottom-left
+			vertices[vi++] = Vertex(x0, y0, z, r, g, b, a, ul, vt, s); // Top-left
+			vertices[vi++] = Vertex(x1, y0, z, r, g, b, a, ur, vt, s); // Top-right
+			vertices[vi++] = Vertex(x1, y1, z, r, g, b, a, ur, vb, s); // Bottom-right
+			vertices[vi++] = Vertex(x0, y1, z, r, g, b, a, ul, vb, s); // Bottom-left
 		}		
 	}
 
 	// Upload vertex and index data to GPU
-	vertexBuffer.bufferSubData(0, count * 4 * 9 * sizeof(float), vertices);
-	indexBuffer.bufferSubData(0, count * 6 * sizeof(unsigned int), indices);
+	vertexBuffer.bufferSubData(0, count * VERTICES_PER_SPRITE * VERTEX_SIZE, vertices);
+	indexBuffer.bufferSubData(0, count * INDICES_PER_SPRITE * INDEX_SIZE, indices);
 
 	// Set attribute format
-	currentShader->setAttributefv("position", 3, 9, 0);
-	currentShader->setAttributefv("color", 4, 9, 3);
-	currentShader->setAttributefv("texel", 2, 9, 7);
+	currentShader->setAttributefv("position", 3, 10, 0);
+	currentShader->setAttributefv("color", 4, 10, 3);
+	currentShader->setAttributefv("texel", 2, 10, 7);
+	currentShader->setAttributefv("scale", 1, 10, 9);
 
 	// Set texture source and transformation matrices
 	currentShader->setUniform("tex", 0);
@@ -242,16 +247,16 @@ void SpriteBatch::renderBatch(const Texture2D *texture, SpriteInfo *first, int c
 
 	// Set render states and issue draw call
 	// renderer->setTextureUnit(0);
-	renderer->setBlendState(blendState);
-	renderer->setCullState(CullStates::CullNone);
-	renderer->setRasterizerState(RasterizerStates::Default);
-	renderer->setDepthTestState(DepthTestStates::Always);
-	renderer->drawIndexedVertexBuffer(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT);
+	gfx->setBlendState(blendState);
+	gfx->setCullState(CullStates::CullNone);
+	gfx->setRasterizerState(RasterizerStates::Default);
+	gfx->setDepthTestState(DepthTestStates::Always);
+	gfx->drawIndexedVertexBuffer(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT);
 
 	vertexBuffer.unbind();
 	indexBuffer.unbind();
 	texture->unbind();
-	currentShader->end();
+	gfx->endCustomShader();
 
 	delete[] vertices;
 	delete[] indices;
@@ -262,6 +267,7 @@ void SpriteBatch::drawTexture(const Texture2D &texture,
 					 const Rectanglef &dest,
 					 float uLeft, float uRight,
 					 float vBottom, float vTop,
+					 float scale,
 					 float depth,
 					 float orientation,
 					 vec2 center)
@@ -281,6 +287,7 @@ void SpriteBatch::drawTexture(const Texture2D &texture,
 	spriteInfo.uRight = uRight;
 	spriteInfo.vBottom = vBottom;
 	spriteInfo.vTop = vTop;
+	spriteInfo.scale = scale;
 	spriteInfo.destination = dest;
 	spriteInfo.texture = &texture;
 	spriteInfo.center = center;
@@ -291,6 +298,7 @@ void SpriteBatch::drawTexture(const Texture2D &texture,
 					const Color &color, 
 					const Rectanglef &dest, 
 					const Rectanglei &src, 
+					float scale,
 					float depth, float orientation,
 					vec2 center)
 {
@@ -300,40 +308,43 @@ void SpriteBatch::drawTexture(const Texture2D &texture,
 	float uRight = (src.x + src.w) / w;
 	float vBottom = 1.0f - (src.h + src.y) / h;
 	float vTop = 1.0f - src.y / h;
-	drawTexture(texture, color, dest, uLeft, uRight, vBottom, vTop, depth, orientation, center);
+	drawTexture(texture, color, dest, uLeft, uRight, vBottom, vTop, scale, depth, orientation, center);
 }
 
 void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
-					const Rectanglef &dest,
+					const Rectanglef &dest,	
+					float scale,
 					float depth, float orientation,
 					vec2 center)
 {
-	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
-}
-
-void SpriteBatch::drawTexture(const Texture2D &texture, 
-					const Color &color, 
-					const vec2 &pos,
-					const Rectanglei &src,
-					float depth, float orientation,
-					vec2 center)
-{
-	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
-	drawTexture(texture, color, dest, src, depth, orientation, center);
+	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, scale, depth, orientation, center);
 }
 
 void SpriteBatch::drawTexture(const Texture2D &texture, 
 					const Color &color, 
 					const vec2 &pos,
+					const Rectanglei &src, 
+					float scale,
 					float depth, float orientation,
 					vec2 center)
 {
 	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
-	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
+	drawTexture(texture, color, dest, src, scale, depth, orientation, center);
 }
 
-void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Color &color)
+void SpriteBatch::drawTexture(const Texture2D &texture, 
+					const Color &color, 
+					const vec2 &pos,  
+					float scale,
+					float depth, float orientation,
+					vec2 center)
+{
+	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
+	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, scale, depth, orientation, center);
+}
+
+void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Color &color, float scale)
 {
 	if(currentFont == nullptr)
 		throw std::exception("No font is set");
@@ -361,7 +372,7 @@ void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Col
 			drawTexture(
 				*texture, color, 
 				Rectanglef(posX, posY, float(glyph.width), float(glyph.height)),
-				glyph.uLeft, glyph.uRight, glyph.vBottom, glyph.vTop);
+				glyph.uLeft, glyph.uRight, glyph.vBottom, glyph.vTop, scale);
 			posX += glyph.width;
 		}
 		posY += lineHeight;

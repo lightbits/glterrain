@@ -5,6 +5,8 @@
 
 static GLContext *g_active_context = nullptr;
 GLContext *getActiveContext() {
+	if (g_active_context == nullptr)
+		throw std::runtime_error("No active context");
 	return g_active_context;
 }
 

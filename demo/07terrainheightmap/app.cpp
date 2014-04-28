@@ -9,7 +9,7 @@ Texture2D
 ShaderProgram
 	shader_terrain,
 	shader_normals;
-
+																			   
 /* Terrain params */
 Mesh mesh_terrain;
 MeshBuffer buffer_terrain;
@@ -50,8 +50,8 @@ void free()
 
 void init(Renderer &gfx, Context &ctx)
 {
-	terrain_res_x = 64;
-	terrain_res_y = 64;
+	terrain_res_x = 128;
+	terrain_res_y = 128;
 	normals_vbo.create(
 		GL_ARRAY_BUFFER, 
 		GL_STATIC_DRAW, 
@@ -128,7 +128,7 @@ void update(Renderer &gfx, Context &ctx, float dt)
 
 void render(Renderer &gfx, Context &ctx, float dt)
 {
-	gfx.setRasterizerState(RasterizerStates::LineBoth);
+	gfx.setRasterizerState(RasterizerStates::FillBoth);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setClearColor(0.71f, 0.68f, 0.68f);
 	gfx.setClearDepth(1.0);
