@@ -4,7 +4,7 @@ Arealight implementation based on
 	* http://www.gamedev.net/topic/552315-glsl-area-light-implementation/
 This demo uses deferred shading to render multiple arealights.
 */
-
+												  
 #include "app.h"
 #include <gl/gbuffer.h>
 using namespace transform;

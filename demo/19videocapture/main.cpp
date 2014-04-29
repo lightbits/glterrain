@@ -5,8 +5,8 @@ int main(int argc, char **argv)
 {
 	Log log("log.txt", true);
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Arealights", true, true))
-	{									   
+	if (!ctx.create(VideoMode(320, 240, 24, 0, 4), "Videocapture", true, true))
+	{
 		log << "Failed to open context\n";
 		return EXIT_FAILURE;
 	}
@@ -27,30 +27,22 @@ int main(int argc, char **argv)
 
 		init(gfx, ctx);
 
-		int updates_per_sec = 80;
-		double tickrate = 1.0 / updates_per_sec;
-		double accumulator = 0.0;
-		double frametime = 0.0;
+		double dt = 0.0;
 		while (ctx.isOpen())
 		{
-			double frame_begin = ctx.getElapsedTime();
-			accumulator += frametime;
-			while (accumulator >= tickrate)
-			{
-				update(gfx, ctx, tickrate);
-				accumulator -= tickrate;
-			}
+			double frame_t = ctx.getElapsedTime();
+			update(gfx, ctx, dt);
 			
-			render(gfx, ctx, tickrate);
+			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();
 
 			if (ctx.isKeyPressed(SDL_SCANCODE_ESCAPE))
 				ctx.close();
 
-			if (checkGLErrors(log) > 0)
+			if (checkGLErrors(log))
 				ctx.close();
-			frametime = ctx.getElapsedTime() - frame_begin;
+			dt = ctx.getElapsedTime() - frame_t;
 		}
 	}
 	catch (std::exception &e)
