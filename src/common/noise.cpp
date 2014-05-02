@@ -75,6 +75,7 @@ float snoise(float x)
 	float h0 = noise1f(xi);
 	float h1 = noise1f(xi + 1);
 
+	// Smoothly nterpolate between noise values
 	float t = smoothstep(xf);
 	return linear(h0, h1, t);
 }

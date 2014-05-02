@@ -116,7 +116,7 @@ void update(Renderer &gfx, Context &ctx, float dt)
 	mat_model = transform::scale(2.0f);
 
 	mat_view = 
-		transform::translate(0.0f, 0.2f, -1.1f) *
+		transform::translate(0.0f, -0.2f, -1.1f) *
 		transform::rotateX(-0.3f) *
 		transform::rotateY(ctx.getElapsedTime());
 

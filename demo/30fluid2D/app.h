@@ -3,15 +3,16 @@
 #include <iostream>
 #include <graphics/renderer.h>
 #include <app/glcontext.h>
+#include <common/transform.h>
 using std::cout;
 using std::endl;
-using std::vector;																			 
-using std::string;						  
+using std::vector;
+using std::string;
 
 bool load();
 void free();
 void init(Renderer &gfx, Context &ctx);
-void update(Renderer &gfx, Context &ctx, float dt);
-void render(Renderer &gfx, Context &ctx, float dt);
+void update(Renderer &gfx, Context &ctx, double dt);
+void render(Renderer &gfx, Context &ctx, double dt);
 
 #endif

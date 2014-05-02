@@ -12,16 +12,19 @@ class RenderTexture
 public:
 	RenderTexture();
 	void create(int width, int height);
+	void create(Texture2D color_buffer);
 	void dispose();
 
 	// Enables the framebuffer as the active render target
+	// Obs! Remember to set glViewport to match the dimensions
+	// of the color buffer output (and to reset it afterwards)
 	void begin();
 
 	// Enables default active render target (the window)
 	void end();
 
 	// Binds the color buffer
-	void bindTexture();
+	void bindTexture(GLenum unit = GL_TEXTURE0);
 
 	// Binds the default color buffer (0)
 	void unbindTexture();

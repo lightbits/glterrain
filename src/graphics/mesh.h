@@ -28,6 +28,8 @@ public:
 
 	void setDrawMode(GLenum mode);
 
+	void addMesh(Mesh mesh);
+
 	void addPosition(float x, float y, float z);
 	void addPosition(const vec3 &p);
 	void addPositions(const std::vector<vec3> &ps);
@@ -97,6 +99,7 @@ public:
 	void calculateTangentVectors();
 	void calculateNormalVectors();
 
+	static Mesh genScreenSpaceTexQuad();
 	static Mesh genPlane(const vec3 &up, const vec3 &right);
 	static Mesh genPlane(float width, float height);
 	static Mesh genUnitSphere(int tSamples, int sSamples);

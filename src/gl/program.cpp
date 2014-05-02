@@ -28,6 +28,12 @@ void Program::create()
 
 bool Program::linkAndCheckStatus(const std::vector<Shader> &shaders)
 {
+	if (shaders.size() == 0)
+	{
+		std::cerr << "No shaders to be linked" << std::endl;
+		return false;
+	}
+
 	for(unsigned int i = 0; i < shaders.size(); ++i)
 		glAttachShader(program, shaders[i].getHandle());
 

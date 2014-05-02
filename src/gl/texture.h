@@ -13,9 +13,10 @@ public:
 
 	/*
 	'level' The level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
-	'internalFormat' The number of color components in the texture. (e.g. GL_RGB16f)
-	'format' The format of the pixel data (i.e. GL_RGB)
-	'type' The data type of the pixel data (i.e. GL_FLOAT)
+	'internalFormat' The format in which the pixels should be stored on the GPU (e.g. GL_RGB16f)
+	'format' The format of the pixel data 'data' (i.e. GL_RGB)
+	'type' The data type of the pixel data 'data' (i.e. GL_FLOAT)
+	'data' The pixel data (can be NULL)
 	*/
 	void create(
 		GLint level,
@@ -25,6 +26,24 @@ public:
 		GLenum format,
 		GLenum type,
 		const GLvoid *data);
+
+	/*
+	Redefines a subregion of an existing texture, replacing the portion with x indices
+	xoffset and xoffset + width - 1, and y indices yoffset and yoffset + height - 1.
+	The pixel data is expected to have the format 'format', with each component of datatype 'type'.
+	*/
+	void update(
+		const GLvoid *data,
+		GLenum format,
+		GLenum type,
+		int xoffset = 0,
+		int yoffset = 0,
+		int width   = 0,
+		int height  = 0,
+		GLint level = 0);
+
+	// Swaps the object handles with one another
+	void swap(Texture2D &other);
 
 	// Replaces a rectangular portion of the texture image
 	void copyFromFramebuffer(
@@ -54,6 +73,10 @@ public:
 	// Bind the default texture (0) to the default unit (GL_TEXTURE0)
 	static void unbind();
 private:
+	// Should disable copying
+	//void operator=(const Texture2D &rhs) { }
+	//Texture2D(const Texture2D &copy) { }
+
 	const static Texture2D *bound;
 	GLuint m_handle;
 	int    m_width;

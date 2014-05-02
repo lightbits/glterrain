@@ -35,6 +35,35 @@ void Texture2D::create(
 	m_height = height;
 }
 
+void Texture2D::update(
+		const GLvoid *data,
+		GLenum format,
+		GLenum type,
+		int xoffset,
+		int yoffset,
+		int width,
+		int height,
+		GLint level)
+{
+	if (bound != this)
+		throw std::runtime_error("Texture not bound");
+
+	if (width == 0)
+		width = getWidth();
+
+	if (height == 0)
+		height = getHeight();
+
+	glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, data);
+}
+
+void Texture2D::swap(Texture2D &other)
+{
+	GLuint temp = m_handle;
+	this->m_handle = other.m_handle;
+	other.m_handle = temp;
+}
+
 void Texture2D::copyFromFramebuffer(			
 		GLint level,			
 		GLint xoffset,			
@@ -106,6 +135,7 @@ void Texture2D::bind() const
 
 void Texture2D::unbind() 
 {
+	// TODO: Remember active texture unit
 	bound = nullptr;
 	glBindTexture(GL_TEXTURE_2D, 0); 
 }

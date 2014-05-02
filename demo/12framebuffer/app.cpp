@@ -25,14 +25,9 @@ bool load()
 	mesh_buffer.create(mesh);
 	model = Model(mesh_buffer);
 
-	if (!shader_dif.loadFromFile("./demo/12framebuffer/diffuse") ||
-		!shader_tex.loadFromFile("./demo/12framebuffer/texture") ||
-		!shader_nor.loadFromFile("./demo/12framebuffer/normal"))
-		return false;
-
-	if (!shader_dif.linkAndCheckStatus() ||
-		!shader_tex.linkAndCheckStatus() ||
-		!shader_nor.linkAndCheckStatus())
+	if (!shader_dif.loadAndLinkFromFile("./demo/12framebuffer/diffuse") ||
+		!shader_tex.loadAndLinkFromFile("./demo/12framebuffer/texture") ||
+		!shader_nor.loadAndLinkFromFile("./demo/12framebuffer/normal"))
 		return false;
 
 	return true;
@@ -56,7 +51,6 @@ void init(Renderer &gfx, Context &ctx)
 	gfx.setClearDepth(1.0);
 	gfx.setClearColor(0.2f, 0.2f, 0.3f);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
-	gfx.setCullState(CullStates::CullCounterClockwise);
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
@@ -110,9 +104,9 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	rt_free.begin();
 	gfx.clearColorAndDepth();
-	gfx.setUniform("view", translate(0.0f, 0.0f, -5.0f) * rotateX(-PI / 4.0f));
+	gfx.setUniform("view", translate(0.0f, 0.0f, -3.0f) * rotateX(-PI / 4.0f));
 	drawModel(gfx, ctx);
-	rt_free.end();
+	rt_free.end();		   
 
 	gfx.beginCustomShader(shader_tex);
 	gfx.setClearColor(Color::fromHex(0x4B5C74FF));

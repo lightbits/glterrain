@@ -87,6 +87,29 @@ bool Mesh::loadFromFile(const std::string &filename)
 void Mesh::setDrawMode(GLenum mode) { drawMode = mode; }
 GLenum Mesh::getDrawMode() const { return drawMode; }
 
+void Mesh::addMesh(Mesh mesh)
+{
+	if (mesh.getPositionCount() > 0)
+		addPositions(mesh.getPositionPtr(), mesh.getPositionCount());
+	if (mesh.getNormalCount() > 0)
+		addNormals(mesh.getNormalPtr(), mesh.getNormalCount());
+	if (mesh.getColorCount() > 0)
+		addColors(mesh.getColorPtr(), mesh.getColorCount());
+	if (mesh.getTexelCount() > 0)
+		addTexels(mesh.getTexelPtr(), mesh.getTexelCount());
+	if (mesh.getIndexCount() > 0)
+	{
+		addIndices(mesh.getIndexPtr(), mesh.getIndexCount());
+
+		// Offset the newly added indices to match up with the vertex count
+		int begin = getIndexCount() - mesh.getIndexCount();
+		int end = getIndexCount();
+		uint32 offset = getPositionCount() - mesh.getPositionCount();
+		for (int i = begin; i < end; ++i)
+			indices[i] += offset; 
+	}
+}
+
 void Mesh::addPosition(float x, float y, float z) { positions.push_back(vec3(x, y, z)); }
 void Mesh::addPosition(const vec3 &p) { positions.push_back(p); }
 
@@ -236,6 +259,28 @@ void Mesh::calculateNormalVectors()
 	throw std::runtime_error("Not yet implemented");
 }
 
+Mesh Mesh::genScreenSpaceTexQuad()
+{
+	float positions[] = {
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f
+	};
+	float texels[] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f
+	};
+	uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+	Mesh mesh;
+	mesh.addPositions((vec3*)positions, 4);
+	mesh.addTexels((vec2*)texels, 4);
+	mesh.addIndices(indices, 6);
+	return mesh;
+}
+
 Mesh genUnitCubeBase()
 {
 	Mesh mesh;
@@ -256,29 +301,29 @@ Mesh genUnitCubeBase()
 		-hs,  hs, -hs,
 		 hs,  hs, -hs,
 
-		 // Left
-		 -hs, -hs, -hs,
-		 -hs, -hs,  hs,
-		 -hs,  hs,  hs,
-		 -hs,  hs, -hs,
+		// Left
+		-hs, -hs, -hs,
+		-hs, -hs,  hs,
+		-hs,  hs,  hs,
+		-hs,  hs, -hs,
 
-		 // Right
-		  hs, -hs,  hs,
-		  hs, -hs, -hs,
-		  hs,  hs, -hs,
-		  hs,  hs,  hs,
+		// Right
+		 hs, -hs,  hs,
+		 hs, -hs, -hs,
+		 hs,  hs, -hs,
+		 hs,  hs,  hs,
 
-		  // Top
-		  -hs,  hs,  hs,
-		   hs,  hs,  hs,
-		   hs,  hs, -hs,
-		  -hs,  hs, -hs,
+		// Top
+		-hs,  hs,  hs,
+		 hs,  hs,  hs,
+		 hs,  hs, -hs,
+		-hs,  hs, -hs,
 
-		  // Bottom
-		   hs, -hs,  hs,
-		  -hs, -hs,  hs,
-		  -hs, -hs, -hs,
-		   hs, -hs, -hs
+		// Bottom
+		 hs, -hs,  hs,
+		-hs, -hs,  hs,
+		-hs, -hs, -hs,
+		 hs, -hs, -hs
 	};
 
 	uint32 indices[] = {
