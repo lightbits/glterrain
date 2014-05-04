@@ -60,7 +60,7 @@ void Texture2D::update(
 void Texture2D::swap(Texture2D &other)
 {
 	GLuint temp = m_handle;
-	this->m_handle = other.m_handle;
+	m_handle = other.m_handle;
 	other.m_handle = temp;
 }
 

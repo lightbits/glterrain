@@ -12,6 +12,13 @@ void Framebuffer::create()
 	glGenFramebuffers(1, &handle);
 }
 
+void Framebuffer::swap(Framebuffer &rhs)
+{
+	GLuint temp = handle;
+	handle = rhs.handle;
+	rhs.handle = temp;
+}
+
 void Framebuffer::dispose()
 {
 	glDeleteFramebuffers(1, &handle);
