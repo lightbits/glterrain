@@ -57,13 +57,6 @@ void Texture2D::update(
 	glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, data);
 }
 
-void Texture2D::swap(Texture2D &other)
-{
-	GLuint temp = m_handle;
-	m_handle = other.m_handle;
-	other.m_handle = temp;
-}
-
 void Texture2D::copyFromFramebuffer(			
 		GLint level,			
 		GLint xoffset,			

@@ -8,6 +8,5 @@ out vec4 out_color;
 
 void main()
 {
-	// TODO: Remap
-	out_color = vec4(texture(tex, v_texel).r, 0.0, 0.0, 1.0);
+	out_color = abs(texture(tex, v_texel));
 }

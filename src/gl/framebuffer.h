@@ -23,13 +23,6 @@ public:
 		glGenRenderbuffers(1, &handle);
 	}
 
-	void swap(Renderbuffer &rhs)
-	{
-		GLuint temp = handle;
-		handle = rhs.handle;
-		rhs.handle = temp;
-	}
-
 	void dispose()
 	{
 		glDeleteRenderbuffers(1, &handle);
@@ -89,7 +82,6 @@ class Framebuffer
 public:
 	Framebuffer();
 	void create();
-	void swap(Framebuffer &rhs);
 	void dispose();
 
 	/*

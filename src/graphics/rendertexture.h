@@ -13,9 +13,7 @@ public:
 	RenderTexture();
 	void create(int width, int height);
 
-	void swap(RenderTexture &rhs);
-
-	// Creata rendertexture, using the given texture as the initial colorbuffer
+	// Create a rendertexture, using the given texture as the initial colorbuffer
 	void create(Texture2D color_buffer);
 	void dispose();
 

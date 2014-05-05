@@ -42,9 +42,6 @@ public:
 		int height  = 0,
 		GLint level = 0);
 
-	// Swaps the object handles with one another
-	void swap(Texture2D &other);
-
 	// Replaces a rectangular portion of the texture image
 	void copyFromFramebuffer(
 		GLint level,			// Level-of-detail number. Level 0 is base image level.

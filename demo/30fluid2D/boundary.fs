@@ -2,17 +2,14 @@
 
 in vec2 v_texel;
 
-uniform sampler2D tex_velocity;
-uniform sampler2D tex_pressure;
+uniform sampler2D tex_source;
+uniform vec2 offset;
+uniform float scale;
 
-out vec3 out_velocity;
-out vec3 out_pressure;
+out vec4 result;
 
 void main()
 {
-	vec3 v = texture(tex_velocity, v_texel).rgb;
-	vec3 p = texture(tex_pressure, v_texel).rgb;
-
-	out_velocity = 1.2 * vec3(v_texel, 0.0) + 0.5 * v;
-	out_pressure = p;
+	result.xy = scale * texture(tex_source, v_texel + offset).xy;
+	result.zw = vec2(0.0);
 }

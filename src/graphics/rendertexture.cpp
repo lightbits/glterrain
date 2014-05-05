@@ -46,13 +46,6 @@ void RenderTexture::create(Texture2D color_buffer)
 	frameBuffer.unbind();
 }
 
-void RenderTexture::swap(RenderTexture &rhs)
-{
-	colorBuffer.swap(rhs.colorBuffer);
-	frameBuffer.swap(rhs.frameBuffer);
-	depthBuffer.swap(rhs.depthBuffer);
-}
-
 void RenderTexture::dispose()
 {
 	colorBuffer.dispose();
