@@ -35,7 +35,10 @@ bool readFile(const std::string &filename, std::string &dest)
 {
 	std::ifstream in(filename, std::ios::in | std::ios::binary);
 	if(!in.is_open())
+	{
+		std::cerr << "Failed to open file " << filename << std::endl;
 		return false;
+	}
 
 	if(in.good())
 	{

@@ -13,7 +13,15 @@ public:
 	RenderTexture();
 	void create(int width, int height);
 
-	// Create a rendertexture, using the given texture as the initial colorbuffer
+	// Create a depthbufferless rendertarget using the given
+	// color buffer parameters
+	void create(GLint level,
+		GLint internalFormat,
+		GLsizei width,
+		GLsizei height,
+		GLenum format,
+		GLenum type,
+		const GLvoid *data);
 	void create(Texture2D color_buffer);
 	void dispose();
 
@@ -30,6 +38,10 @@ public:
 
 	// Binds the default color buffer (0)
 	void unbindTexture();
+
+	Texture2D    &getColorBuffer() { return colorBuffer; }
+	Renderbuffer &getDepthBuffer() { return depthBuffer; }
+	Framebuffer  &getFramebuffer() { return frameBuffer; }
 private:
 	// Disable copying
 	RenderTexture(const RenderTexture &copy) { }
