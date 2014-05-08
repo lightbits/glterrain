@@ -24,10 +24,10 @@ void main()
 	out_data.r = uc + dt * out_data.g;
 
 	// Forces from mouse
-	if (length(v_texel - mpos) < 0.025) 
+	if (length(v_texel - mpos) < 0.045) 
 	{
-		out_data.g = 0.3;
-		out_data.r = min(out_data.r + 0.1 * dt, 0.3);
+		// out_data.g = 0.8;
+		out_data.r = min(out_data.r + 0.1 * dt, 0.05);
 	}
 	
 	out_data.ba = vec2(0.0);

@@ -51,9 +51,9 @@ public:
 		GLsizei width,			// Width of texture subimage
 		GLsizei height);		// Height of texture subimage
 
-	int    getWidth()  const;
-	int    getHeight() const;
-	vec2i  getSize()   const;
+	int getWidth()  const;
+	int getHeight() const;
+	vec2i getSize()   const;
 	GLuint getHandle() const;
 
 	/*
@@ -64,8 +64,8 @@ public:
 	*/
 	void setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapS, GLenum wrapT);
 
-	void bind()             const;
-	void bind(GLint unit)   const;
+	void bind()				const;
+	void bind(GLint unit)	const;
 
 	// Bind the default texture (0) to the default unit (GL_TEXTURE0)
 	static void unbind();
@@ -76,8 +76,29 @@ private:
 
 	const static Texture2D *bound;
 	GLuint m_handle;
-	int    m_width;
-	int    m_height;
+	int m_width;
+	int m_height;
+};
+
+class Cubemap
+{
+public:
+	Cubemap();
+	void dispose();
+
+	// Loads a set of textures with names
+	// <path>negz.<ext>
+	// <path>posz.<ext>
+	// ...
+	bool loadFromFile(const char *path, const char *ext);
+
+	void bind() const;
+	static void unbind();
+
+	void setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapR, GLenum wrapS, GLenum wrapT);
+private:
+	const static Cubemap *bound;
+	GLuint m_handle;
 };
 
 #endif

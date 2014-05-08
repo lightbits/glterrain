@@ -1,5 +1,6 @@
 #include <gl/texture.h>
 #include <SOIL.h>
+#include <string>
 
 const std::string TEXTURE_NOT_BOUND = "Texture not bound";
 const Texture2D *Texture2D::bound = nullptr;
@@ -131,4 +132,62 @@ void Texture2D::unbind()
 	// TODO: Remember active texture unit
 	bound = nullptr;
 	glBindTexture(GL_TEXTURE_2D, 0); 
+}
+
+const Cubemap *Cubemap::bound = nullptr;
+
+Cubemap::Cubemap() : m_handle(0)
+{
+
+}
+
+bool Cubemap::loadFromFile(const char *path, const char *ext)
+{
+	std::string	front	= std::string(path) + "negz" + std::string(ext);
+	std::string back	= std::string(path) + "posz" + std::string(ext);
+	std::string top		= std::string(path) + "posy" + std::string(ext);
+	std::string bottom	= std::string(path) + "negy" + std::string(ext);
+	std::string left	= std::string(path) + "negx" + std::string(ext);
+	std::string right	= std::string(path) + "posx" + std::string(ext);
+
+	m_handle = SOIL_load_OGL_cubemap(
+		right.c_str(), 
+		left.c_str(), 
+		top.c_str(), 
+		bottom.c_str(), 
+		back.c_str(), 
+		front.c_str(), 
+		SOIL_LOAD_RGB, 
+		SOIL_CREATE_NEW_ID, 
+		0);
+
+	if (m_handle == 0)
+	{
+		std::cerr << "Failed to load texture (" << path << "): " << SOIL_last_result() << std::endl;
+		return true;
+	}
+
+	return true;
+}
+
+void Cubemap::setTexParameteri(GLenum minFilter, GLenum magFilter, GLenum wrapR, GLenum wrapS, GLenum wrapT)
+{
+	if (bound != this)
+		bind();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, wrapR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+}
+void Cubemap::bind() const
+{
+	bound = this;
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
+}
+
+void Cubemap::unbind()
+{
+	bound = nullptr;
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
