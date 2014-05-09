@@ -167,6 +167,8 @@ void GLContext::screenshot(const char *filename, int x, int y, int w, int h)
 	SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(flipped_pixels, w, h, 24, w * 3, 0, 0, 0, 0);
 	SDL_SaveBMP(surface, filename);
 
+	std::cout << "Saved screenshot " << filename << std::endl;
+
 	SDL_FreeSurface(surface);
 	delete[] pixels;
 	delete[] flipped_pixels;

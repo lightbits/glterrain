@@ -192,7 +192,7 @@ vec3 raycast(int x, int y, int w, int h)
 
 float angle = -PI / 8.0f;
 float vangle = 0.0f;
-float dist = -1.3f;
+float dist = -0.7f;
 float vdist = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {

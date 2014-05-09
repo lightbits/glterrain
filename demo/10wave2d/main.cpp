@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 		}
 
 		init(gfx, ctx);
+		int i = 0;
 
 		int updates_per_sec = 200;
 		double tickrate = 1.0 / updates_per_sec;
@@ -48,6 +49,14 @@ int main(int argc, char **argv)
 
 			if (ctx.isKeyPressed(SDL_SCANCODE_ESCAPE))
 				ctx.close();
+
+			if (ctx.isKeyPressed('t'))
+			{
+				std::stringstream ss;
+				ss << "screenshot" << i << ".bmp";
+				ctx.screenshot(ss.str().c_str());
+				i++;
+			}
 
 			if (checkGLErrors(log) > 0)
 				ctx.close();

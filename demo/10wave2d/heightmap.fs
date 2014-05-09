@@ -33,6 +33,8 @@ void main()
 
 	out_color = reflection * fresnel + refraction * (1.0 - fresnel);
 
-	// out_color = vec4(N * 0.5 + vec3(0.5), 1.0);
-	// out_color = vec4(0.42, 0.68, 1.0, 1.0);
+	//out_color *= 0.0001;
+
+	// out_color += vec4(N * 0.5 + vec3(0.5), 1.0);
+	//out_color += vec4(0.42, 0.68, 1.0, 1.0);
 }
