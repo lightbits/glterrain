@@ -5,6 +5,7 @@ const float WAVE_C		= 0.5f * 0.5f;
 const float DISSIPATION = 0.994f;
 const float Z_NEAR      = 0.1f;
 const float Z_FAR	    = 20.0f;
+const float DT			= 0.004f; // Seperate from application timestep!
 
 struct Slab
 {
@@ -61,6 +62,7 @@ bool load()
 	if (!cubemap_skybox.loadFromFile("./data/cubemaps/iceland_", ".jpg"))
 		return false;
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	cubemap_skybox.setTexParameteri(
 		GL_LINEAR, 
 		GL_LINEAR, 
@@ -94,8 +96,8 @@ void init(Renderer &gfx, Context &ctx)
 			int index = j * GRID_SIZE + i;
 			if (i > 0 && i < GRID_SIZE - 1 && j > 0 && j < GRID_SIZE - 1)
 			{
-				data0[index].x = 0.3f * exp(-10.5f * r); // Height
-				data0[index].y = -0.5f * exp(-10.0f * r); // Velocity
+				data0[index].x = 0.3f * exp(-20.5f * r); // Height
+				data0[index].y = -0.5f * exp(-20.0f * r); // Velocity
 			}
 			else
 			{
@@ -188,11 +190,38 @@ vec3 raycast(int x, int y, int w, int h)
 	return origin + t * dir;
 }
 
+float angle = -PI / 8.0f;
+float vangle = 0.0f;
+float dist = -1.3f;
+float vdist = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
+	if (ctx.isKeyPressed('w'))
+	{
+		vangle -= 1.0f * dt;
+		vdist += 1.0f * dt;
+		//angle -= angle * 0.004f;
+		//dist += dist * 0.004f;
+	}
+	else if (ctx.isKeyPressed('s'))
+	{
+		vangle += 1.0f * dt;
+		vdist -= 1.0f * dt;
+		//angle += angle * 0.004f;
+		//dist -= dist * 0.004f;
+	}
+	else
+	{
+		vdist *= 0.96f;
+		vangle *= 0.96f;
+	}
+
+	angle += vangle * dt;
+	dist  += vdist * dt;
+
 	mat_view = 
-		transform::translate(0.0f, 0.0f, -1.5f) * 
-		transform::rotateX(-0.4f) * 
+		transform::translate(0.0f, 0.0f, dist) * 
+		transform::rotateX(angle) * 
 		transform::rotateY(ctx.getElapsedTime() * 0.1f);
 
 	vec3 p = raycast(ctx.getMouseX(), ctx.getMouseY(), ctx.getWidth(), ctx.getHeight());
@@ -206,7 +235,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	datafield.ping().bindTexture();
 	gfx.setAttributefv("position", 2, 4, 0);
 	gfx.setAttributefv("texel", 2, 4, 2);
-	gfx.setUniform("dt", dt);
+	gfx.setUniform("dt", DT);
 	gfx.setUniform("dx", DX);
 	gfx.setUniform("dissipation", DISSIPATION);
 	gfx.setUniform("wave_c", WAVE_C);

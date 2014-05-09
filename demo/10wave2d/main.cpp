@@ -1,11 +1,12 @@
 #include "app.h"
 #include <app/log.h>
+#include <video/videocapture.h>
 
 int main(int argc, char **argv)
 {
 	Log log("log.txt", true);
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Wave Equation 2D", true, true))
+	if (!ctx.create(VideoMode(1280, 720, 24, 0, 4), "Wave Equation 2D", true, true))
 	{
 		log << "Failed to open context\n";
 		return EXIT_FAILURE;
