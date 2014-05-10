@@ -6,7 +6,7 @@ See http://open.gl/feedback
 #include <common/noise.h>
 #define GLSL(src) "#version 150 core\n" #src
 
-const int NUM_POINTS = 1000000;
+const int NUM_POINTS = 100000;
 
 const char *vertex_shader_src = GLSL(
 	in vec2 position;

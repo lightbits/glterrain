@@ -87,6 +87,29 @@ bool Mesh::loadFromFile(const std::string &filename)
 void Mesh::setDrawMode(GLenum mode) { drawMode = mode; }
 GLenum Mesh::getDrawMode() const { return drawMode; }
 
+void Mesh::addMesh(Mesh mesh)
+{
+	if (mesh.getPositionCount() > 0)
+		addPositions(mesh.getPositionPtr(), mesh.getPositionCount());
+	if (mesh.getNormalCount() > 0)
+		addNormals(mesh.getNormalPtr(), mesh.getNormalCount());
+	if (mesh.getColorCount() > 0)
+		addColors(mesh.getColorPtr(), mesh.getColorCount());
+	if (mesh.getTexelCount() > 0)
+		addTexels(mesh.getTexelPtr(), mesh.getTexelCount());
+	if (mesh.getIndexCount() > 0)
+	{
+		addIndices(mesh.getIndexPtr(), mesh.getIndexCount());
+
+		// Offset the newly added indices to match up with the vertex count
+		int begin = getIndexCount() - mesh.getIndexCount();
+		int end = getIndexCount();
+		uint32 offset = getPositionCount() - mesh.getPositionCount();
+		for (int i = begin; i < end; ++i)
+			indices[i] += offset; 
+	}
+}
+
 void Mesh::addPosition(float x, float y, float z) { positions.push_back(vec3(x, y, z)); }
 void Mesh::addPosition(const vec3 &p) { positions.push_back(p); }
 
@@ -236,7 +259,29 @@ void Mesh::calculateNormalVectors()
 	throw std::runtime_error("Not yet implemented");
 }
 
-Mesh genUnitCubeBase()
+Mesh Mesh::genScreenSpaceTexQuad()
+{
+	float positions[] = {
+		-1.0f, -1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f
+	};
+	float texels[] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f
+	};
+	uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+	Mesh mesh;
+	mesh.addPositions((vec3*)positions, 4);
+	mesh.addTexels((vec2*)texels, 4);
+	mesh.addIndices(indices, 6);
+	return mesh;
+}
+
+Mesh genUnitCubeBase(bool ccw)
 {
 	Mesh mesh;
 	mesh.setDrawMode(GL_TRIANGLES);
@@ -256,49 +301,66 @@ Mesh genUnitCubeBase()
 		-hs,  hs, -hs,
 		 hs,  hs, -hs,
 
-		 // Left
-		 -hs, -hs, -hs,
-		 -hs, -hs,  hs,
-		 -hs,  hs,  hs,
-		 -hs,  hs, -hs,
+		// Left
+		-hs, -hs, -hs,
+		-hs, -hs,  hs,
+		-hs,  hs,  hs,
+		-hs,  hs, -hs,
 
-		 // Right
-		  hs, -hs,  hs,
-		  hs, -hs, -hs,
-		  hs,  hs, -hs,
-		  hs,  hs,  hs,
+		// Right
+		 hs, -hs,  hs,
+		 hs, -hs, -hs,
+		 hs,  hs, -hs,
+		 hs,  hs,  hs,
 
-		  // Top
-		  -hs,  hs,  hs,
-		   hs,  hs,  hs,
-		   hs,  hs, -hs,
-		  -hs,  hs, -hs,
+		// Top
+		-hs,  hs,  hs,
+		 hs,  hs,  hs,
+		 hs,  hs, -hs,
+		-hs,  hs, -hs,
 
-		  // Bottom
-		   hs, -hs,  hs,
-		  -hs, -hs,  hs,
-		  -hs, -hs, -hs,
-		   hs, -hs, -hs
+		// Bottom
+		 hs, -hs,  hs,
+		-hs, -hs,  hs,
+		-hs, -hs, -hs,
+		 hs, -hs, -hs
 	};
 
-	uint32 indices[] = {
-		0, 1, 2, 2, 3, 0, // Front
-		4, 5, 6, 6, 7, 4, // Back
-		8, 9, 10, 10, 11, 8, // Left
-		12, 13, 14, 14, 15, 12, // Right
-		16, 17, 18, 18, 19, 16, // Top
-		20, 21, 22, 22, 23, 20, // Bottom
-	};
+	if (ccw)
+	{
+		uint32 indices[] = {
+			0, 1, 2, 2, 3, 0, // Front
+			4, 5, 6, 6, 7, 4, // Back
+			8, 9, 10, 10, 11, 8, // Left
+			12, 13, 14, 14, 15, 12, // Right
+			16, 17, 18, 18, 19, 16, // Top
+			20, 21, 22, 22, 23, 20, // Bottom
+		};
+
+		mesh.addIndices(indices, 36);
+	}
+	else
+	{
+		uint32 indices[] = {
+			0, 3, 2, 2, 1, 0, // Front
+			4, 7, 6, 6, 5, 4, // Back
+			8, 11, 10, 10, 9, 8, // Left
+			12, 15, 14, 14, 13, 12, // Right
+			16, 19, 18, 18, 17, 16, // Top
+			20, 23, 22, 22, 21, 20, // Bottom
+		};
+
+		mesh.addIndices(indices, 36);
+	}
 
 	mesh.addPositions((vec3*)(positions), 24);
-	mesh.addIndices(indices, 36);
 
 	return mesh;
 }
 
-Mesh Mesh::genUnitCube(bool colors, bool normals)
+Mesh Mesh::genUnitCube(bool colors, bool normals, bool ccw)
 {
-	Mesh mesh = genUnitCubeBase();
+	Mesh mesh = genUnitCubeBase(ccw);
 	if (colors)
 	{
 		mesh.addColor(1.0f, 0.4f, 0.4f, 1.0f);

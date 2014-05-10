@@ -132,7 +132,9 @@ public:
 	*/
 	GLenum checkStatus();
 
-	/* Once a FBO is bound, all OpenGL operations affect onto the current bound framebuffer object. */
+	/* Once a FBO is bound, all OpenGL operations affect onto the current bound framebuffer object. 
+	OBS! Remember to set glViewport to match the dimensions of the color output buffer (
+	and to reset it afterwards!)*/
 	void bind();
 
 	/* Binds default window-system framebuffer */

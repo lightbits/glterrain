@@ -116,9 +116,9 @@ void update(Renderer &gfx, Context &ctx, float dt)
 	mat_model = transform::scale(2.0f);
 
 	mat_view = 
-		transform::translate(0.0f, -0.2f, -0.8f) *
-		transform::rotateX(-0.5f) *
-		transform::rotateY(ctx.getElapsedTime() * 0.2f);
+		transform::translate(0.0f, -0.2f, -1.1f) *
+		transform::rotateX(-0.3f) *
+		transform::rotateY(ctx.getElapsedTime());
 
 	if (ctx.isKeyPressed('w'))
 		terrain_height += dt;
@@ -127,7 +127,7 @@ void update(Renderer &gfx, Context &ctx, float dt)
 }
 
 void render(Renderer &gfx, Context &ctx, float dt)
-{
+{							   
 	gfx.setRasterizerState(RasterizerStates::FillBoth);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setClearColor(0.71f, 0.68f, 0.68f);
