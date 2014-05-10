@@ -3,6 +3,7 @@
 #include <app/videomode.h>
 #include <SDL.h>
 #include <functional>
+#include <common/matrix.h>
 
 class Context
 {
@@ -45,7 +46,7 @@ public:
 	/* Returns the current mouse position. If the cursor is not hidden, the mouse
 	position is the cursor position, relative to the upper left corner of the window and
 	with the Y-axis down. */
-	virtual void getMousePos(int *x, int *y) const = 0;
+	virtual vec2i getMousePos() const = 0;
 	virtual int  getMouseX() const = 0;
 	virtual int  getMouseY() const = 0;
 	virtual void setMousePos(int x, int y) = 0;

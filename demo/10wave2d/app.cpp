@@ -200,15 +200,11 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	{
 		vangle -= 1.0f * dt;
 		vdist += 1.0f * dt;
-		//angle -= angle * 0.004f;
-		//dist += dist * 0.004f;
 	}
 	else if (ctx.isKeyPressed('s'))
 	{
 		vangle += 1.0f * dt;
 		vdist -= 1.0f * dt;
-		//angle += angle * 0.004f;
-		//dist -= dist * 0.004f;
 	}
 	else
 	{

@@ -43,14 +43,14 @@ const float DX = 1.0f / GRID_SIZE;
 
 bool load()
 {
-	if (!shader_jacobi.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/jacobi.fs") ||
-		!shader_advect.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/advect.fs") ||
-		!shader_forces.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/forces.fs") ||
-		!shader_divergence.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/divergence.fs") ||
-		!shader_project.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/project.fs") ||
-		!shader_boundary.loadFromFile(  "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/boundary.fs") ||
-		!shader_dye.loadFromFile( "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/dye.fs") ||
-		!shader_texture.loadFromFile( "./demo/30fluid2D/quad.vs", "./demo/30fluid2D/texture.fs"))
+	if (!shader_jacobi.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/jacobi.fs") ||
+		!shader_advect.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/advect.fs") ||
+		!shader_forces.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/forces.fs") ||
+		!shader_divergence.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/divergence.fs") ||
+		!shader_project.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/project.fs") ||
+		!shader_boundary.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/boundary.fs") ||
+		!shader_dye.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/dye.fs") ||
+		!shader_texture.loadFromFile("./demo/30fluid2D/quad.vs", "./demo/30fluid2D/texture.fs"))
 		return false;
 
 	if (!shader_jacobi.linkAndCheckStatus() ||
@@ -76,41 +76,21 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 
-	Texture2D a;
-	a.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	a.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	velocity.ping().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	velocity.pong().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	pressure.ping().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	pressure.pong().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	divergence.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	dye.ping().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
+	dye.pong().create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
 
-	Texture2D b;
-	b.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	b.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	Texture2D c;
-	c.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	c.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	Texture2D d;
-	d.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	d.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	Texture2D e;
-	e.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	e.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	Texture2D f;
-	f.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	f.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	Texture2D g;
-	g.create(0, GL_RGB32F, GRID_SIZE, GRID_SIZE, GL_RG, GL_FLOAT, NULL);
-	g.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-
-	velocity.ping().create(a);
-	velocity.pong().create(b);
-	pressure.ping().create(c);
-	pressure.pong().create(d);
-	divergence.create(e);
-	dye.ping().create(f);
-	dye.pong().create(g);
+	velocity.ping().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	velocity.pong().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	pressure.ping().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	pressure.pong().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	divergence.getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	dye.ping().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	dye.pong().getColorBuffer().setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	float quad_data[] = {
 		-1.0f + 2.0f * DX, -1.0f + 2.0f * DX, 0.0f + DX, 0.0f + DX,
@@ -136,7 +116,7 @@ void init(Renderer &gfx, Context &ctx)
 void jacobi(
 	RenderTexture &inputTexture,
 	RenderTexture &outputTexture, // Output texture
-	RenderTexture &sourceTexture,  // B texture
+	RenderTexture &sourceTexture, // B texture
 	float alpha, float beta, // Iteration parameters
 	Renderer &gfx, Context &ctx, float dt)
 {
@@ -252,6 +232,7 @@ void applyBoundaryCondition(
 	outputTexture.end();
 }
 
+vec2i last_mouse_pos;
 void handleMouseEvent(int x, int y, Renderer &gfx, Context &ctx, float dt)
 {
 	float u = (float)x / ctx.getWidth();
@@ -268,9 +249,44 @@ void handleMouseEvent(int x, int y, Renderer &gfx, Context &ctx, float dt)
 	dye.pong().end();
 }
 
+void updateForces(Renderer &gfx, Context &ctx, float dt)
+{
+	vec2i mouse_pos = ctx.getMousePos();
+
+	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
+	{
+		// Mouse position in texel coordinates
+		vec2 p = vec2(mouse_pos.x, ctx.getHeight() - mouse_pos.y);
+		p.x /= (float)ctx.getWidth();
+		p.y /= (float)ctx.getHeight();
+
+		// Mouse velocity in texel coordinates
+		vec2 v = mouse_pos - last_mouse_pos;
+		v.x /= (float)ctx.getWidth();
+		v.y /= (float)ctx.getHeight();
+
+		velocity.pong().begin();
+		velocity.ping().bindTexture(GL_TEXTURE0);
+		gfx.beginCustomShader(shader_forces);
+		gfx.setUniform("tex_velocity", 0);
+		gfx.setUniform("mouse_pos", p);
+		gfx.setUniform("mouse_vel", v);
+		gfx.setUniform("dt", dt);
+		vbo_quad.bind();
+		gfx.setAttributefv("position", 2, 4, 0);
+		gfx.setAttributefv("texel", 2, 4, 2);
+		gfx.drawVertexBuffer(GL_TRIANGLES, 6);
+		velocity.pong().end();
+		velocity.swapSurfaces();
+	}
+
+	last_mouse_pos = mouse_pos;
+}
+
 void update(Renderer &gfx, Context &ctx, float dt)
 {
 	glViewport(0, 0, GRID_SIZE, GRID_SIZE);
+
 	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{
 		handleMouseEvent(ctx.getMouseX(), ctx.getMouseY(), gfx, ctx, dt);
@@ -283,8 +299,8 @@ void update(Renderer &gfx, Context &ctx, float dt)
 	advect(velocity.ping(), velocity.ping(), velocity.pong(), gfx, ctx, dt);
 	velocity.swapSurfaces();
 
-	addForces(velocity.ping(), velocity.pong(), gfx, ctx, dt);
-	velocity.swapSurfaces();
+	updateForces(gfx, ctx, dt);
+	//addForces(velocity.ping(), velocity.pong(), gfx, ctx, dt);
 
 	calculateDivergence(velocity.ping(), divergence, gfx, ctx, dt);
 
@@ -295,14 +311,15 @@ void update(Renderer &gfx, Context &ctx, float dt)
 	pressure.ping().end();
 
 	// Calculate pressure field
-	for (int i = 0; i < 200; ++i)
+	for (int i = 0; i <= 200; ++i)
 	{
-		jacobi(pressure.ping(), pressure.pong(), divergence, 0.0f, 4.0f, gfx, ctx, dt);
+		jacobi(pressure.ping(), pressure.pong(), divergence, -(DX * DX), 4.0f, gfx, ctx, dt);
 		pressure.swapSurfaces();
 	}
 
 	// Project
-	subtractGradient(velocity.ping(), velocity.pong(), pressure.pong(), gfx, ctx, dt);
+	subtractGradient(velocity.ping(), pressure.ping(), velocity.pong(), gfx, ctx, dt);
+	velocity.swapSurfaces();
 
 	applyBoundaryCondition(velocity.ping(), velocity.pong(), vbo_line_lower, vec2(0.0, DX),  -1.0f, gfx, ctx, dt);
 	applyBoundaryCondition(velocity.ping(), velocity.pong(), vbo_line_upper, vec2(0.0, -DX), -1.0f, gfx, ctx, dt);
@@ -318,7 +335,7 @@ void render(Renderer &gfx, Context &ctx, float dt)
 {
 	glViewport(0, 0, ctx.getWidth(), ctx.getHeight());
 	vbo_quad.bind();
-	pressure.pong().bindTexture(GL_TEXTURE0);
+	dye.pong().bindTexture(GL_TEXTURE0);
 	gfx.beginCustomShader(shader_texture);
 	gfx.setClearColor(0.0f, 0.0f, 0.0f);
 	gfx.clearColorAndDepth();

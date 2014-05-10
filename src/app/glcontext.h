@@ -28,7 +28,7 @@ public:
 	void getSize(int *width, int *height) const;
 	int	 getWidth() const;
 	int	 getHeight() const;
-	void getMousePos(int *x, int *y) const;
+	vec2i getMousePos() const;
 	int  getMouseX() const;
 	int  getMouseY() const;
 	void setMousePos(int x, int y);

@@ -217,23 +217,21 @@ int GLContext::getHeight() const
 	return h;
 }
 
-void GLContext::getMousePos(int *x, int *y) const
+vec2i GLContext::getMousePos() const
 {
-	SDL_GetMouseState(x, y);
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	return vec2i(x, y);
 }
 
 int GLContext::getMouseX() const
 { 
-	int x, y;
-	getMousePos(&x, &y);
-	return x;
+	return getMousePos().x;
 }
 
 int GLContext::getMouseY() const
 {
-	int x, y;
-	getMousePos(&x, &y);
-	return y;
+	return getMousePos().y;
 }		
 
 void GLContext::setMousePos(int x, int y)

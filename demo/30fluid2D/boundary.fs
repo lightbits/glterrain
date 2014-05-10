@@ -10,6 +10,5 @@ out vec4 result;
 
 void main()
 {
-	result.xy = scale * texture(tex_source, v_texel + offset).xy;
-	result.zw = vec2(0.0);
+	result = scale * texture(tex_source, v_texel + offset);
 }
