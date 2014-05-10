@@ -41,7 +41,7 @@ bool Shader::compileAndCheckStatus(const std::string &src)
 		glGetShaderiv(m_handle, GL_INFO_LOG_LENGTH, &length);
 		std::vector<GLchar> log(length);
 		glGetShaderInfoLog(m_handle, length, NULL, &log[0]);
-		std::cerr << "Compile failure in:\n" << src << "\n" <<&log[0]<<std::endl;
+		APP_LOG << "Compile failure in:\n" << src << "\n" << &log[0] <<'\n';
 		return false;
 	}
 

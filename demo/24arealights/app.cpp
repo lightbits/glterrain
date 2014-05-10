@@ -53,7 +53,7 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 	
-	cube_buffer.create(Mesh::genUnitCube(false, true));
+	cube_buffer.create(Mesh::genUnitCube(false, true, true));
 	cube = Model(cube_buffer);
 
 	// Create plane mesh with normals

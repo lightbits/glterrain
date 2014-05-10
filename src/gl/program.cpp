@@ -30,7 +30,7 @@ bool Program::linkAndCheckStatus(const std::vector<Shader> &shaders)
 {
 	if (shaders.size() == 0)
 	{
-		std::cerr << "No shaders to be linked" << std::endl;
+		APP_LOG << "No shaders to be linked\n";
 		return false;
 	}
 
@@ -52,7 +52,7 @@ bool Program::linkAndCheckStatus(const std::vector<Shader> &shaders)
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 		std::vector<GLchar> log(length);
 		glGetProgramInfoLog(program, length, NULL, &log[0]);
-		std::cerr<<"Linker failure: "<<std::endl<<&log[0]<<std::endl;
+		APP_LOG << "Linker failure:\n" << &log[0] << '\n';
 		return false;
 	}
 

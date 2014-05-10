@@ -7,7 +7,6 @@ http://antongerdelan.net/opengl/quaternions.html
 #include <graphics/spritebatch.h>
 #include <common/transform.h>
 #include <common/typedefs.h>
-#include <common/quaternion.h>
 #include <app/log.h>
 #include <camera/freecamera.h>
 
@@ -31,7 +30,7 @@ FreeCamera camera;
 
 bool load()
 {
-	Mesh cube_mesh = Mesh::genUnitColoredCube();
+	Mesh cube_mesh = Mesh::genUnitCube(true, false, true);
 	cubebuffer.create(cube_mesh);
 	cube = Model(cubebuffer);
 
@@ -103,11 +102,11 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 	For example: rotating around the z-axis will change the "y-axis" to be upwards
 	relative to the object! This produces more intuitive rotation than by Euler angles? */
 
-	cube.pushTransform();
+	cube.transform.push();
 		quat q = quaternion(roll, vec3(0, 1, 0));
 		quat r = quaternion(pitch, vec3(1, 0, 0));
 		quat p = quaternion(yaw, vec3(0, 0, 1));
-		cube.multiply(p * r * q);
+		cube.transform.multiply(p * r * q);
 
 		//quat q = quat(vec3(pitch, roll, 0.0f));
 		//cube.multiply(q);
@@ -118,29 +117,29 @@ void drawBoxMonster(Renderer &gfx, Context &ctx, double dt)
 		mat4 m = glm::mat4_cast(p * r * q) * transform::translate(0, 0.1f, 0);
 		gfx.setUniform("model", m);
 		gfx.drawLine(vec3(0, 0, 0), vec3(0, 0.5f, 0), Color(1.0f, 0.4f, 0.4f));
-		cube.pushTransform();
-			cube.scale(0.2f, 0.2f, 0.65f);
+		cube.transform.push();
+			cube.transform.scale(0.2f, 0.2f, 0.65f);
 			cube.draw();
-		cube.popTransform();
-		cube.pushTransform();
-			cube.translate(0.0f, 0.0f, -0.15f);
-			cube.scale(0.6f, 0.14f, 0.3f);
+		cube.transform.pop();
+		cube.transform.push();
+			cube.transform.translate(0.0f, 0.0f, -0.15f);
+			cube.transform.scale(0.6f, 0.14f, 0.3f);
 			cube.draw();
-		cube.popTransform();
-		cube.pushTransform();
-			cube.translate(0.0f, 0.0f, 0.325f);
-			cube.scale(0.2f, 0.141f, 0.141f);
-			cube.rotateX(PI / 4.0f);
+		cube.transform.pop();
+		cube.transform.push();
+			cube.transform.translate(0.0f, 0.0f, 0.325f);
+			cube.transform.scale(0.2f, 0.141f, 0.141f);
+			cube.transform.rotateX(PI / 4.0f);
 			cube.draw();
-		cube.popTransform();
-	cube.popTransform();
+		cube.transform.pop();
+	cube.transform.pop();
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	gfx.setClearColor(0.23f, 0.23f, 0.23f);
 	gfx.setClearDepth(1.0);
-	gfx.setCullState(CullStates::CullCounterClockwise);
+	gfx.setCullState(CullStates::CullClockwise);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setBlendState(BlendStates::AlphaBlend);
 	gfx.clearColorAndDepth();

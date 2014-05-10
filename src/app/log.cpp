@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 
+Log APP_LOG("./log.txt", true);
+
 Log::Log(std::string filename_, bool debug_) :
 	buffer(""), filename(filename_), debug(debug_)
 { }

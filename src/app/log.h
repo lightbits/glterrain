@@ -27,4 +27,8 @@ private:
 	std::stringstream buffer;
 };
 
+// Global log file
+// Defined in log.cpp
+extern Log APP_LOG;
+
 #endif

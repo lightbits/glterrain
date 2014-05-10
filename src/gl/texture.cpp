@@ -83,7 +83,7 @@ bool Texture2D::loadFromFile(const char *filename)
 
 	if (tex == 0)
 	{
-		std::cerr << "Failed to load texture (" << filename << "): " << SOIL_last_result() << std::endl;
+		APP_LOG << "Failed to load texture (" << filename << "): " << SOIL_last_result() << '\n';
 		return false;
 	}
 
@@ -163,7 +163,7 @@ bool Cubemap::loadFromFile(const char *path, const char *ext)
 
 	if (m_handle == 0)
 	{
-		std::cerr << "Failed to load texture (" << path << "): " << SOIL_last_result() << std::endl;
+		APP_LOG << "Failed to load texture (" << path << "): " << SOIL_last_result() << '\n';
 		return true;
 	}
 

@@ -8,8 +8,7 @@ struct Sphere
 
 	Sphere(vec3 p, float r, Model m) : position(p), radius(r), model(m) 
 	{
-		model.translate(p);
-		model.scale(r);
+		model.transform = transform::translate(p) * transform::scale(r);
 	}
 
 	vec3 position;

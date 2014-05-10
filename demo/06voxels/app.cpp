@@ -22,7 +22,7 @@ void free()
 
 Mesh voxelCube(vec3 translation, float scale)
 {
-	Mesh cube = Mesh::genUnitCube(false, true);
+	Mesh cube = Mesh::genUnitCube(false, true, true);
 	int count = cube.getPositionCount();
 	for (int i = 0; i < count; ++i)
 	{

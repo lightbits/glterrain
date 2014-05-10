@@ -96,7 +96,7 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 	
-	cube_buffer.create(Mesh::genUnitCube(false, true));
+	cube_buffer.create(Mesh::genUnitCube(false, true, true));
 	cube = Model(cube_buffer);
 
 	screen_quad.create(Mesh::genPlane(vec3(0, 1, 0), vec3(1, 0, 0)));

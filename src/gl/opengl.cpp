@@ -16,13 +16,13 @@ const char *getErrorMessage(GLenum code)
 	}
 }
 
-int checkGLErrors(Log &log)
+int checkGLErrors()
 {
 	int num_errors = 0;
 	GLenum error = glGetError();
 	while (error != GL_NO_ERROR)
 	{
-		log << getErrorMessage(error) << '\n';
+		APP_LOG << getErrorMessage(error) << '\n';
 		num_errors++;
 		error = glGetError();
 	}

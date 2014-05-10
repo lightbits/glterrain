@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <sstream>
 #include <fstream>
+#include <app/log.h>
 
 float degToRad(float degrees) 
 {
@@ -36,7 +37,7 @@ bool readFile(const std::string &filename, std::string &dest)
 	std::ifstream in(filename, std::ios::in | std::ios::binary);
 	if(!in.is_open())
 	{
-		std::cerr << "Failed to open file " << filename << std::endl;
+		APP_LOG << "Failed to open file " << filename << '\n';
 		return false;
 	}
 

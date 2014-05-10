@@ -28,7 +28,7 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 
-	Mesh cube_mesh = Mesh::genUnitCube(true, false);
+	Mesh cube_mesh = Mesh::genUnitCube(true, false, true);
 	cube_buffer.create(cube_mesh);
 	cube = Model(cube_buffer);
 }

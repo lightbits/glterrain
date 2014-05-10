@@ -3,14 +3,13 @@
 
 int main(int argc, char **argv)
 {
-	Log log("log.txt", true);
 	GLContext ctx;
 	if (!ctx.create(VideoMode(640, 240, 24, 0, 0), "Wave Equation 1D", true, true))
 	{
-		log << "Failed to open context\n";
+		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
 	}
-	log << ctx.getDebugInfo();
+	APP_LOG << ctx.getDebugInfo();
 
 	Renderer gfx;
 	gfx.init(ctx);
@@ -21,7 +20,7 @@ int main(int argc, char **argv)
 		{
 			gfx.dispose();
 			ctx.dispose();
-			log << "Failed to load content\n";
+			APP_LOG << "Failed to load content\n";
 			return EXIT_FAILURE;
 		}
 
@@ -48,14 +47,14 @@ int main(int argc, char **argv)
 			if (ctx.isKeyPressed(SDL_SCANCODE_ESCAPE))
 				ctx.close();
 
-			if (checkGLErrors(log) > 0)
+			if (checkGLErrors() > 0)
 				ctx.close();
 			frametime = ctx.getElapsedTime() - frame_begin;
 		}
 	}
 	catch (std::exception &e)
 	{
-		log << "An unexpected error occurred: " << e.what();
+		APP_LOG << "An unexpected error occurred: " << e.what();
 	}
 
 	free();

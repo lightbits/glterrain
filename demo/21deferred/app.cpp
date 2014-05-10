@@ -71,7 +71,7 @@ void free()
 
 void init(Renderer &gfx, Context &ctx)
 {
-	cube_buffer = MeshBuffer(Mesh::genUnitCube(false, true));
+	cube_buffer = MeshBuffer(Mesh::genUnitCube(false, true, true));
 	quad_buffer = MeshBuffer(Mesh::genPlane(vec3(0, 1, 0), vec3(1, 0, 0)));
 	cube = Model(cube_buffer);
 

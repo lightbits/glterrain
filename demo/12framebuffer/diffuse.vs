@@ -13,7 +13,7 @@ out vec3 dir_to_viewer; // normalized vector pointing towards the viewer
 
 void main()
 {
-	vec3 view_position = (view * model * vec4(position, 1.0)).xyz;
+	view_position = (view * model * vec4(position, 1.0)).xyz;
 	gl_Position = projection * vec4(view_position, 1.0);
 	dir_to_viewer = normalize(-view_position.xyz); // normalizing here might cause distortions
 
