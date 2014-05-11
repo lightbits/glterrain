@@ -56,7 +56,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		texture, 
 		Colors::White, 
 		Rectanglef(300.0f, 300.0f, 300.0f, 300.0f), 
-		1.0f, 0.0f,
+		0.0f,
 		ctx.getElapsedTime(), 
 		vec2(0.5f, 0.5f));
 	spritebatch.end();

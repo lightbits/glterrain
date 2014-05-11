@@ -1,5 +1,5 @@
 #ifndef RENDER_TEXTURE_H
-#define RENDER_TEXTUER_H
+#define RENDER_TEXTURE_H
 #include <gl/framebuffer.h>
 #include <gl/texture.h>
 
@@ -12,9 +12,6 @@ class RenderTexture
 public:
 	RenderTexture();
 	void create(int width, int height);
-
-	// Create a depthbufferless rendertarget using the given
-	// color buffer parameters
 	void create(GLint level,
 		GLint internalFormat,
 		GLsizei width,

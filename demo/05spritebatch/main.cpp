@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "05 Spritebatch", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Spritebatch", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;

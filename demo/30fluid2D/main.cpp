@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(320, 480, 24, 0, 4), "2D Fluid Simulation", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "2D Fluid Simulation", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 		}
 
 		init(gfx, ctx);
+		ctx.key_pressed = keyPressed;
 
 		int updates_per_sec = 40;
 		double tickrate = 1.0 / updates_per_sec;

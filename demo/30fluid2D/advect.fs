@@ -4,6 +4,7 @@ in vec2 v_texel;
 
 uniform sampler2D tex_velocity;
 uniform sampler2D tex_source;
+uniform float dissipation;
 uniform float dt;
 
 out vec4 result;
@@ -15,5 +16,5 @@ void main()
 	vec2 texel0 = v_texel - u * dt;
 	
 	// Sample the quantity to be advected
-	result = texture(tex_source, texel0);
+	result = dissipation * texture(tex_source, texel0);
 }
