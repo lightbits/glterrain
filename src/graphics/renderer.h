@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 #include <app/context.h>
+#include <common/typedefs.h>
 #include <gl/opengl.h>
 #include <gl/meshbuffer.h>
 #include <gl/shaderprogram.h>
@@ -32,9 +33,11 @@ public:
 	void clearColorBuffer();
 	void clearDepthBuffer();
 	void clearColorAndDepth();
+	void clear(uint32 color, double depth);
 	void setClearColor(const Color &color);
 	void setClearColor(float r, float g, float b, float a = 1.0f);
 	void setClearDepth(double depth);
+	void setViewport(int x, int y, int w, int h);
 
 	/* Draws the currently bound vertex buffer */
 	void drawVertexBuffer(GLenum drawMode, int indexCount);

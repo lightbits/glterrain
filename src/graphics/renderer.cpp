@@ -68,6 +68,13 @@ void Renderer::clearColorAndDepth()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void Renderer::clear(uint32 color, double depth)
+{
+	setClearColor(Color::fromHex(color));
+	setClearDepth(depth);
+	clearColorAndDepth();
+}
+
 void Renderer::setClearColor(float r, float g, float b, float a)
 {
 	glClearColor(r, g, b, a);
@@ -81,6 +88,11 @@ void Renderer::setClearColor(const Color &color)
 void Renderer::setClearDepth(double depth)
 {
 	glClearDepth(depth);
+}
+
+void Renderer::setViewport(int x, int y, int w, int h)
+{
+	glViewport(x, y, w, h);
 }
 
 void Renderer::beginCustomShader(ShaderProgram &sp)
