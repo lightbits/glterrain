@@ -4,11 +4,11 @@ in vec2 v_texel;
 
 uniform sampler2D tex_source;
 uniform vec2 offset;
-uniform float scale;
+uniform float factor;
 
 out vec4 result;
 
 void main()
 {
-	result = scale * texture(tex_source, v_texel + offset);
+	result.xy = factor * texture(tex_source, v_texel + offset).xy;
 }

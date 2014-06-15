@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "2D Fluid Simulation", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4), "Cubemap", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
@@ -25,36 +25,23 @@ int main(int argc, char **argv)
 		}
 
 		init(gfx, ctx);
-		ctx.key_pressed = keyPressed;
 
-		int updates_per_sec = 40;
-		double tickrate = 1.0 / updates_per_sec;
-		double accumulator = 0.0;
-		double frametime = 0.0;
+		double dt = 0.0;
 		while (ctx.isOpen())
 		{
-			double frame_begin = ctx.getElapsedTime();
-			accumulator += frametime;
-			update(gfx, ctx, 1.0 / 40.0);
-
-			// This might spiral into oblivion if the framerate
-			// lags
-			//while (accumulator >= tickrate)
-			//{
-			//	update(gfx, ctx, tickrate);
-			//	accumulator -= tickrate;
-			//}
+			double frame_t = ctx.getElapsedTime();
+			update(gfx, ctx, dt);
 			
-			render(gfx, ctx, tickrate);
+			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();
 
 			if (ctx.isKeyPressed(SDL_SCANCODE_ESCAPE))
 				ctx.close();
 
-			if (checkGLErrors() > 0)
+			if (checkGLErrors())
 				ctx.close();
-			frametime = ctx.getElapsedTime() - frame_begin;
+			dt = ctx.getElapsedTime() - frame_t;
 		}
 	}
 	catch (std::exception &e)

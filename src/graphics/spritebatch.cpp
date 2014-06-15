@@ -56,24 +56,19 @@ void SpriteBatch::create()
 	if(!defaultShader.linkAndCheckStatus())
 		throw std::runtime_error("Failure linking default spritebatch shader");
 	
-	// For window size
+	float white = 1.0f;
+	blankTexture.create(0, GL_RGB, 1, 1, GL_RED, GL_FLOAT, &white);
+
 	GLContext *ctx = getActiveContext();
-
 	viewMatrix = mat4(1.0f);
-
-	// Orthographic projection, with y-axis positive from top to bottom of window
 	projectionMatrix = glm::ortho(0.0f, float(ctx->getWidth()), float(ctx->getHeight()), 0.0f, 0.0f, 1.0f);
 
-	// Render states
 	blendState = BlendStates::Default;
 	sortMode = SpriteSortMode_None;
-
-	// State variables
 	currentFont = nullptr;
 	currentShader = nullptr;
 	inBeginEndPair = false;
 
-	// Allocate buffers on the GPU to hold vertex and index data
 	vertexBuffer.create(
 		GL_ARRAY_BUFFER, 
 		GL_STREAM_DRAW, 
@@ -89,6 +84,7 @@ void SpriteBatch::create()
 
 void SpriteBatch::dispose()
 {
+	blankTexture.dispose();
 	vertexBuffer.dispose();
 	indexBuffer.dispose();
 	defaultShader.dispose();
@@ -341,6 +337,15 @@ void SpriteBatch::drawTexture(const Texture2D &texture,
 {
 	Rectanglef dest(pos.x, pos.y, float(texture.getWidth()), float(texture.getHeight()));
 	drawTexture(texture, color, dest, 0.0f, 1.0, 0.0f, 1.0f, depth, orientation, center);
+}
+
+void SpriteBatch::drawQuad(const Color &color,
+				  const Rectanglef &dest,
+				  float depth,
+				  float orientation,
+				  vec2 center)
+{
+	drawTexture(blankTexture, color, dest, depth, orientation, center);
 }
 
 void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Color &color, float scale)

@@ -9,5 +9,5 @@ uniform sampler2D tex_velocity;
 void main()
 {
 	vec2 u = texture(tex_velocity, texel).rg;
-	gl_Position = vec4(position + scale * u * 0.05, 0.0, 1.0);
+	gl_Position = vec4(position + scale * u * 0.1, 0.0, 1.0);
 }

@@ -44,6 +44,7 @@ void VideoCapture::reserve(int width, int height, int fps, int seconds)
 	int bytes = vid_width * vid_height * 3 * frame_count;
 	std::cout << "Reserving " << bytes << " (" << (bytes / (1024 * 1024)) << " MB)" << std::endl;
 	std::cout << width << "x" << height << " " << fps << " fps " << seconds << " seconds" << std::endl;
+	std::cout << "OK? ";
 	std::cin.get();
 }
 
@@ -93,7 +94,7 @@ void VideoCapture::dump(const char *path)
 		i++;
 
 		// Print progress
-		std::cout << "\rFrame " << i << " (" << (int)(100 * (vid_mem_ptr - vid_mem_start) / (vid_mem_end - vid_mem_start)) << "%)";
+		std::cout << "\rFrame " << i << "/" << frame_count << "%)";
 
 	}
 

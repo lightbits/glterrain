@@ -5,31 +5,23 @@ or the scalar pressure field.
 */
 #ifndef SLAB
 #define SLAB
-#include <gl/framebuffer.h>
+#include <graphics/rendertexture.h>
 
-//class Slab
-//{
-//public:
-//	Slab(int width, int height, GLenum dataFormat, const GLvoid *data);
-//	Surface &ping();
-//	Surface &pong();
-//private:
-//	int input_index;
-//	int output_index;
-//	Surface surfaces[2];
-//
-//	Slab() : input_index(0), output_index(1) { }
-//
-//	void swapSurfaces()
-//	{
-//		input_index = output_index;
-//		output_index = (output_index + 1) % 2;
-//	}
-//
-//	Surface &ping() { return surfaces[input_index]; }
-//	Surface &pong() { return surfaces[output_index]; }
-//
-//	Surface surfaces[2];
-//};
+class Slab
+{
+public:
+	Slab();
+
+	void createSurfaces(int width, int height, int numComponents, const float *initialData);
+	void swapSurfaces();
+
+	RenderTexture &ping();
+	RenderTexture &pong();
+private:
+	int input_index;
+	int output_index;
+
+	RenderTexture targets[2];
+};
 
 #endif

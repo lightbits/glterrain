@@ -10,6 +10,10 @@
 #include <graphics/renderer.h>
 #include <app/glcontext.h>
 #include "slab.h"
+const int	GRID_SIZE = 256;
+const float DX = 1.0f / GRID_SIZE;
+
+bool loadSlabOps();
 
 void jacobi(
 	RenderTexture &inputTexture,
@@ -22,11 +26,19 @@ void advect(
 	RenderTexture &velocityTexture,
 	RenderTexture &sourceTexture,
 	RenderTexture &outputTexture,
+	float dissipation,
 	Renderer &gfx, Context &ctx, float dt);
 
 void addForces(
-	RenderTexture &velocityTexture,
+	RenderTexture &inputTexture,
 	RenderTexture &outputTexture,
+	vec2 mouse_pos, vec2 mouse_vel,
+	Renderer &gfx, Context &ctx, float dt);
+
+void addDye(
+	RenderTexture &inputTexture,
+	RenderTexture &outputTexture,
+	vec2 mouse_pos,
 	Renderer &gfx, Context &ctx, float dt);
 
 void calculateDivergence(
@@ -40,12 +52,10 @@ void subtractGradient(
 	RenderTexture &outputTexture,
 	Renderer &gfx, Context &ctx, float dt);
 
-void applyBoundaryCondition(
+void applyBoundaryConditions(
 	RenderTexture &sourceTexture,
 	RenderTexture &outputTexture,
-	BufferObject &vbo,
-	const vec2 &offset,
-	float scale,
+	float factor,
 	Renderer &gfx, Context &ctx, float dt);
 
 #endif

@@ -113,6 +113,12 @@ public:
 					 float orientation = 0.0f,
 					 vec2 center = vec2(0.0f, 0.0f));
 
+	void drawQuad(const Color &color,
+				  const Rectanglef &dest,
+				  float depth = 0.0f,
+				  float orientation = 0.0f,
+				  vec2 center = vec2(0.0f, 0.0f));
+
 	void drawString(const std::string &text, const vec2 &pos, const Color &color, float scale = 1.0f);
 
 	/* Draws all buffered sprite data, using the default shader program,
