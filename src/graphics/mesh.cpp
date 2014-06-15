@@ -334,7 +334,7 @@ Mesh genUnitCubeBase(bool ccw)
 			8, 9, 10, 10, 11, 8, // Left
 			12, 13, 14, 14, 15, 12, // Right
 			16, 17, 18, 18, 19, 16, // Top
-			20, 21, 22, 22, 23, 20, // Bottom
+			20, 21, 22, 22, 23, 20 // Bottom
 		};
 
 		mesh.addIndices(indices, 36);
@@ -347,7 +347,7 @@ Mesh genUnitCubeBase(bool ccw)
 			8, 11, 10, 10, 9, 8, // Left
 			12, 15, 14, 14, 13, 12, // Right
 			16, 19, 18, 18, 17, 16, // Top
-			20, 23, 22, 22, 21, 20, // Bottom
+			20, 23, 22, 22, 21, 20 // Bottom
 		};
 
 		mesh.addIndices(indices, 36);
