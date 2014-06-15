@@ -9,7 +9,7 @@ public:
 	Texture2D();
 
 	void dispose();
-	bool loadFromFile(const char *filename);
+	bool loadFromFile(const char *filename, GLint internalFormat = GL_RGBA);
 
 	/*
 	'level' The level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.

@@ -73,22 +73,54 @@ void Texture2D::copyFromFramebuffer(
 	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool Texture2D::loadFromFile(const char *filename)
+bool Texture2D::loadFromFile(const char *filename, GLint internalFormat)
 {
-	GLuint tex = SOIL_load_OGL_texture(
-		filename, 
-		SOIL_LOAD_RGBA,
-		SOIL_CREATE_NEW_ID,
-		SOIL_FLAG_INVERT_Y);
+	GLuint tex = 0;
+	int width, height, channels;
+	unsigned char *data = SOIL_load_image(filename, &width, &height, &channels, 4);
 
-	if (tex == 0)
+	if (data == NULL)
 	{
 		APP_LOG << "Failed to load texture (" << filename << "): " << SOIL_last_result() << '\n';
 		return false;
 	}
 
-	// Retreive the dimensions
+	int half_height = height / 2;
+	for (int y = 0; y < half_height; ++y)
+	{
+		for (int x = 0; x < width * 4; ++x)
+		{
+			int top = (y * width) * 4 + x;
+			int bot = ((height - y - 1) * width) * 4 + x;
+			unsigned char temp = data[top];
+			data[top] = data[bot];
+			data[bot] = temp;
+		}
+	}
+
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	SOIL_free_image_data(data);
+
+	// This breaks in OpenGL 4.
+	//tex = SOIL_load_OGL_texture(
+	//	filename, 
+	//	SOIL_LOAD_RGBA,
+	//	SOIL_CREATE_NEW_ID,
+	//	SOIL_FLAG_INVERT_Y);
+
+	//if (tex == 0)
+	//{
+	//	APP_LOG << "Failed to load texture (" << filename << "): " << SOIL_last_result() << '\n';
+	//	return false;
+	//}
+
+	// OK to do after we have loaded data
 	dispose();
+
+	// Retreive the actual dimensions
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height);
