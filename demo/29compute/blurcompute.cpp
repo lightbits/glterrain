@@ -12,6 +12,13 @@ The work items in a group are all executed in parallel!!
 To add a sample to the texture we need to fetch the current sum.
 It will not work if we just sample the output texture for each
 work item, because the sample will be the same for all work items.
+
+Resources
+=========
+http://programmers.stackexchange.com/questions/188944/opengl-image-load-store-atomics-applications
+http://www.opengl.org/wiki/Compute_Shader
+http://www.opengl.org/wiki/Image_Load_Store
+https://www.opengl.org/discussion_boards/showthread.php/180692-OpenGL-Compute-Shaders-vs-OpenCL
 */
 
 #include "app.h"
