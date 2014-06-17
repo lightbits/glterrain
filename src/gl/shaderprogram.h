@@ -64,6 +64,8 @@ public:
 	*/
 	void setAttributefv(const string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	void setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void unsetAttribute(const string &name);
+	void setAttributeDivisor(const string &name, GLuint divisor);
 	/*void unsetAttribute(const std::string &name);
 	void unsetAttribute(GLint location);*/
 

@@ -317,6 +317,20 @@ void Renderer::setAttributefv(GLint location, GLsizei numComponents, GLsizei str
 	currentShaderProgram->setAttributefv(location, numComponents, stride, offset);
 }
 
+void Renderer::unsetAttribute(const std::string &name)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->unsetAttribute(name);
+}
+
+void Renderer::setAttributeDivisor(const std::string &name, GLuint divisor)
+{
+	if (currentShaderProgram == nullptr)
+		throw std::runtime_error("No active shader program");
+	currentShaderProgram->setAttributeDivisor(name, divisor);
+}
+
 void Renderer::setUniform(const std::string &name, const mat4 &mat)
 {
 	if (currentShaderProgram == nullptr)

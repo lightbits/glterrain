@@ -33,6 +33,11 @@ void BufferObject::bind()
 	glBindBuffer(target, handle);
 }
 
+void BufferObject::bind(GLenum target)
+{
+	glBindBuffer(target, handle);
+}
+
 void BufferObject::unbind()
 {
 	glBindBuffer(target, 0);

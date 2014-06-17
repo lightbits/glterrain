@@ -188,6 +188,16 @@ void ShaderProgram::setAttributefv(GLint location,
 	                      reinterpret_cast<void*>(offset * sizeof(GLfloat)));
 }
 
+void ShaderProgram::unsetAttribute(const string &name)
+{
+	glDisableVertexAttribArray(getAttributeLocation(name));
+}
+
+void ShaderProgram::setAttributeDivisor(const string &name, GLuint divisor)
+{
+	glVertexAttribDivisor(getAttributeLocation(name), divisor);
+}
+
 void ShaderProgram::setUniform(const string &name, const mat4 &mat) { m_program.uniform(getUniformLocation(name), mat); }
 void ShaderProgram::setUniform(const string &name, const mat3 &mat) { m_program.uniform(getUniformLocation(name), mat); }
 void ShaderProgram::setUniform(const string &name, const mat2 &mat) { m_program.uniform(getUniformLocation(name), mat); }

@@ -87,6 +87,8 @@ public:
 	void bindAttribute(GLuint location, const std::string &name);
 	void setAttributefv(const std::string &name, GLsizei numComponents, GLsizei stride, GLsizei offset);
 	void setAttributefv(GLint location, GLsizei numComponents, GLsizei stride, GLsizei offset);
+	void setAttributeDivisor(const std::string &name, GLuint divisor);
+	void unsetAttribute(const std::string &name);
 	void setUniform(const std::string &name, const mat4 &mat);
 	void setUniform(const std::string &name, const mat3 &mat);
 	void setUniform(const std::string &name, const mat2 &mat);

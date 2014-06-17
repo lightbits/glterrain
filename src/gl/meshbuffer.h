@@ -40,6 +40,14 @@ public:
 	void bind();
 	void unbind();
 	void draw();
+
+	int positionCount;
+	int normalCount;
+	int colorCount;
+	int texelCount;
+	int tangentsCount;
+	int indexCount;
+
 private:
 	static const MeshBuffer *bound;
 	void bufferMeshBlock(Mesh &mesh/*, int first, int count*/);
@@ -53,12 +61,6 @@ private:
 	BufferObject ibo;
 	
 	GLenum drawMode;
-	int positionCount;
-	int normalCount;
-	int colorCount;
-	int texelCount;
-	int tangentsCount;
-	int indexCount;
 };
 
 #endif
