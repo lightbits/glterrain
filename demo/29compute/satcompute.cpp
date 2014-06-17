@@ -32,14 +32,11 @@ Texture2D
 VertexArray vao;
 BufferObject vbo;
 
-const int NUM_GROUPS_X = 16;
-const int NUM_GROUPS_Y = 16;
-
 bool load()
 {
 	GLenum types[] = { GL_COMPUTE_SHADER };
 	string paths[] = { "./demo/29compute/satcompute.cs" };
-	if (!shader_display.loadFromFile("./demo/29compute/texturems") ||
+	if (!shader_display.loadFromFile("./demo/29compute/dofdisplay") ||
 		!shader_compute.loadFromFile(paths, types, 1))
 		return false;
 
@@ -47,13 +44,10 @@ bool load()
 		!shader_compute.linkAndCheckStatus())
 		return false;
 
-	float data[] = {
-		0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f
-	};
-
-	tex_in.create(0, GL_RGBA16F, 4, 4, GL_RED, GL_FLOAT, data);
+	if (!tex_in.loadFromFile("./data/textures/dungeon2.png", GL_RGBA32F))
+		return false;
 	tex_in.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-	tex_out.create(0, GL_RGBA16F, tex_in.getWidth(), tex_in.getHeight(), GL_RGB, GL_FLOAT, NULL);
+	tex_out.create(0, GL_RGBA32F, tex_in.getWidth(), tex_in.getHeight(), GL_RGB, GL_FLOAT, NULL);
 	tex_out.setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
 	return true;
@@ -61,6 +55,8 @@ bool load()
 
 void free()
 {
+	tex_in.dispose();
+	tex_out.dispose();
 	vao.dispose();
 	vbo.dispose();
 }
@@ -71,9 +67,14 @@ void init(Renderer &gfx, Context &ctx)
 	gfx.beginCustomShader(shader_compute);
 	gfx.setUniform("inTex", 0);
 	gfx.setUniform("outTex", 1);
-	glBindImageTexture(0, tex_in.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-	glBindImageTexture(1, tex_out.getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
-	glDispatchCompute(4, 4, 1);
+	glBindImageTexture(0, tex_in.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(1, tex_out.getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	glDispatchCompute(tex_in.getHeight(), 1, 1);
+
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	glBindImageTexture(0, tex_out.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(1, tex_in.getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	glDispatchCompute(tex_in.getWidth(), 1, 1);
 
 	// Normally we can't be sure what in order shaders are executed
 	// For example, the texture display shader below could run before this one!
@@ -81,16 +82,16 @@ void init(Renderer &gfx, Context &ctx)
 	// using the output image in the next shader.
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-	tex_out.bind();
-	vec4 pixels[16];
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
-	for (int i = 0; i < 16; ++i)
-	{
-		std::cout << pixels[i].r << " ";
-		if ((i + 1) % 4 == 0)
-			std::cout << '\n';
-	}
-	std::cout << '\n';
+	//tex_in.bind();
+	//vec4 pixels[16];
+	//glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels);
+	//for (int i = 0; i < 16; ++i)
+	//{
+	//	std::cout << pixels[i].r << " ";
+	//	if ((i + 1) % 4 == 0)
+	//		std::cout << '\n';
+	//}
+	//std::cout << '\n';
 
 	const float vertices[] = {	
 		-1.0f, -1.0f,
@@ -124,9 +125,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("tex", 0);
 	gfx.setAttributefv("position", 2, 2, 0);
 
-	if (ctx.isKeyPressed('a'))
-		glBindImageTexture(0, tex_out.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-	else
-		glBindImageTexture(0, tex_in.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+	glBindImageTexture(0, tex_in.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 	gfx.drawVertexBuffer(GL_TRIANGLES, 6);
 }
