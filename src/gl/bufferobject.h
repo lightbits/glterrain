@@ -50,6 +50,7 @@ public:
 	void bufferSubData(GLintptr offset, GLsizeiptr size, const void *data);
 
 	void bind();
+	void bind(GLenum target);
 	void unbind();
 
 	GLuint getHandle() const;
