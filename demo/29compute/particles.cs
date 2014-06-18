@@ -39,10 +39,10 @@ void main()
 		v.y *= -0.8;
 	}
 
-	if (p.x < -4.0) { p.x = -4.0 + eps; v.x *= -1.0; }
-	if (p.x > +4.0) { p.x = +4.0 - eps; v.x *= -1.0; }
-	if (p.z < -4.0) { p.z = -4.0 + eps; v.z *= -1.0; }
-	if (p.z > +4.0) { p.z = +4.0 - eps; v.z *= -1.0; }
+	if (p.x < -2.0) { p.x = -2.0 + eps; v.x *= -1.0; }
+	if (p.x > +2.0) { p.x = +2.0 - eps; v.x *= -1.0; }
+	if (p.z < -2.0) { p.z = -2.0 + eps; v.z *= -1.0; }
+	if (p.z > +2.0) { p.z = +2.0 - eps; v.z *= -1.0; }
 
 	Position[index].xyz = p;
 	Velocity[index].xyz = v;
