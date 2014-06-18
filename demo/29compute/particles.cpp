@@ -11,7 +11,7 @@ MeshBuffer sphere_buffer;
 Mesh cube_mesh;
 Mesh sphere_mesh;
 
-const int NUM_PARTICLES = 100000;
+const int NUM_PARTICLES = 50000;
 const int WORK_GROUP_SIZE = 16;
 BufferObject position_buffer;
 BufferObject velocity_buffer;
@@ -92,6 +92,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	mat_view = translate(0.5f, -0.3f, -2.0f) * rotateX(-0.75f) * rotateY(ctx.getElapsedTime() * 0.4f);
 
 	gfx.beginCustomShader(shader_compute);
+	gfx.setUniform("dt", dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, velocity_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);

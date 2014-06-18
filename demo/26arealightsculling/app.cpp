@@ -65,9 +65,9 @@ vector<AreaLight> lights;
 
 bool load()
 {
-	if (!shader_fp.loadFromFile("./demo/25arealightsdf/first_pass") ||
-		!shader_sp.loadFromFile("./demo/25arealightsdf/second_pass") ||
-		!shader_color.loadAndLinkFromFile("./demo/25arealightsdf/color"))
+	if (!shader_fp.loadFromFile("./demo/26arealightsculling/first_pass") ||
+		!shader_sp.loadFromFile("./demo/26arealightsculling/second_pass") ||
+		!shader_color.loadAndLinkFromFile("./demo/26arealightsculling/color"))
 		return false;
 
 	// Output variables (color numbers)
@@ -208,20 +208,20 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader_sp);
 	gbuffer.bindTextures();
 	gfx.setUniform("inv_projection", glm::inverse(projection));
-	gfx.setUniform("projection", projection);
+	//gfx.setUniform("projection", projection);
 	gfx.setUniform("view", view);
 	gfx.setUniform("tex_p", 0);
 	gfx.setUniform("tex_n", 1);
 	gfx.setUniform("tex_d", 2);
 
-	for (int i = 1; i < 2; ++i)
+	for (int i = 0; i < lights.size(); ++i)
 	{
 		// Yeah this is pretty bad for parallelism!
 		cube_light.transform = lights[i].m_transform;
 		gfx.setUniform("light_i", lights[i].m_intensity);
 		gfx.setUniform("light_m", lights[i].m_transform);
-		cube_light.draw();
-		//screen_quad.draw();
+		//cube_light.draw();
+		screen_quad.draw();
 	}
 	gfx.endCustomShader();
 

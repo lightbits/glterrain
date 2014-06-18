@@ -12,7 +12,8 @@ layout (std140, binding = 1) buffer VelocityBuffer {
 };
 
 const vec3 gravity = vec3(0.0, -9.81, 0.0);
-const float dt = 0.005; // timestep
+uniform float dt;
+// const float dt = 0.005; // timestep
 const float eps = 0.0001;
 
 void main()
@@ -22,8 +23,8 @@ void main()
 	vec3 p = Position[index].xyz;
 	vec3 v = Velocity[index].xyz;
 
-	p += v * dt;
-	v += gravity * dt;
+	p += v * dt * 0.5;
+	v += gravity * dt * 0.5;
 
 	vec3 n = normalize(p); // normal of central sphere
 	if (length(p) < 1.0)
