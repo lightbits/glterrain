@@ -5,7 +5,6 @@ using namespace transform;
 ShaderProgram 
 	shader_render,
 	shader_compute;
-Texture2D tex;
 VertexArray vao;
 MeshBuffer cube_buffer;
 MeshBuffer sphere_buffer;
