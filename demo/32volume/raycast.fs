@@ -41,4 +41,6 @@ void main()
 	outColor = dst;
 	outColor.g *= 0.94;
 	outColor.b *= 0.89;
+
+	outColor.rgb += 0.1 * front;
 }
