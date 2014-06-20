@@ -121,8 +121,6 @@ uniform float dt;
 uniform float sink;
 uniform vec3 seed;
 uniform vec3 attractor;
-const float regionLength = 2.0f;
-const vec2 eps = vec2(0.00005, 0.0);
 
 float ramp(float r)
 {
@@ -134,31 +132,50 @@ float ramp(float r)
     return r * (1.875 - 1.25 * r2 + 0.375 * r2 * r * r);
 }
 
-float sdSphere(vec3 p, float radius)
-{
-    return length(p) / radius;
-}
-
 float distanceField(vec3 p)
 {
-    return sdSphere(p - attractor, 0.5);
+    return length(p - vec3(0.5, 0.0, 0.0)) - 0.5;
 }
 
 float modulate(vec3 p)
-{
-    float a = 1.0 - ramp(length(p - attractor) / regionLength);
-    float d = distanceField(p) / regionLength;
-    return a * ramp(d);
+{   
+    return 1.0 - ramp(length(p - attractor) / 2.0);
 }
+
+float N1(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.x) + time * 0.3);
+}
+
+float N2(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.y) + time * 0.3);
+}
+
+float N3(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.3);
+}
+
+//vec3 psi(vec3 p)
+//{
+//    // a is a smooth (in the mathematical sense) modulation factor
+//    float a = 1.0 - ramp(length(p - attractor) / 2.0);
+//    float n1 = snoise(p + vec3(seed.x) + time * 0.3);
+//    float n2 = snoise(p + vec3(seed.y) + time * 0.3);
+//    float n3 = snoise(p + vec3(seed.z) + time * 0.3);
+//    return vec3(n1, n2, n3) * modulate(p);
+//}
 
 float phi(vec3 p)
 {
-   float f = -0.8 * (p.y - 1.0);
-   float d = length(p.xy - attractor.xy) - 0.5;
-   if(d < 0.5){
-      f *= ramp(d / 0.5);
-   }
-    return f;
+    vec3 q = p - attractor;
+    return sink * (0.5 * 6.28318530718) * log(dot(q, q) + 0.001);
+
+//  Sink version
+//  vec3 q = p - attractor;
+//  return 5.0 * (0.5 * 6.28318530718) * log(dot(q, q) + 0.001);
+//    vec3 v = 0.5 * v1 + 0.01 * v2;
 }
 
 void main()
@@ -166,10 +183,28 @@ void main()
 	uint index = gl_GlobalInvocationID.x;
 
 	vec3 p = Position[index].xyz;
-    vec3 v = vec3(0.0);
-    v.x = phi(p + eps.yxy) - phi(p - eps.yxy);
-    v.y = phi(p - eps.xyy) - phi(p + eps.xyy);
-    v /= 2.0 * eps.x;
+    vec2 eps = vec2(0.00005, 0.0);
+
+	float D3Dy = N3(p + eps.yxy) - N3(p - eps.yxy);
+	float D2Dz = N2(p + eps.yyx) - N2(p - eps.yyx);
+	float D1Dz = N1(p + eps.yyx) - N1(p - eps.yyx);
+	float D3Dx = N3(p + eps.xyy) - N3(p - eps.xyy);
+	float D2Dx = N2(p + eps.xyy) - N2(p - eps.xyy);
+	float D1Dy = N1(p + eps.yxy) - N1(p - eps.yxy);
+
+	// Velocity = curl (potential field)
+    vec3 v1 = vec3(D3Dy - D2Dz, D1Dz - D3Dx, D2Dx - D1Dy); 
+    v1 /= 2.0 * eps.x;
+
+    vec3 v2 = vec3(
+        phi(p + eps.xyy) - phi(p - eps.xyy), 
+        phi(p + eps.yxy) - phi(p - eps.yxy),
+        phi(p + eps.yyx) - phi(p - eps.yyx));
+    v2 /= 2.0 * eps.x;
+
+    // superposition
+    vec3 v = 0.4 * v1 + 0.025 * v2;
+
 	p += v * dt;
 
 	Position[index].xyz = p;

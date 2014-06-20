@@ -2,7 +2,7 @@
 #include <common/noise.h>
 using namespace transform;
 
-ShaderProgram shader_particle, shader_color, shader_compute, shader_sphere;
+ShaderProgram shader_render, shader_color, shader_compute, shader_sphere;
 BufferObject position_buffer, status_buffer;
 VertexArray vao;
 BufferObject sprite_buffer;
@@ -16,13 +16,13 @@ bool load()
 {
 	GLenum types[] = { GL_COMPUTE_SHADER };
 	string paths[] = { "./demo/33curlnoise/curlnoise.cs" };
-	if (!shader_particle.loadFromFile("./demo/33curlnoise/particle") ||
+	if (!shader_render.loadFromFile("./demo/33curlnoise/rendercube") ||
 		!shader_color.loadFromFile("./demo/33curlnoise/simple") ||
 		!shader_sphere.loadFromFile("./demo/33curlnoise/sphere") ||
 		!shader_compute.loadFromFile(paths, types, 1))
 		return false;
 
-	if (!shader_particle.linkAndCheckStatus() ||
+	if (!shader_render.linkAndCheckStatus() ||
 		!shader_color.linkAndCheckStatus() ||
 		!shader_sphere.linkAndCheckStatus() ||
 		!shader_compute.linkAndCheckStatus())
@@ -64,16 +64,13 @@ void init(Renderer &gfx, Context &ctx)
 
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		//float a = (float)i / (NUM_PARTICLES - 1);
-		//float x = sin(a * 32 * PI) * 0.2f;
-		//float z = cos(a * 32 * PI) * 0.2f;
-		//float y = (float)(i / (NUM_PARTICLES / 16)) * 0.05f + frand() * 0.05f;
-		//x -= frand() * 0.15f;
-		//z -= frand() * 0.15f;
-		//position[i] = vec4(x, y, z, 1.0f);
-		float x = (float)(i % 128);
-		float y = (float)(i / 128);
-		position[i] = vec4(3.0 + 2.0 * x / 128.0, y / 128.0, 0.0, 1.0);
+		float a = (float)i / (NUM_PARTICLES - 1);
+		float x = sin(a * 32 * PI) * 0.2f;
+		float z = cos(a * 32 * PI) * 0.2f;
+		float y = (float)(i / (NUM_PARTICLES / 16)) * 0.05f + frand() * 0.05f;
+		x -= frand() * 0.15f;
+		z -= frand() * 0.15f;
+		position[i] = vec4(x, y, z, 1.0f);
 	}
 
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -110,12 +107,15 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		sink = 4.0f;
 	}
 
-	mat_view = translate(0.0f, -0.8f, -4.0f) * rotateX(-0.2f) * rotateY(0.2f);
+	attractor.x = sin(ctx.getElapsedTime() * 2.0f);
+	attractor.z = 0.2 * cos(ctx.getElapsedTime() * 2.0f);
+
+	mat_view = translate(0.0f, -0.5f, -3.0f) * rotateX(-0.65f) * rotateY(sin(ctx.getElapsedTime() * 0.4f));
 	gfx.beginCustomShader(shader_compute);
-	//gfx.setUniform("sink", sink);
+	gfx.setUniform("sink", sink);
 	gfx.setUniform("attractor", attractor);
-	//gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
-	//gfx.setUniform("time", ctx.getElapsedTime());
+	gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
+	gfx.setUniform("time", ctx.getElapsedTime());
 	gfx.setUniform("dt", dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, status_buffer.getHandle());
@@ -139,12 +139,12 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader_sphere);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", translate(attractor) * scale(1.0f));
+	gfx.setUniform("model", translate(attractor) * scale(0.5f));
 	gfx.setUniform("sinkSourceBlend", (sink + 5.0f) / (4.0f + 5.0f));
 	sphere.draw();
 
-	gfx.beginCustomShader(shader_particle);
 	gfx.setBlendState(BlendStates::AlphaBlend);
+	gfx.beginCustomShader(shader_render);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
 	gfx.setUniform("model", mat4(1.0f));

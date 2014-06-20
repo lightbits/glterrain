@@ -5,7 +5,7 @@ in vec4 particlePosition;
 in vec4 particleStatus;
 
 out float lifetime;
-out vec3 vPosition;
+out float distance;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -21,9 +21,9 @@ float sizes[] = {
 
 void main()
 {
-	vPosition = (view * model * vec4(particlePosition.xyz + 0.05 * position, 1.0)).xyz;
+	vec4 viewPos = view * model * vec4(particlePosition.xyz + 0.05 * position, 1.0);
+	distance = length(viewPos.xyz);
 	lifetime = particleStatus.a;
-	gl_Position = projection * vec4(vPosition, 1.0);
+	gl_Position = projection * viewPos;
 	gl_PointSize = sizes[gl_InstanceID % 5];
-	vPosition.z = gl_Position.z;
 }

@@ -64,16 +64,13 @@ void init(Renderer &gfx, Context &ctx)
 
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		//float a = (float)i / (NUM_PARTICLES - 1);
-		//float x = sin(a * 32 * PI) * 0.2f;
-		//float z = cos(a * 32 * PI) * 0.2f;
-		//float y = (float)(i / (NUM_PARTICLES / 16)) * 0.05f + frand() * 0.05f;
-		//x -= frand() * 0.15f;
-		//z -= frand() * 0.15f;
-		//position[i] = vec4(x, y, z, 1.0f);
-		float x = (float)(i % 128);
-		float y = (float)(i / 128);
-		position[i] = vec4(3.0 + 2.0 * x / 128.0, y / 128.0, 0.0, 1.0);
+		float a = (float)i / (NUM_PARTICLES - 1);
+		float x = sin(a * 32 * PI) * 0.2f;
+		float z = cos(a * 32 * PI) * 0.2f;
+		float y = (float)(i / (NUM_PARTICLES / 16)) * 0.05f + frand() * 0.05f;
+		x -= frand() * 0.15f;
+		z -= frand() * 0.15f;
+		position[i] = vec4(x, y, z, 1.0f);
 	}
 
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -110,12 +107,15 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		sink = 4.0f;
 	}
 
-	mat_view = translate(0.0f, -0.8f, -4.0f) * rotateX(-0.2f) * rotateY(0.2f);
+	attractor.x = sin(ctx.getElapsedTime() * 2.0f);
+	attractor.z = 0.2 * cos(ctx.getElapsedTime() * 2.0f);
+
+	mat_view = translate(0.0f, -0.5f, -4.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
 	gfx.beginCustomShader(shader_compute);
-	//gfx.setUniform("sink", sink);
+	gfx.setUniform("sink", sink);
 	gfx.setUniform("attractor", attractor);
-	//gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
-	//gfx.setUniform("time", ctx.getElapsedTime());
+	gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
+	gfx.setUniform("time", ctx.getElapsedTime());
 	gfx.setUniform("dt", dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, status_buffer.getHandle());
@@ -139,7 +139,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader_sphere);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", translate(attractor) * scale(1.0f));
+	gfx.setUniform("model", translate(attractor) * scale(0.5f));
 	gfx.setUniform("sinkSourceBlend", (sink + 5.0f) / (4.0f + 5.0f));
 	sphere.draw();
 

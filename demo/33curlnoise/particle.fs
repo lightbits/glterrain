@@ -1,7 +1,8 @@
 #version 430
 
 in float lifetime;
-in vec3 vPosition;
+in float distance;
+
 out vec4 outColor;
 
 void main()
@@ -9,8 +10,10 @@ void main()
 	outColor.rgb = vec3(0.9, 0.45, 0.33);
 	outColor.a = 1.0;
 
-	// Fog-ish thing
-	outColor.rgb *= 2.5 - (vPosition.z * 0.5 + 0.5);
+	// Fog based on distance into scene
+	float fogAmount = exp(-distance * 0.4 + 1.0);
+	vec3 fogColor = vec3(0.15, 0.17, 0.25);
+	outColor.rgb = mix(fogColor, outColor.rgb, fogAmount);
 
 	// Speed color grading
 	// outColor.rgb *= lifetime / 10.0;
