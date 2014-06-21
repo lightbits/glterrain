@@ -33,10 +33,17 @@ void RenderTexture::create(GLint level,
 		const GLvoid *data)
 {
 	colorBuffer.create(level, internalFormat, width, height, format, type, data);
+	colorBuffer.setTexParameteri(GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+	depthBuffer.create();
+	depthBuffer.bind();
+	depthBuffer.storage(GL_DEPTH_COMPONENT, width, height);
+	depthBuffer.unbind();
 
 	frameBuffer.create();
 	frameBuffer.bind();
 	frameBuffer.attachTexture2D(GL_COLOR_ATTACHMENT0, colorBuffer, 0);
+	frameBuffer.attachRenderbuffer(GL_DEPTH_ATTACHMENT, depthBuffer);
 	GLenum status = frameBuffer.checkStatus();
 	if(status != GL_FRAMEBUFFER_COMPLETE)
 		throw std::exception("Framebuffer not complete");
@@ -81,6 +88,7 @@ void RenderTexture::begin()
 
 void RenderTexture::end()
 {
+	colorBuffer.unbind();
 	frameBuffer.unbind();
 	depthBuffer.unbind();
 }

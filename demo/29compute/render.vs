@@ -4,6 +4,7 @@ in vec4 particlePosition; // Instanced attribute
 
 out vec3 vNormal;
 out vec3 color;
+out float depth;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -26,6 +27,7 @@ void main()
 
 	vNormal = (view * vec4(position, 0.0)).xyz; // Because the mesh is a sphere!
 	gl_Position = projection * view * translate * model * vec4(position, 1.0);
+	depth = gl_Position.z * 0.5 + 0.5;
 
 	color = colors[gl_InstanceID % 5];
 }

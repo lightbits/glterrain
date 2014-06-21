@@ -27,7 +27,7 @@ void main()
 	if (length(v_texel - mpos) < 0.025) 
 	{
 		// out_data.g = 0.1;
-		out_data.r = min(out_data.r + 0.3 * dt, 0.3);
+		out_data.r = min(out_data.r + 0.5 * dt, 0.3);
 	}
 	
 	out_data.ba = vec2(0.0);

@@ -242,7 +242,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	gfx.beginCustomShader(shader_boundary);
 	vbo_line.bind();
 	gfx.setAttributefv("position", 2, 4, 0);
-	gfx.setAttributefv("texel", 2, 4, 2);
+	//gfx.setAttributefv("texel", 2, 4, 2);
 	gfx.drawVertexBuffer(GL_LINES, 4);
 
 	datafield.pong().end();

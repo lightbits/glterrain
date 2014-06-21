@@ -5,15 +5,14 @@ using namespace transform;
 ShaderProgram 
 	shader_render,
 	shader_compute;
-Texture2D tex;
 VertexArray vao;
 MeshBuffer cube_buffer;
 MeshBuffer sphere_buffer;
 Mesh cube_mesh;
 Mesh sphere_mesh;
 
-const int NUM_PARTICLES = 50000;
-const int WORK_GROUP_SIZE = 16;
+const int NUM_PARTICLES = 80000;
+const int WORK_GROUP_SIZE = 64;
 BufferObject position_buffer;
 BufferObject velocity_buffer;
 
@@ -43,7 +42,7 @@ void free()
 
 void init(Renderer &gfx, Context &ctx)
 {
-	mat_projection = glm::perspective(PI / 3.0f, (float)ctx.getWidth() / ctx.getHeight(), 0.1f, 25.0f);
+	mat_projection = glm::perspective(PI / 3.0f, (float)ctx.getWidth() / ctx.getHeight(), 0.1f, 18.0f);
 	mat_view = mat4(1.0f);
 
 	vao.create();
