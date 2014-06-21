@@ -4,10 +4,11 @@
 Program::Program() : program(0)
 { }
 
-void Program::dispose() const
+void Program::dispose()
 {
 	unuse();
 	glDeleteProgram(program); // OpenGL will silently ignore a value of 0 for program
+	program = 0;
 }
 
 void Program::use() const

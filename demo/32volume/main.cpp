@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 		}
 
 		init(gfx, ctx);
+		ctx.key_released = keyReleased;
 
 		double dt = 0.0;
 		while (ctx.isOpen())

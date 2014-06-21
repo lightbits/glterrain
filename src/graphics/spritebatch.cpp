@@ -379,6 +379,6 @@ void SpriteBatch::drawString(const std::string &text, const vec2 &pos, const Col
 				glyph.uLeft, glyph.uRight, glyph.vBottom, glyph.vTop);
 			posX += scale * glyph.width;
 		}
-		posY += lineHeight;
+		posY += scale * lineHeight;
 	}
 }

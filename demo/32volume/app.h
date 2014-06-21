@@ -10,5 +10,6 @@ void free();
 void init(Renderer &gfx, Context &ctx);
 void update(Renderer &gfx, Context &ctx, double dt);
 void render(Renderer &gfx, Context &ctx, double dt);
+void keyReleased(int mod, SDL_Keycode key);
 
 #endif

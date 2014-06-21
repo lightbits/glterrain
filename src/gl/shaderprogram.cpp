@@ -11,9 +11,7 @@ ShaderProgram::ShaderProgram() :
 
 bool ShaderProgram::loadFromSource(const string *sources, GLenum *types, int count)
 {
-	m_shaders.clear();
-	m_uniform_locs.clear();
-	m_attrib_locs.clear();
+	dispose();
 	for (int i = 0; i < count; ++i)
 	{
 		Shader shader;
@@ -27,9 +25,7 @@ bool ShaderProgram::loadFromSource(const string *sources, GLenum *types, int cou
 
 bool ShaderProgram::loadFromFile(const string *paths, GLenum *types, int count)
 {
-	m_shaders.clear();
-	m_uniform_locs.clear();
-	m_attrib_locs.clear();
+	dispose();
 	for (int i = 0; i < count; ++i)
 	{
 		Shader shader;
@@ -96,6 +92,7 @@ void ShaderProgram::dispose()
 	m_attrib_locs.clear();
 	for (int i = 0; i < m_shaders.size(); ++i)
 		m_shaders[i].dispose();
+	m_shaders.clear();
 	m_program.dispose();
 }
 

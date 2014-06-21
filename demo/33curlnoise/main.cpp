@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		while (ctx.isOpen())
 		{
 			double frame_t = ctx.getElapsedTime();
-			update(gfx, ctx, tickrate);
+			update(gfx, ctx, dt);
 			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();

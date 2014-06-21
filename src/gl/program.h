@@ -13,7 +13,7 @@ class Program
 public:
 	Program();
 
-	void dispose() const;
+	void dispose();
 	void create();
 	bool linkAndCheckStatus(const std::vector<Shader> &shaders);
 	bool linkAndCheckStatus(const Shader &vertexShader, const Shader &fragmentShader);
