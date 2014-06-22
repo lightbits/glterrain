@@ -7,7 +7,8 @@ VertexArray vao;
 ShaderProgram 
 	shader_simple, 
 	shader_genvolume, 
-	shader_slices;
+	shader_slices,
+	shader_planes;
 MeshBuffer
 	buf_quads,
 	buf_cube;
@@ -22,7 +23,7 @@ Font
 	font;
 
 const int TEXTURE_SIZE = 256; // Cubic texture
-const int NUM_SLICES = 512; // Volume rendered as <num_slices> alphablended textured quads
+const int NUM_SLICES = 16; // Volume rendered as <num_slices> alphablended textured quads
 const int LOCAL_SIZE = 4; // Shared for all axes
 const int NUM_WORK_GROUPS = TEXTURE_SIZE / LOCAL_SIZE; // Same
 
@@ -58,6 +59,7 @@ bool load()
 	string paths[] = { "./demo/32volume/genvolume.cs" };
 	GLenum types[] = { GL_COMPUTE_SHADER };
 	if (!shader_simple.loadAndLinkFromFile("./demo/32volume/simple") ||
+		!shader_planes.loadAndLinkFromFile("./demo/32volume/planes") ||
 		!shader_genvolume.loadFromFile(paths, types, 1) ||
 		!shader_slices.loadAndLinkFromFile("./demo/32volume/slices"))
 		return false;
@@ -82,6 +84,7 @@ void free()
 	shader_genvolume.dispose();
 	shader_simple.dispose();
 	shader_slices.dispose();
+	shader_planes.dispose();
 	font.dispose();
 	spritebatch.dispose();
 	vao.dispose();
@@ -142,19 +145,11 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	float frametime = time_now - time_render_begin;
 	time_render_begin = time_now;
 	gfx.clear(0x2a2a2aff, 1.0);
-	gfx.setCullState(CullStates::CullCounterClockwise);
-
-	gfx.beginCustomShader(shader_simple);
-	gfx.setUniform("projection", mat_projection);
-	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", scale(1.0f));
-	gfx.setRasterizerState(RasterizerStates::FillBoth);
-	buf_cube.draw();
 
 	gfx.beginCustomShader(shader_slices);
 	gfx.setCullState(CullStates::CullNone);
 	gfx.setRasterizerState(RasterizerStates::FillBoth);
-	gfx.setBlendState(BlendStates::AlphaBlend);	
+	gfx.setBlendState(BlendStates::AlphaBlend);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, tex_volume);
 	gfx.setUniform("texVolume", 0);
@@ -164,6 +159,20 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	buf_quads.draw();
 	gfx.endCustomShader();
 	gfx.setBlendState(BlendStates::Default);
+
+	gfx.beginCustomShader(shader_planes);
+	gfx.setCullState(CullStates::CullNone);
+	//gfx.setCullState(CullStates::CullCounterClockwise);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+	//gfx.setUniform("model", scale(1.0f));
+	gfx.setUniform("model", scale(0.5f));
+	gfx.setRasterizerState(RasterizerStates::LineBoth);
+	//gfx.setRasterizerState(RasterizerStates::FillBoth);
+	//buf_cube.draw();
+	buf_quads.bind();
+	gfx.setAttributefv("position", 3, 0, 0);
+	gfx.drawIndexedVertexBuffer(GL_TRIANGLES, buf_quads.indexCount, GL_UNSIGNED_INT);
 
 	spritebatch.begin();
 	Text text;
