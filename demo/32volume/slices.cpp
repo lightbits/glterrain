@@ -1,3 +1,8 @@
+/*
+Volume rendering techniques
+http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
+*/
+
 #include "app.h"
 #include <common/noise.h>
 #include <common/text.h>
@@ -145,11 +150,19 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	float frametime = time_now - time_render_begin;
 	time_render_begin = time_now;
 	gfx.clear(0x2a2a2aff, 1.0);
+	gfx.setCullState(CullStates::CullCounterClockwise);
+
+	gfx.beginCustomShader(shader_simple);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+	gfx.setUniform("model", scale(1.0f));
+	gfx.setRasterizerState(RasterizerStates::FillBoth);
+	buf_cube.draw();
 
 	gfx.beginCustomShader(shader_slices);
 	gfx.setCullState(CullStates::CullNone);
 	gfx.setRasterizerState(RasterizerStates::FillBoth);
-	gfx.setBlendState(BlendStates::AlphaBlend);
+	gfx.setBlendState(BlendStates::AlphaBlend);	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, tex_volume);
 	gfx.setUniform("texVolume", 0);
@@ -159,20 +172,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	buf_quads.draw();
 	gfx.endCustomShader();
 	gfx.setBlendState(BlendStates::Default);
-
-	gfx.beginCustomShader(shader_planes);
-	gfx.setCullState(CullStates::CullNone);
-	//gfx.setCullState(CullStates::CullCounterClockwise);
-	gfx.setUniform("projection", mat_projection);
-	gfx.setUniform("view", mat_view);
-	//gfx.setUniform("model", scale(1.0f));
-	gfx.setUniform("model", scale(0.5f));
-	gfx.setRasterizerState(RasterizerStates::LineBoth);
-	//gfx.setRasterizerState(RasterizerStates::FillBoth);
-	//buf_cube.draw();
-	buf_quads.bind();
-	gfx.setAttributefv("position", 3, 0, 0);
-	gfx.drawIndexedVertexBuffer(GL_TRIANGLES, buf_quads.indexCount, GL_UNSIGNED_INT);
 
 	spritebatch.begin();
 	Text text;
