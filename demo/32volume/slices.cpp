@@ -30,7 +30,7 @@ Font
 const int TEXTURE_SIZE_X = 128;
 const int TEXTURE_SIZE_Y = 128;
 const int TEXTURE_SIZE_Z = 128;
-const int NUM_SLICES = 256; // Volume rendered as <num_slices> alphablended textured quads
+const int NUM_SLICES = 128; // Volume rendered as <num_slices> alphablended textured quads
 const int LOCAL_SIZE_X = 4;
 const int LOCAL_SIZE_Y = 4;
 const int LOCAL_SIZE_Z = 4;

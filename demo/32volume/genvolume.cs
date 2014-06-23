@@ -114,7 +114,7 @@ void main()
 {
 	ivec3 texel = ivec3(gl_GlobalInvocationID.xyz);
 	vec3 delta = center - vec3(texel);
-	float d = 1.3 * length(delta) / dimension;
+	float d = 1.3 * length(delta / dimension);
 	float radius = 0.34;
 
     if (d > 1.5 * radius)
