@@ -28,10 +28,20 @@ int main(int argc, char **argv)
 		ctx.key_released = keyReleased;
 
 		double dt = 0.0;
+		int updates_per_sec = 5;
+		double tickrate = 1.0 / updates_per_sec;
+		double accumulator = 0.0;
 		while (ctx.isOpen())
 		{
 			double frame_t = ctx.getElapsedTime();
-			update(gfx, ctx, dt);
+			accumulator += dt;
+			int num_updates = 0;
+			while (accumulator >= tickrate && num_updates < 1)
+			{
+				accumulator -= tickrate;
+				update(gfx, ctx, tickrate);
+				num_updates++;
+			}
 			
 			render(gfx, ctx, dt);
 			ctx.display();

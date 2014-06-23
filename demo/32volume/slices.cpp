@@ -27,10 +27,16 @@ SpriteBatch
 Font 
 	font;
 
-const int TEXTURE_SIZE = 256; // Cubic texture
-const int NUM_SLICES = 16; // Volume rendered as <num_slices> alphablended textured quads
-const int LOCAL_SIZE = 4; // Shared for all axes
-const int NUM_WORK_GROUPS = TEXTURE_SIZE / LOCAL_SIZE; // Same
+const int TEXTURE_SIZE_X = 128;
+const int TEXTURE_SIZE_Y = 128;
+const int TEXTURE_SIZE_Z = 128;
+const int NUM_SLICES = 256; // Volume rendered as <num_slices> alphablended textured quads
+const int LOCAL_SIZE_X = 4;
+const int LOCAL_SIZE_Y = 4;
+const int LOCAL_SIZE_Z = 4;
+const int NUM_WORK_GROUPS_X = TEXTURE_SIZE_X / LOCAL_SIZE_X;
+const int NUM_WORK_GROUPS_Y = TEXTURE_SIZE_Y / LOCAL_SIZE_Y;
+const int NUM_WORK_GROUPS_Z = TEXTURE_SIZE_Z / LOCAL_SIZE_Z;
 
 GLuint createPyroclasticVolume()
 {
@@ -44,17 +50,19 @@ GLuint createPyroclasticVolume()
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexImage3D(GL_TEXTURE_3D, 0,
 		GL_R32F,
-		TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE, 0,
+		TEXTURE_SIZE_X, TEXTURE_SIZE_Y, TEXTURE_SIZE_Z, 0,
 		GL_RED,
 		GL_FLOAT,
 		NULL);
 
 	shader_genvolume.begin();
-	shader_genvolume.setUniform("dimension", TEXTURE_SIZE);
-	shader_genvolume.setUniform("center", vec3(TEXTURE_SIZE / 2.0f + 0.5f));
+	shader_genvolume.setUniform("dimension", vec3(TEXTURE_SIZE_X, TEXTURE_SIZE_Y, TEXTURE_SIZE_Z));
+	shader_genvolume.setUniform("center", vec3(TEXTURE_SIZE_X / 2.0f + 0.5f, TEXTURE_SIZE_Y / 2.0f + 0.5f, TEXTURE_SIZE_Z / 2.0f + 0.5f));
 	shader_genvolume.setUniform("outTex", 0);
-	glBindImageTexture(0, handle, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
-	glDispatchCompute(NUM_WORK_GROUPS, NUM_WORK_GROUPS, NUM_WORK_GROUPS);
+	// Note that 3D textures must be bound as layered to be able to write to
+	// texels at z > 0
+	glBindImageTexture(0, handle, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
+	glDispatchCompute(NUM_WORK_GROUPS_X, NUM_WORK_GROUPS_Y, NUM_WORK_GROUPS_Z);
 	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 	return handle;
 }
@@ -105,6 +113,7 @@ void init(Renderer &gfx, Context &ctx)
 	for (int i = 0; i < NUM_SLICES; ++i)
 	{
 		float z = -1.0 + 2.0 * i / NUM_SLICES;
+		z *= float(TEXTURE_SIZE_Z) / TEXTURE_SIZE_X;
 		Mesh quad;
 		quad.addPosition(-1.0f, -1.0f, z); quad.addTexel(0.0f, 0.0f);
 		quad.addPosition( 1.0f, -1.0f, z); quad.addTexel(1.0f, 0.0f);
@@ -140,12 +149,20 @@ void keyReleased(int mod, SDL_Keycode key)
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, 0.0f, -2.0f) * rotateX(-0.5f) * rotateY(sin(ctx.getElapsedTime() * 0.3f));
+	shader_genvolume.begin();
+	shader_genvolume.setUniform("time", ctx.getElapsedTime());
+	shader_genvolume.setUniform("dimension", vec3(TEXTURE_SIZE_X, TEXTURE_SIZE_Y, TEXTURE_SIZE_Z));
+	shader_genvolume.setUniform("center", vec3(TEXTURE_SIZE_X / 2.0f + 0.5f, TEXTURE_SIZE_Y / 2.0f + 0.5f, TEXTURE_SIZE_Z / 2.0f + 0.5f));
+	shader_genvolume.setUniform("outTex", 0);
+	glBindImageTexture(0, tex_volume, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
+	glDispatchCompute(NUM_WORK_GROUPS_X, NUM_WORK_GROUPS_Y, NUM_WORK_GROUPS_Z);
+	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
 }
 
 float time_render_begin = 0.0f;
 void render(Renderer &gfx, Context &ctx, double dt)
 {
+	mat_view = translate(0.0f, 0.0f, -2.0f) * rotateX(-0.5f) * rotateY(0.4f * sin(ctx.getElapsedTime() * 0.3f));
 	float time_now = ctx.getElapsedTime();
 	float frametime = time_now - time_render_begin;
 	time_render_begin = time_now;
@@ -176,7 +193,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	spritebatch.begin();
 	Text text;
 	text << "frametime: " << int(frametime * 1000.0f) << "ms\n";
-	text << "resolution: " << TEXTURE_SIZE << "\n";
+	text << "resolution: " << TEXTURE_SIZE_X << "x" << TEXTURE_SIZE_Y << "x" << TEXTURE_SIZE_Z << "\n";
 	text << "num slices: " << NUM_SLICES;
 	spritebatch.drawString(text.getString(), vec2(5.0, 5.0), Color::fromHex(0x787878ff), 1.0f);
 	spritebatch.end();

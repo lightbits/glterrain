@@ -106,27 +106,33 @@ float snoise(vec3 v)
 layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 layout (binding = 0, r32f) uniform writeonly image3D outTex;
 
-uniform int dimension;
+uniform vec3 dimension;
+uniform float time;
 uniform vec3 center;
 
 void main()
 {
 	ivec3 texel = ivec3(gl_GlobalInvocationID.xyz);
 	vec3 delta = center - vec3(texel);
-	float d = length(delta) / dimension;
-
+	float d = 1.3 * length(delta) / dimension;
 	float radius = 0.34;
-	vec3 p = vec3(-1.0 + 2.0 * texel / float(dimension) + 42.0);
+
+    if (d > 1.5 * radius)
+    {   
+        imageStore(outTex, texel, vec4(0.0));
+        return;
+    }
+
+    vec3 p = vec3(-1.0 + 2.0 * texel / float(dimension) + 42.0 + 0.1 * time);
 	float fbm = snoise(p);
 	fbm += 0.5 * snoise(p * 4.0);
 	fbm += 0.25 * snoise(p * 8.0);
 	fbm += 0.125 * snoise(p * 16.0);
 	fbm += 0.07 * snoise(p * 32.0);
 	fbm *= 0.15;
-	d -= fbm;
+	d -= fbm;   
 	
-	if (d < radius)
-		imageStore(outTex, texel, vec4(1.0));
-	else
-		imageStore(outTex, texel, vec4(0.0));
+    float c = min(d / radius, 1.0);
+    float v = 1.0 - pow(c, 5.0);
+    imageStore(outTex, texel, vec4(v));
 }
