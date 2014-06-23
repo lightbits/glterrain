@@ -116,6 +116,10 @@ layout (std140, binding = 1) buffer StatusBuffer {
 	vec4 Status[];
 };
 
+layout (std140, binding = 1) buffer SpawnBuffer {
+	vec4 SpawnInfo[];
+};
+
 uniform float time;
 uniform float dt;
 uniform float sink;
@@ -157,27 +161,15 @@ float N3(vec3 p)
 	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.3);
 }
 
-//vec3 psi(vec3 p)
-//{
-//    // a is a smooth (in the mathematical sense) modulation factor
-//    float a = 1.0 - ramp(length(p - attractor) / 2.0);
-//    float n1 = snoise(p + vec3(seed.x) + time * 0.3);
-//    float n2 = snoise(p + vec3(seed.y) + time * 0.3);
-//    float n3 = snoise(p + vec3(seed.z) + time * 0.3);
-//    return vec3(n1, n2, n3) * modulate(p);
-//}
-
 float phi(vec3 p)
 {
     vec3 q = p - attractor;
     return sink * (0.5 * 6.28318530718) * log(dot(q, q) + 0.001);
 }
 
-void main()
+void updateParticle(uint index)
 {
-	uint index = gl_GlobalInvocationID.x;
-
-	vec3 p = Position[index].xyz;
+    vec3 p = Position[index].xyz;
     vec2 eps = vec2(0.00005, 0.0);
 
 	float D3Dy = N3(p + eps.yxy) - N3(p - eps.yxy);
@@ -206,5 +198,25 @@ void main()
 
 	Position[index].xyz = p;
     Status[index].xyz = v;
-    Status[index].a = Status[index].a - dt;
+    Status[index].w = Status[index].w - dt;
+}
+
+void main()
+{
+	uint index = gl_GlobalInvocationID.x;
+
+    float lifetime = Status[index].w;
+    if (lifetime < 0.0)
+    {
+        // Respawn particle
+        vec4 info = SpawnInfo[index];
+        Position[index].xyz = info.xyz * 0.0001 + vec3(0.0); // position
+        Position[index].w = 1.0;
+        Status[index].xyz = vec3(0.0); // Velocity
+        Status[index].w = 10.0; // Lifetime
+    }
+    else
+    {
+        updateParticle(index);
+    }
 }

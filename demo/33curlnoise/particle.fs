@@ -15,8 +15,10 @@ void main()
 	vec3 fogColor = vec3(0.15, 0.17, 0.25);
 	outColor.rgb = mix(fogColor, outColor.rgb, fogAmount);
 
-	// Speed color grading
-	// outColor.rgb *= lifetime / 10.0;
+	// Lifetime color grading
+	if (lifetime > 10.0)
+		outColor.rg *= vec2(5.0, 3.0);
+	outColor.rgb *= max(lifetime / 10.0, 0.0);
 
 	// Alpha blending
 	// vec2 xy = 2.0 * gl_PointCoord.xy - vec2(1.0);

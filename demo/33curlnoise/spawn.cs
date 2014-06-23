@@ -101,60 +101,29 @@ vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
                                 dot(p2,x2), dot(p3,x3) ) );
 }
 
-// Description : Curl noise implementation
+// Description : Spawn buffer update
 //      Author : Simen Haugo
 //  Maintainer : ARM
 // 
 
 layout (local_size_x = 16) in;
 
-layout (std140, binding = 0) buffer PositionBuffer {
-	vec4 Position[];
+layout (std140, binding = 0) buffer SpawnBuffer {
+	vec4 SpawnInfo[];
 };
 
-layout (std140, binding = 1) buffer StatusBuffer {
-	vec4 Status[];
-};
-
-uniform float time;
-uniform float dt;
 uniform vec3 seed;
-
-float N1(vec3 p)
-{
-	return snoise(p + vec3(seed.x) + time * 0.1);
-}
-
-float N2(vec3 p)
-{
-	return snoise(p + vec3(seed.y) + time * 0.1);
-}
-
-float N3(vec3 p)
-{
-	return snoise(p + vec3(seed.z) + time * 0.1);
-}
+uniform float time;
+uniform vec3 emitter;
 
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
 
-	vec3 p = Position[index].xyz;
-    vec2 eps = vec2(0.00005, 0.0);
-
-	float D3Dy = N3(p + eps.yxy) - N3(p - eps.yxy);
-	float D2Dz = N2(p + eps.yyx) - N2(p - eps.yyx);
-	float D1Dz = N1(p + eps.yyx) - N1(p - eps.yyx);
-	float D3Dx = N3(p + eps.xyy) - N3(p - eps.xyy);
-	float D2Dx = N2(p + eps.xyy) - N2(p - eps.xyy);
-	float D1Dy = N1(p + eps.yxy) - N1(p - eps.yxy);
-
-	// Velocity = curl (potential field)
-    vec3 v = vec3(D3Dy - D2Dz, D1Dz - D3Dx, D2Dx - D1Dy); 
-    v /= 2.0 * eps.x;
-	p += 0.1 * v * dt;
-
-	Position[index].xyz = p;
-    Status[index].xyz = v;
-    Status[index].w = Status[index].w - dt;
+    vec3 p = emitter;
+    p.x += 0.1 * snoise(vec3(time, 0.0, 0.0) + seed);
+    p.y += 0.1 * snoise(vec3(0.0, time, 0.0) + seed);
+    p.z += 0.1 * snoise(vec3(0.0, 0.0, time) + seed);
+    SpawnInfo[index].xyz = p;
+    SpawnInfo[index].w = 10.0;
 }
