@@ -25,5 +25,5 @@ void main()
 	distance = length(viewPos.xyz);
 	lifetime = particleStatus.a;
 	gl_Position = projection * viewPos;
-	gl_PointSize = sizes[gl_InstanceID % 5];
+	gl_PointSize = 0.4 * sizes[gl_InstanceID % 5];
 }

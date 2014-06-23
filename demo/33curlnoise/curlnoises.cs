@@ -118,59 +118,21 @@ layout (std140, binding = 1) buffer StatusBuffer {
 
 uniform float time;
 uniform float dt;
-uniform float sink;
 uniform vec3 seed;
-uniform vec3 attractor;
-
-float ramp(float r)
-{
-    if (r >= 1.0)
-        return 1.0;
-    else if (r <= -1.0)
-        return -1.0;
-    float r2 = r * r;
-    return r * (1.875 - 1.25 * r2 + 0.375 * r2 * r * r);
-}
-
-float distanceField(vec3 p)
-{
-    return length(p - vec3(0.5, 0.0, 0.0)) - 0.5;
-}
-
-float modulate(vec3 p)
-{   
-    return 1.0 - ramp(length(p - attractor) / 2.0);
-}
 
 float N1(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.x) + time * 0.3);
+	return snoise(p + vec3(seed.x) + time * 0.1);
 }
 
 float N2(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.y) + time * 0.3);
+	return snoise(p + vec3(seed.y) + time * 0.1);
 }
 
 float N3(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.3);
-}
-
-//vec3 psi(vec3 p)
-//{
-//    // a is a smooth (in the mathematical sense) modulation factor
-//    float a = 1.0 - ramp(length(p - attractor) / 2.0);
-//    float n1 = snoise(p + vec3(seed.x) + time * 0.3);
-//    float n2 = snoise(p + vec3(seed.y) + time * 0.3);
-//    float n3 = snoise(p + vec3(seed.z) + time * 0.3);
-//    return vec3(n1, n2, n3) * modulate(p);
-//}
-
-float phi(vec3 p)
-{
-    vec3 q = p - attractor;
-    return sink * (0.5 * 6.28318530718) * log(dot(q, q) + 0.001);
+	return snoise(p + vec3(seed.z) + time * 0.1);
 }
 
 void main()
@@ -188,23 +150,11 @@ void main()
 	float D1Dy = N1(p + eps.yxy) - N1(p - eps.yxy);
 
 	// Velocity = curl (potential field)
-    vec3 v1 = vec3(D3Dy - D2Dz, D1Dz - D3Dx, D2Dx - D1Dy); 
-    v1 /= 2.0 * eps.x;
-
-    // div (potential function), note that phi 
-    // satisfies the laplace equation, which preserves the incompressibility
-    vec3 v2 = vec3(
-        phi(p + eps.xyy) - phi(p - eps.xyy), 
-        phi(p + eps.yxy) - phi(p - eps.yxy),
-        phi(p + eps.yyx) - phi(p - eps.yyx));
-    v2 /= 2.0 * eps.x;
-
-    // Superposition
-    vec3 v = 0.4 * v1 + 0.025 * v2;
-
-	p += v * dt;
+    vec3 v = vec3(D3Dy - D2Dz, D1Dz - D3Dx, D2Dx - D1Dy); 
+    v /= 2.0 * eps.x;
+	p += 0.1 * v * dt;
 
 	Position[index].xyz = p;
     Status[index].xyz = v;
-    Status[index].a = Status[index].a - dt;
+    Status[index].w = Status[index].w - dt;
 }

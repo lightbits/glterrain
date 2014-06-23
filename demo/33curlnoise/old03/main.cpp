@@ -34,14 +34,12 @@ int main(int argc, char **argv)
 		{
 			double frame_t = ctx.getElapsedTime();
 			accumulator += dt;
-			int num_updates = 0;
-			while (accumulator >= tickrate && num_updates < 3)
+			while (accumulator >= tickrate)
 			{
 				accumulator -= tickrate;
-				update(gfx, ctx, tickrate);
-				num_updates++;
 			}
 
+			update(gfx, ctx, tickrate);
 			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();

@@ -7,7 +7,7 @@ out vec4 outColor;
 
 void main()
 {
-	outColor.rgb = vec3(0.88, 0.78, 0.75);
+	outColor.rgb = vec3(0.9, 0.45, 0.33);
 	outColor.a = 1.0;
 
 	// Fog based on distance into scene

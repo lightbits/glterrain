@@ -29,19 +29,10 @@ int main(int argc, char **argv)
 		double dt = 0.0;
 		int updates_per_sec = 60;
 		double tickrate = 1.0 / updates_per_sec;
-		double accumulator = 0.0;
 		while (ctx.isOpen())
 		{
 			double frame_t = ctx.getElapsedTime();
-			accumulator += dt;
-			int num_updates = 0;
-			while (accumulator >= tickrate && num_updates < 3)
-			{
-				accumulator -= tickrate;
-				update(gfx, ctx, tickrate);
-				num_updates++;
-			}
-
+			update(gfx, ctx, dt);
 			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();
