@@ -111,19 +111,16 @@ layout (std140, binding = 0) buffer SpawnBuffer {
 	vec4 SpawnInfo[];
 };
 
-layout (std140, binding = 1) buffer PositionBuffer {
-	vec4 Position[];
-};
+uniform float time;
+uniform vec3 emitter;
 
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-    //vec3 p = emitter;
-    //p.x -= 0.5 * snoise(vec3(time, 0.0, 0.0) * 500.0 + p + vec3(index));
-    //p.y -= 0.5 * snoise(vec3(0.0, time, 0.0) * 500.0 + p + vec3(index));
-    //p.z -= 0.5 * snoise(vec3(0.0, 0.0, time) * 500.0 + p + vec3(index));
-    vec3 p = Position[index].xyz;
-    p.xz *= 0.5;
-    p.y = -2.0 + 0.2 * snoise(vec3(index) * 0.01);
-    SpawnInfo[index] = vec4(p, 30.0);
+    
+    vec3 p = emitter;
+    p.x -= 0.1 * snoise(vec3(time, 0.0, 0.0) * 2.0 + p + vec3(index));
+    p.y -= 0.1 * snoise(vec3(0.0, time, 0.0) * 2.0 + p + vec3(index));
+    p.z -= 0.1 * snoise(vec3(0.0, 0.0, time) * 2.0 + p + vec3(index));
+    SpawnInfo[index] = vec4(p, 2.0);
 }

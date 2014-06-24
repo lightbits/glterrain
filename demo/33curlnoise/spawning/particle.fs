@@ -16,7 +16,7 @@ void main()
 	outColor.rgb = mix(fogColor, outColor.rgb, fogAmount);
 
 	// Lifetime color grading
-	outColor.rgb += 0.00001 * lifetime / 3.0;
+	outColor.rgb *= lifetime / 2.0;
 
 	// Alpha blending
 	// vec2 xy = 2.0 * gl_PointCoord.xy - vec2(1.0);

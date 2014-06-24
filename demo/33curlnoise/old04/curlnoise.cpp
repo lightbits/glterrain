@@ -3,9 +3,11 @@
 using namespace transform;
 
 ShaderProgram 
-	shader_particle,
+	shader_particle, 
+	shader_color, 
 	shader_compute,
-	shader_spawn;
+	shader_spawn,
+	shader_sphere;
 BufferObject 
 	position_buffer, 
 	status_buffer,
@@ -14,11 +16,13 @@ VertexArray
 	vao;
 BufferObject 
 	sprite_buffer;
+MeshBuffer 
+	grid, 
+	plane, 
+	sphere;
 mat4 
 	mat_projection, 
 	mat_view;
-vec3
-	emitter;
 const int NUM_PARTICLES = 16 * 2500;
 const int WORK_GROUP_SIZE = 16;
 
@@ -32,11 +36,15 @@ bool loadComputeShader(ShaderProgram &shader, const string &computePath)
 bool load()
 {
 	if (!shader_particle.loadFromFile("./demo/33curlnoise/particle") ||
+		!shader_color.loadFromFile("./demo/33curlnoise/simple") ||
+		!shader_sphere.loadFromFile("./demo/33curlnoise/sphere") ||
 		!loadComputeShader(shader_compute, "./demo/33curlnoise/curlnoise.cs") ||
 		!loadComputeShader(shader_spawn, "./demo/33curlnoise/spawn.cs"))
 		return false;
 
 	if (!shader_particle.linkAndCheckStatus() ||
+		!shader_color.linkAndCheckStatus() ||
+		!shader_sphere.linkAndCheckStatus() ||
 		!shader_compute.linkAndCheckStatus() ||
 		!shader_spawn.linkAndCheckStatus())
 		return false;
@@ -60,6 +68,9 @@ void init(Renderer &gfx, Context &ctx)
 	float data[] = { 0.0f, 0.0f, 0.0f };
 	sprite_buffer.create(GL_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(data), data);
 
+	grid = MeshBuffer(Mesh::genUnitGrid(Color::fromHex(0x000000ff), 16));
+	plane = MeshBuffer(Mesh::genUnitColoredPlane(Color(0.44f, 0.40f, 0.38f)));
+
 	position_buffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_PARTICLES * sizeof(vec4), NULL);
 	status_buffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_PARTICLES * sizeof(vec4), NULL);
 	spawn_buffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_PARTICLES * sizeof(vec4), NULL);
@@ -76,8 +87,7 @@ void init(Renderer &gfx, Context &ctx)
 	int n = NUM_PARTICLES - 1;
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		vec3 p = frand() * glm::normalize(vec3(-1.0f, 0.0, -1.0f) + 2.0f * vec3(frand(), 0.0f, frand()));
-		p.y += -2.0 + 0.2 * frand();
+		vec3 p = 0.5f * frand() * glm::normalize(vec3(-1.0f) + 2.0f * vec3(frand(), frand(), frand()));
 		position[i] = vec4(p.x, p.y, p.z, 1.0f);
 	}
 
@@ -94,31 +104,30 @@ void init(Renderer &gfx, Context &ctx)
 
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		status[i] = vec4(0.0, 0.0, 0.0, 1.0);
+		status[i] = vec4(0.0, 0.0, 0.0, 10.0 + frand() * 5.0f);
 	}
 
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-	emitter = vec3(0.0, 0.0, 0.0);
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, -0.0f, -5.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
-	emitter.x = 0.1 * sin(ctx.getElapsedTime());
-	emitter.z = 0.1 * cos(ctx.getElapsedTime());
-	emitter.y = 0.1 * 0.4 * sin(ctx.getElapsedTime() * 0.5);
+	mat_view = translate(0.0f, -0.0f, -3.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
 
 	// Generate respawn info
 	gfx.beginCustomShader(shader_spawn);
+	gfx.setUniform("time", ctx.getElapsedTime());
+	gfx.setUniform("emitter", vec3(0.0, 0.0, 0.0));
+	gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	// Update particles
 	gfx.beginCustomShader(shader_compute);
+	gfx.setUniform("seed", vec3(11.0, 127.0, 3583.0));
+	gfx.setUniform("time", ctx.getElapsedTime());
 	gfx.setUniform("dt", dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, status_buffer.getHandle());
@@ -129,9 +138,21 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
-	gfx.clear(0x2a2a2aff, 1.0);
-	gfx.beginCustomShader(shader_particle);
 	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
+	gfx.setBlendState(BlendStates::Default);
+	gfx.clear(0x2a2a2aff, 1.0);
+
+	gfx.beginCustomShader(shader_color);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view * translate(0.0f, -1.0f, 0.0f));
+	gfx.setUniform("model", scale(8.0f));
+	plane.draw();
+	glLineWidth(2.0f);
+	gfx.setUniform("model", scale(4.0f));
+	grid.draw();
+
+	gfx.beginCustomShader(shader_particle);
+	//gfx.setDepthTestState(DepthTestStates::Disabled);
 	gfx.setBlendState(BlendStates::AlphaBlend);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);

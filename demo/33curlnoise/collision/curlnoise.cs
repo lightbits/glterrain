@@ -30,11 +30,6 @@ float ramp(float r)
     return r * (1.875 - 1.25 * r2 + 0.375 * r2 * r * r);
 }
 
-float sdSphere(vec3 p, float r)
-{
-    return length(p) - r;
-}
-
 void distanceField(vec3 p, out float distance, out vec3 normal)
 {
     distance = length(p - sphereCenter) - sphereRadius;

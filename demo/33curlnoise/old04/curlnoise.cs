@@ -1,5 +1,4 @@
 #version 430
-
 // Description : Array and textureless GLSL 2D/3D/4D simplex 
 //               noise functions.
 //      Author : Ian McEwan, Ashima Arts.
@@ -9,6 +8,7 @@
 //               Distributed under the MIT License. See LICENSE file.
 //               https://github.com/ashima/webgl-noise
 // 
+
 vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
@@ -101,29 +101,122 @@ vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
                                 dot(p2,x2), dot(p3,x3) ) );
 }
 
-// Description : Spawn buffer update routine
+// Description : Curl noise implementation
 //      Author : Simen Haugo
 //  Maintainer : ARM
-//
+// 
+
 layout (local_size_x = 16) in;
 
-layout (std140, binding = 0) buffer SpawnBuffer {
+layout (std140, binding = 0) buffer PositionBuffer {
+	vec4 Position[];
+};
+
+layout (std140, binding = 1) buffer StatusBuffer {
+	vec4 Status[];
+};
+
+layout (std140, binding = 1) buffer SpawnBuffer {
 	vec4 SpawnInfo[];
 };
 
-layout (std140, binding = 1) buffer PositionBuffer {
-	vec4 Position[];
-};
+uniform float time;
+uniform float dt;
+uniform float sink;
+uniform vec3 seed;
+uniform vec3 attractor;
+
+float ramp(float r)
+{
+    if (r >= 1.0)
+        return 1.0;
+    else if (r <= -1.0)
+        return -1.0;
+    float r2 = r * r;
+    return r * (1.875 - 1.25 * r2 + 0.375 * r2 * r * r);
+}
+
+float distanceField(vec3 p)
+{
+    return length(p - vec3(0.5, 0.0, 0.0)) - 0.5;
+}
+
+float modulate(vec3 p)
+{   
+    return 1.0 - ramp(length(p - attractor) / 2.0);
+}
+
+float N1(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.x) + time * 0.3);
+}
+
+float N2(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.y) + time * 0.3);
+}
+
+float N3(vec3 p)
+{
+	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.3);
+}
+
+float phi(vec3 p)
+{
+    vec3 q = p - attractor;
+    return sink * (0.5 * 6.28318530718) * log(dot(q, q) + 0.001);
+}
+
+void updateParticle(uint index)
+{
+    vec3 p = Position[index].xyz;
+    vec2 eps = vec2(0.00005, 0.0);
+
+	float D3Dy = N3(p + eps.yxy) - N3(p - eps.yxy);
+	float D2Dz = N2(p + eps.yyx) - N2(p - eps.yyx);
+	float D1Dz = N1(p + eps.yyx) - N1(p - eps.yyx);
+	float D3Dx = N3(p + eps.xyy) - N3(p - eps.xyy);
+	float D2Dx = N2(p + eps.xyy) - N2(p - eps.xyy);
+	float D1Dy = N1(p + eps.yxy) - N1(p - eps.yxy);
+
+	// Velocity = curl (potential field)
+    vec3 v1 = vec3(D3Dy - D2Dz, D1Dz - D3Dx, D2Dx - D1Dy); 
+    v1 /= 2.0 * eps.x;
+
+    // div (potential function), note that phi 
+    // satisfies the laplace equation, which preserves the incompressibility
+    vec3 v2 = vec3(
+        phi(p + eps.xyy) - phi(p - eps.xyy), 
+        phi(p + eps.yxy) - phi(p - eps.yxy),
+        phi(p + eps.yyx) - phi(p - eps.yyx));
+    v2 /= 2.0 * eps.x;
+
+    // Superposition
+    vec3 v = 0.4 * v1 + 0.025 * v2;
+
+	p += v * dt;
+
+	Position[index].xyz = p;
+    Status[index].xyz = v;
+    Status[index].w = Status[index].w - dt;
+}
 
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-    //vec3 p = emitter;
-    //p.x -= 0.5 * snoise(vec3(time, 0.0, 0.0) * 500.0 + p + vec3(index));
-    //p.y -= 0.5 * snoise(vec3(0.0, time, 0.0) * 500.0 + p + vec3(index));
-    //p.z -= 0.5 * snoise(vec3(0.0, 0.0, time) * 500.0 + p + vec3(index));
-    vec3 p = Position[index].xyz;
-    p.xz *= 0.5;
-    p.y = -2.0 + 0.2 * snoise(vec3(index) * 0.01);
-    SpawnInfo[index] = vec4(p, 30.0);
+
+    float lifetime = Status[index].w;
+    if (lifetime < 0.0)
+    {
+        // Respawn particle
+        vec4 info = SpawnInfo[index];
+        Position[index].xyz = info.xyz * 0.0001 + vec3(0.0); // position
+        Position[index].w = 1.0;
+        Status[index].xyz = vec3(0.0); // Velocity
+        Status[index].w = 10.0; // Lifetime
+    }
+    else
+    {
+        updateParticle(index);
+    }
 }

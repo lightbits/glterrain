@@ -76,8 +76,7 @@ void init(Renderer &gfx, Context &ctx)
 	int n = NUM_PARTICLES - 1;
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		vec3 p = frand() * glm::normalize(vec3(-1.0f, 0.0, -1.0f) + 2.0f * vec3(frand(), 0.0f, frand()));
-		p.y += -2.0 + 0.2 * frand();
+		vec3 p = 0.5f * frand() * glm::normalize(vec3(-1.0f) + 2.0f * vec3(frand(), frand(), frand()));
 		position[i] = vec4(p.x, p.y, p.z, 1.0f);
 	}
 
@@ -94,7 +93,7 @@ void init(Renderer &gfx, Context &ctx)
 
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		status[i] = vec4(0.0, 0.0, 0.0, 1.0);
+		status[i] = vec4(0.0, 0.0, 0.0, 1.0 + 4.0 * i / NUM_PARTICLES);
 	}
 
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -105,15 +104,16 @@ void init(Renderer &gfx, Context &ctx)
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, -0.0f, -5.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
-	emitter.x = 0.1 * sin(ctx.getElapsedTime());
-	emitter.z = 0.1 * cos(ctx.getElapsedTime());
-	emitter.y = 0.1 * 0.4 * sin(ctx.getElapsedTime() * 0.5);
+	mat_view = translate(0.0f, -0.0f, -3.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
+	emitter.x = sin(ctx.getElapsedTime());
+	emitter.z = cos(ctx.getElapsedTime());
+	emitter.y = 0.4 * sin(ctx.getElapsedTime() * 0.5);
 
 	// Generate respawn info
 	gfx.beginCustomShader(shader_spawn);
+	gfx.setUniform("emitter", emitter);
+	gfx.setUniform("time", ctx.getElapsedTime());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
