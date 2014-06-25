@@ -19,7 +19,7 @@ mat4
 	mat_view;
 vec3
 	emitter;
-const int NUM_PARTICLES = 16 * 2500;
+const int NUM_PARTICLES = 16 * 3500;
 const int WORK_GROUP_SIZE = 16;
 
 bool loadComputeShader(ShaderProgram &shader, const string &computePath)
@@ -74,10 +74,20 @@ void init(Renderer &gfx, Context &ctx)
 		GL_MAP_INVALIDATE_BUFFER_BIT); // And discard the previous content
 
 	int n = NUM_PARTICLES - 1;
+	//for (int i = 0; i < NUM_PARTICLES; ++i)
+	//{
+	//	vec3 p = frand() * glm::normalize(vec3(-1.0f, 0.0, -1.0f) + 2.0f * vec3(frand(), 0.0f, frand()));
+	//	p.y += -2.0 + 0.2 * frand();
+	//	position[i] = vec4(p.x, p.y, p.z, 1.0f);
+	//}
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		vec3 p = frand() * glm::normalize(vec3(-1.0f, 0.0, -1.0f) + 2.0f * vec3(frand(), 0.0f, frand()));
-		p.y += -2.0 + 0.2 * frand();
+		vec3 p = vec3(0.0);
+		p.x = -1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32);
+		p.y = -1.0 + 2.0 * (i / (NUM_PARTICLES / 8)) / 8.0;
+		p.z = frand();
+		//vec3 p = frand() * glm::normalize(vec3(-1.0f, 0.0, -1.0f) + 2.0f * vec3(frand(), 0.0f, frand()));
+		//p.y += 0.2 * frand();
 		position[i] = vec4(p.x, p.y, p.z, 1.0f);
 	}
 
@@ -105,33 +115,33 @@ void init(Renderer &gfx, Context &ctx)
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, -0.0f, -5.0f) * rotateX(-0.35f) * rotateY(sin(PI / 2.0f));
+	mat_view = translate(0.0f, -0.0f, -3.0f) * rotateX(0.5 * sin(ctx.getElapsedTime() * 0.4f)) * rotateY(sin(PI / 2.0f));
 	emitter.x = 0.1 * sin(ctx.getElapsedTime());
 	emitter.z = 0.1 * cos(ctx.getElapsedTime());
 	emitter.y = 0.1 * 0.4 * sin(ctx.getElapsedTime() * 0.5);
 
-	// Generate respawn info
-	gfx.beginCustomShader(shader_spawn);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
-	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//// Generate respawn info
+	//gfx.beginCustomShader(shader_spawn);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
+	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	// Update particles
-	gfx.beginCustomShader(shader_compute);
-	gfx.setUniform("dt", dt);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, status_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, spawn_buffer.getHandle());
-	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//// Update particles
+	//gfx.beginCustomShader(shader_compute);
+	//gfx.setUniform("dt", dt);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, status_buffer.getHandle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, spawn_buffer.getHandle());
+	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
 	gfx.clear(0x2a2a2aff, 1.0);
 	gfx.beginCustomShader(shader_particle);
-	gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
+	//gfx.setDepthTestState(DepthTestStates::LessThanOrEqual);
 	gfx.setBlendState(BlendStates::AlphaBlend);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);

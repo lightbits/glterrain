@@ -19,7 +19,7 @@ void main()
 	outColor.rgb += 0.00001 * lifetime / 3.0;
 
 	// Alpha blending
-	// vec2 xy = 2.0 * gl_PointCoord.xy - vec2(1.0);
-	// float r = xy.x * xy.x + xy.y * xy.y;
-	// outColor.a = exp(-r * 1.5);
+	vec2 xy = 2.0 * gl_PointCoord.xy - vec2(1.0);
+	float r = xy.x * xy.x + xy.y * xy.y;
+	outColor.a = exp(-r * 3.5);
 }
