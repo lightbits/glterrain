@@ -3,7 +3,7 @@
 layout (local_size_x = 1) in;
 
 layout (binding = 0) buffer KeyBuffer {
-	ivec2 indexKey[];
+	int key[];
 };
 
 uniform int offset;
@@ -11,11 +11,11 @@ uniform int offset;
 void main()
 {
 	uint index = gl_GlobalInvocationID.x * 2 + offset;
-    ivec2 curr = indexKey[index];
-    ivec2 prev = indexKey[index - 1];
-    if (curr.y < prev.y)
+    int curr = key[index];
+    int prev = key[index - 1];
+    if (curr < prev)
     {
-        indexKey[index - 1] = curr;
-        indexKey[index] = prev;
+        key[index - 1] = curr;
+        key[index] = prev;
     }
 }

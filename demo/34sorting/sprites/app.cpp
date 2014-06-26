@@ -64,14 +64,12 @@ void initParticles(Renderer &gfx, Context &ctx)
 		NUM_SPRITES * sizeof(vec2i),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	std::cout << "random: ";
-	//int seq[NUM_SPRITES] = { 27, 49, 84, 91, 17, 32, 53, 63 };
 	for (int i = 0; i < NUM_SPRITES; ++i)
 	{
 		float z = position[i].z;
 		int key = int(65535 * (z + 1.0) / (1.0 + 1.0));
 		keys[i] = vec2i(i, key);
-		//keys[i] = vec2i(i, seq[i]);
-		std::cout << keys[i].y << " ";
+		//std::cout << keys[i].y << " ";
 	}
 	std::cout << std::endl;
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -111,16 +109,6 @@ void writebackPosition(Renderer &gfx, Context &ctx)
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
-//vector<int> merge(vector<int> a)
-//{
-//	if (a.size() > 2)
-//	{
-//		
-//	}
-//	vector<int> b;
-//
-//}
-
 void init(Renderer &gfx, Context &ctx)
 {
 	vao.create();
@@ -137,10 +125,9 @@ void init(Renderer &gfx, Context &ctx)
 	// Read back the values to console (for convenience)
 	buffer_keys.bind();
 	vec2i *result = (vec2i*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_SPRITES * sizeof(vec2i), GL_MAP_READ_BIT);
-	std::cout << "\nsorted: ";
-	for (int i = 0; i < NUM_SPRITES; ++i)
-		std::cout << result[i].y << " ";
-	std::cout << std::endl;
+	//std::cout << "\nsorted: ";
+	//for (int i = 0; i < NUM_SPRITES; ++i)
+	//	std::cout << result[i].y << " ";
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
 	float quad[] = {
