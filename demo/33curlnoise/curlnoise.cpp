@@ -115,7 +115,7 @@ void init(Renderer &gfx, Context &ctx)
 
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, -0.0f, -3.0f) * rotateX(0.5 * sin(ctx.getElapsedTime() * 0.4f)) * rotateY(sin(PI / 2.0f));
+	mat_view = translate(0.0f, -0.0f, -3.0f) * rotateX(0.5 * sin(ctx.getElapsedTime() * 0.8f)) * rotateY(sin(PI / 2.0f));
 	emitter.x = 0.1 * sin(ctx.getElapsedTime());
 	emitter.z = 0.1 * cos(ctx.getElapsedTime());
 	emitter.y = 0.1 * 0.4 * sin(ctx.getElapsedTime() * 0.5);

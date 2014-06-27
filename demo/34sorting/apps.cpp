@@ -64,47 +64,25 @@ key = int((z - zMin) / (zMax - zMin)).
 void sort(Renderer &gfx, Context &ctx)
 {
 	gfx.beginCustomShader(shader_sort);
-	for (int i = 0; i < NUM_SPRITES; ++i)
-	{
-		gfx.setUniform("offset", i % 2);
-		gfx.setUniform("zMin", -1.0f);
-		gfx.setUniform("zMax", 1.0f);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_pos.getHandle());
-		glDispatchCompute(NUM_SPRITES / 2, 1, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	}
-}
-
-void computestep(int *data_in, int *data_out, int i, int pstage, int ppass)
-{
-	int j = i % (pstage * 2);
-	int compare;
-	if (j < ppass % pstage || j > 2 * pstage - (ppass % pstage) - 1)
-	{
-		compare = 0;
-	}
-	else
-	{
-		if (((j + (ppass % pstage) / ppass) % 2) < 1)
-			compare = 1;
-		else
-			compare = -1;
-	}
-
-	int otherIndex = i + compare * ppass;
-	int otherKey = data_in[otherIndex];
-	int thisKey = data_in[i];
-
-	data_out[i] = thisKey * compare < otherKey * compare ? thisKey : otherKey;
-}
-
-void mergesort()
-{
 	const int NUM_ELEMENTS = 8;
-	int data[NUM_ELEMENTS] = { 0, 5, 9, 8, 2, 4, 1, 6 };
-	int sorted[NUM_ELEMENTS];
-	int *data_ping = data;
-	int *data_pong = sorted;
+	const int LOCAL_GROUP_SIZE = 1;
+	const int NUM_WORK_GROUPS = NUM_ELEMENTS / LOCAL_GROUP_SIZE;
+	//float *data = new float[NUM_ELEMENTS];
+	float data[NUM_ELEMENTS] = { 0, 5, 4, 6, 2, 4, 3, 1 };
+	std::cout << "random: ";
+	for (int i = 0; i < NUM_ELEMENTS; ++i)
+	{
+		std::cout << data[i] << " ";
+	}
+	std::cout << '\n';
+	BufferObject dataInBuffer;
+	BufferObject dataOutBuffer;
+	dataInBuffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_ELEMENTS * sizeof(float), data);
+	dataOutBuffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_ELEMENTS * sizeof(float), NULL);
+	GLuint ping = dataInBuffer.getHandle();
+	GLuint pong = dataOutBuffer.getHandle();
+	//delete[] data;
+
 	int stage = 0;
 	int pass = 0;
 	while (stage < 3)
@@ -116,21 +94,24 @@ void mergesort()
 			pass = stage;
 		}
 
-		for (int i = 0; i < NUM_ELEMENTS; ++i)
-		{
-			computestep(data_ping, data_pong, i, 1 << stage, 1 << pass);
-		}
+		gfx.setUniform("pstage", 1 << stage);
+		gfx.setUniform("ppass", 1 << pass);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ping);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pong);
+		glDispatchCompute(NUM_WORK_GROUPS, 1, 1);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-		int *temp = data_ping;
-		data_ping = data_pong;
-		data_pong = temp;
+		GLuint temp = ping;
+		ping = pong;
+		pong = temp;
 	}
 
-
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, pong);
+	float *sorted = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_ELEMENTS * sizeof(float), GL_MAP_READ_BIT);
 
 	std::cout << "sorted: ";
 	for (int i = 0; i < NUM_ELEMENTS; ++i)
-		std::cout << data_pong[i] << " ";
+		std::cout << sorted[i] << " ";
 	std::cout << '\n';
 }
 
@@ -139,12 +120,9 @@ void init(Renderer &gfx, Context &ctx)
 	vao.create();
 	vao.bind();
 
-	mergesort();
-
 	buffer_pos.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_SPRITES * sizeof(vec4), NULL);
 
-	//initParticles(gfx, ctx);
-	//sort(gfx, ctx);
+	initParticles(gfx, ctx);
 
 	float quad[] = {
 		-1.0f, -1.0f, 0.0f,
@@ -165,14 +143,14 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		sorted = true;
 		sort(gfx, ctx);
 
-		// Read back the values to console (for convenience)
-		buffer_pos.bind();
-		vec4 *result = (vec4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_SPRITES * sizeof(vec4), GL_MAP_READ_BIT);
-		std::cout << "\nsorted: ";
-		for (int i = 0; i < NUM_SPRITES; ++i)
-			std::cout << result[i].z << " ";
-		std::cout << std::endl;
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		//// Read back the values to console (for convenience)
+		//buffer_pos.bind();
+		//vec4 *result = (vec4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_SPRITES * sizeof(vec4), GL_MAP_READ_BIT);
+		//std::cout << "\nsorted: ";
+		//for (int i = 0; i < NUM_SPRITES; ++i)
+		//	std::cout << result[i].z << " ";
+		//std::cout << std::endl;
+		//glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 	}
 }
 

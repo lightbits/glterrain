@@ -16,8 +16,8 @@ void main()
     vec4 curr = position[index];
     vec4 prev = position[max(index - 1, 0)];
 
-    int currKey = int(65535 * (curr.z - zMin) / (zMax - zMin));
-    int prevKey = int(65535 * (prev.z - zMin) / (zMax - zMin));
+    float currKey = int(65535 * (curr.z - zMin) / (zMax - zMin));
+    float prevKey = int(65535 * (prev.z - zMin) / (zMax - zMin));
     if (currKey < prevKey)
     {
         position[max(index - 1, 0)] = curr;

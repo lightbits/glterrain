@@ -20,7 +20,7 @@ bool loadComputeShader(ShaderProgram &shader, const string &computePath)
 
 bool load()
 {
-	if (!loadComputeShader(shader_sort, "./demo/34sorting/oddevenmerge.cs") ||
+	if (!loadComputeShader(shader_sort, "./demo/34sorting/oddeven.cs") ||
 		!shader_sprite.loadFromFile("./demo/34sorting/sprite"))
 		return false;
 
@@ -58,8 +58,9 @@ void initParticles(Renderer &gfx, Context &ctx)
 
 /*
 The sorting shader takes the position buffer as input, and sorts the buffer
-in order of increasing z-value. The z-value is converted, in shader, to an integer by
-key = int((z - zMin) / (zMax - zMin)).
+in order of increasing z-value. The z-value is converted, in shader, to an integer
+as following:
+	key = int((z - zMin) / (zMax - zMin))
 */
 void sort(Renderer &gfx, Context &ctx)
 {
@@ -75,75 +76,24 @@ void sort(Renderer &gfx, Context &ctx)
 	}
 }
 
-void computestep(int *data_in, int *data_out, int i, int pstage, int ppass)
-{
-	int j = i % (pstage * 2);
-	int compare;
-	if (j < ppass % pstage || j > 2 * pstage - (ppass % pstage) - 1)
-	{
-		compare = 0;
-	}
-	else
-	{
-		if (((j + (ppass % pstage) / ppass) % 2) < 1)
-			compare = 1;
-		else
-			compare = -1;
-	}
-
-	int otherIndex = i + compare * ppass;
-	int otherKey = data_in[otherIndex];
-	int thisKey = data_in[i];
-
-	data_out[i] = thisKey * compare < otherKey * compare ? thisKey : otherKey;
-}
-
-void mergesort()
-{
-	const int NUM_ELEMENTS = 8;
-	int data[NUM_ELEMENTS] = { 0, 5, 9, 8, 2, 4, 1, 6 };
-	int sorted[NUM_ELEMENTS];
-	int *data_ping = data;
-	int *data_pong = sorted;
-	int stage = 0;
-	int pass = 0;
-	while (stage < 3)
-	{
-		pass--;
-		if (pass < 0)
-		{
-			stage++;
-			pass = stage;
-		}
-
-		for (int i = 0; i < NUM_ELEMENTS; ++i)
-		{
-			computestep(data_ping, data_pong, i, 1 << stage, 1 << pass);
-		}
-
-		int *temp = data_ping;
-		data_ping = data_pong;
-		data_pong = temp;
-	}
-
-
-
-	std::cout << "sorted: ";
-	for (int i = 0; i < NUM_ELEMENTS; ++i)
-		std::cout << data_pong[i] << " ";
-	std::cout << '\n';
-}
+//vector<int> merge(vector<int> a)
+//{
+//	if (a.size() > 2)
+//	{
+//		
+//	}
+//	vector<int> b;
+//
+//}
 
 void init(Renderer &gfx, Context &ctx)
 {
 	vao.create();
 	vao.bind();
 
-	mergesort();
-
 	buffer_pos.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_SPRITES * sizeof(vec4), NULL);
 
-	//initParticles(gfx, ctx);
+	initParticles(gfx, ctx);
 	//sort(gfx, ctx);
 
 	float quad[] = {
