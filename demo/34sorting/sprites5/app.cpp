@@ -1,5 +1,4 @@
 #include "app.h"
-#include "sort.h"
 #include <common/noise.h>
 using namespace transform;
 
@@ -72,9 +71,9 @@ void sort(Renderer &gfx, Context &ctx)
 	gfx.beginCustomShader(shader_sort);
 	for (int i = 0; i < num_passes; ++i)
 	{
-		gfx.setUniform("offset", i * NUM_SPRITES / 2);
-		//gfx.setUniform("zMin", -1.0f);
-		//gfx.setUniform("zMax", 1.0f);
+		gfx.setUniform("offset", i % 2);
+		gfx.setUniform("zMin", -1.0f);
+		gfx.setUniform("zMax", 1.0f);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_pos.getHandle());
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffer_indices.getHandle());
 		glDispatchCompute(NUM_SPRITES / 2, 1, 1);
@@ -82,7 +81,35 @@ void sort(Renderer &gfx, Context &ctx)
 	}
 }
 
+void merge(int lo, int hi, int r, int n, int stage, int index, vector< vector<vec2i> > &indices)
+{
+	int step = 2 * r;
+	int buffer_index = stage * (stage + 1) / 2 + index;
+	if (n > 2)
+	{
+		merge(lo, hi, step, n / 2, stage, index - 1, indices);
+		merge(lo + r, hi, step, n / 2, stage, index - 1, indices);
+		for (int i = lo + r; i < hi - r; i += step)
+		{
+			indices[buffer_index].push_back(vec2i(i, i + r));
+		}
+	}
+	else
+	{
+		indices[buffer_index].push_back(vec2i(lo, lo + r));
+	}
+}
 
+void mergesort(int lo, int hi, int stage, vector< vector<vec2i> > &indices)
+{
+	if (hi - lo > 1)
+	{
+		int mid = lo + (hi - lo) / 2;
+		mergesort(lo, mid, stage - 1, indices);
+		mergesort(mid, hi, stage - 1, indices);
+		merge(lo, hi, 1, hi - lo, stage, stage, indices);
+	}
+}
 
 void init(Renderer &gfx, Context &ctx)
 {
@@ -92,40 +119,36 @@ void init(Renderer &gfx, Context &ctx)
 	buffer_pos.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_SPRITES * sizeof(vec4), NULL);
 
 	// Generate a buffer containing the indices of elements to be compare-swap'ed
-	vector< vector<vec2i> > indices = sort_generate_indices(NUM_SPRITES);
+	int num_stages = int(glm::log2((float)NUM_SPRITES));
+	int num_passes = num_stages * (num_stages + 1) / 2;
+	vector< vector<vec2i> > indices(num_passes);
+	mergesort(0, NUM_SPRITES, num_stages - 1, indices);
 
 	// This is more indices than we actually end up with
 	// But we do some padding to take use of larger local group size
-	int num_stages = int(glm::log2((float)NUM_SPRITES));
-	int num_passes = num_stages * (num_stages + 1) / 2;
 	int num_indices = num_passes * (NUM_SPRITES / 2);
 
-	vec4 *index_buffer = new vec4[num_indices];
-	vec4 *index = index_buffer;
+	vec2i *index_buffer = new vec2i[num_indices];
+	vec2i *index = index_buffer;
 	for (int i = 0; i < num_passes; ++i)
 	{
 		int j = 0;
 		while (j < indices[i].size())
 		{
-			*(index++) = vec4(indices[i][j], 0, 0);
+			*(index++) = indices[i][j];
 			j++;
 		}
 
 		while (j < NUM_SPRITES / 2)
 		{
-			*(index++) = vec4(0, 0, 0, 0);
+			*(index++) = vec2i(0, 0);
 			j++;
 		}	
 	}
-	buffer_indices.create(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, num_indices * sizeof(vec4), index_buffer);
-
-	for (int i = 0; i < num_indices; ++i)
-	{
-		std::cout << index_buffer[i].x << ", " << index_buffer[i].y << std::endl;
-	}
+	buffer_indices.create(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, num_indices * sizeof(vec2i), index_buffer);
 
 	initParticles(gfx, ctx);
-	//sort(gfx, ctx);
+	sort(gfx, ctx);
 
 	float quad[] = {
 		-1.0f, -1.0f, 0.0f,

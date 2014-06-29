@@ -154,5 +154,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	status_buffer.bind(GL_ARRAY_BUFFER);
 	gfx.setAttributefv("particleStatus", 4, 0, 0);
 	gfx.setAttributeDivisor("particleStatus", 1);
+	//glPointSize(15.0f);
 	glDrawArraysInstancedBaseInstance(GL_POINTS, 0, 1, NUM_PARTICLES, 0);
 }

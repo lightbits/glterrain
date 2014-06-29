@@ -1,16 +1,12 @@
 #include "app.h"
-#include "sort.h"
 #include <common/noise.h>
 using namespace transform;
 
-ShaderProgram 
-	shader_sort, 
-	shader_sprite;
+ShaderProgram shader_sort, shader_sprite;
 VertexArray vao;
 BufferObject 
 	buffer_quad,
-	buffer_pos,
-	buffer_indices;
+	buffer_pos;
 const int LOCAL_SIZE = 1;
 const int NUM_SPRITES = 8;
 const int NUM_GROUPS = NUM_SPRITES / LOCAL_SIZE;
@@ -67,22 +63,57 @@ key = int((z - zMin) / (zMax - zMin)).
 */
 void sort(Renderer &gfx, Context &ctx)
 {
-	int num_stages = int(glm::log2((float)NUM_SPRITES));
-	int num_passes = num_stages * (num_stages + 1) / 2;
 	gfx.beginCustomShader(shader_sort);
-	for (int i = 0; i < num_passes; ++i)
+	const int NUM_ELEMENTS = 8;
+	const int LOCAL_GROUP_SIZE = 1;
+	const int NUM_WORK_GROUPS = NUM_ELEMENTS / LOCAL_GROUP_SIZE;
+	//float *data = new float[NUM_ELEMENTS];
+	float data[NUM_ELEMENTS] = { 0, 5, 4, 6, 2, 4, 3, 1 };
+	std::cout << "random: ";
+	for (int i = 0; i < NUM_ELEMENTS; ++i)
 	{
-		gfx.setUniform("offset", i * NUM_SPRITES / 2);
-		//gfx.setUniform("zMin", -1.0f);
-		//gfx.setUniform("zMax", 1.0f);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_pos.getHandle());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffer_indices.getHandle());
-		glDispatchCompute(NUM_SPRITES / 2, 1, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		std::cout << data[i] << " ";
 	}
+	std::cout << '\n';
+	BufferObject dataInBuffer;
+	BufferObject dataOutBuffer;
+	dataInBuffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_ELEMENTS * sizeof(float), data);
+	dataOutBuffer.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_ELEMENTS * sizeof(float), NULL);
+	GLuint ping = dataInBuffer.getHandle();
+	GLuint pong = dataOutBuffer.getHandle();
+	//delete[] data;
+
+	int stage = 0;
+	int pass = 0;
+	while (stage < 3)
+	{
+		pass--;
+		if (pass < 0)
+		{
+			stage++;
+			pass = stage;
+		}
+
+		gfx.setUniform("pstage", 1 << stage);
+		gfx.setUniform("ppass", 1 << pass);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ping);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, pong);
+		glDispatchCompute(NUM_WORK_GROUPS, 1, 1);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+		GLuint temp = ping;
+		ping = pong;
+		pong = temp;
+	}
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, pong);
+	float *sorted = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_ELEMENTS * sizeof(float), GL_MAP_READ_BIT);
+
+	std::cout << "sorted: ";
+	for (int i = 0; i < NUM_ELEMENTS; ++i)
+		std::cout << sorted[i] << " ";
+	std::cout << '\n';
 }
-
-
 
 void init(Renderer &gfx, Context &ctx)
 {
@@ -91,41 +122,7 @@ void init(Renderer &gfx, Context &ctx)
 
 	buffer_pos.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, NUM_SPRITES * sizeof(vec4), NULL);
 
-	// Generate a buffer containing the indices of elements to be compare-swap'ed
-	vector< vector<vec2i> > indices = sort_generate_indices(NUM_SPRITES);
-
-	// This is more indices than we actually end up with
-	// But we do some padding to take use of larger local group size
-	int num_stages = int(glm::log2((float)NUM_SPRITES));
-	int num_passes = num_stages * (num_stages + 1) / 2;
-	int num_indices = num_passes * (NUM_SPRITES / 2);
-
-	vec4 *index_buffer = new vec4[num_indices];
-	vec4 *index = index_buffer;
-	for (int i = 0; i < num_passes; ++i)
-	{
-		int j = 0;
-		while (j < indices[i].size())
-		{
-			*(index++) = vec4(indices[i][j], 0, 0);
-			j++;
-		}
-
-		while (j < NUM_SPRITES / 2)
-		{
-			*(index++) = vec4(0, 0, 0, 0);
-			j++;
-		}	
-	}
-	buffer_indices.create(GL_SHADER_STORAGE_BUFFER, GL_STATIC_DRAW, num_indices * sizeof(vec4), index_buffer);
-
-	for (int i = 0; i < num_indices; ++i)
-	{
-		std::cout << index_buffer[i].x << ", " << index_buffer[i].y << std::endl;
-	}
-
 	initParticles(gfx, ctx);
-	//sort(gfx, ctx);
 
 	float quad[] = {
 		-1.0f, -1.0f, 0.0f,
@@ -146,14 +143,14 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		sorted = true;
 		sort(gfx, ctx);
 
-		// Read back the values to console (for convenience)
-		buffer_pos.bind();
-		vec4 *result = (vec4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_SPRITES * sizeof(vec4), GL_MAP_READ_BIT);
-		std::cout << "\nsorted: ";
-		for (int i = 0; i < NUM_SPRITES; ++i)
-			std::cout << result[i].z << " ";
-		std::cout << std::endl;
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		//// Read back the values to console (for convenience)
+		//buffer_pos.bind();
+		//vec4 *result = (vec4*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, NUM_SPRITES * sizeof(vec4), GL_MAP_READ_BIT);
+		//std::cout << "\nsorted: ";
+		//for (int i = 0; i < NUM_SPRITES; ++i)
+		//	std::cout << result[i].z << " ";
+		//std::cout << std::endl;
+		//glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 	}
 }
 

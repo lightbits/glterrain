@@ -2,37 +2,24 @@
 
 layout (local_size_x = 1) in;
 
-layout (binding = 0) buffer DataInBuffer {
-	float dataIn[];
+layout (std140, binding = 0) buffer DataBuffer {
+	vec4 Data[];
 };
 
-layout (binding = 1) buffer DataOutBuffer {
-	float dataOut[];
+layout (std140, binding = 1) buffer ComparisonIndexBuffer {
+	vec4 ComparisonIndices[];
 };
 
-uniform int pstage;
-uniform int ppass;
+uniform int offset;
 
 void main()
 {
-    int i = int(gl_GlobalInvocationID.x);
-	int j = int(mod(i, pstage * 2));
-	float compare;
-	if (j < mod(ppass, pstage) || j > 2 * pstage - mod(ppass, pstage) - 1)
+	ivec2 indices = ivec2(ComparisonIndices[gl_GlobalInvocationID.x + offset].xy);
+	vec4 lhs = Data[indices.x];
+	vec4 rhs = Data[indices.y];
+	if (rhs.z < lhs.z)
 	{
-		compare = 0.0;
+		Data[indices.x] = rhs;
+		Data[indices.y] = lhs;
 	}
-	else
-	{
-		if (mod((j + mod(ppass, pstage)) / ppass, 2.0) < 1.0)
-			compare = 1.0;
-		else
-			compare = -1.0;
-	}
-
-	int otherIndex = int(i + compare * ppass);
-	float otherKey = dataIn[otherIndex];
-	float thisKey = dataIn[i];
-
-	dataOut[i] = thisKey * compare < otherKey * compare ? thisKey : otherKey;
 }
