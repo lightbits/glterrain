@@ -18,7 +18,11 @@ typedef glm::vec2 vec2;
 typedef glm::vec3 vec3;
 typedef glm::vec4 vec4;
 
+typedef glm::ivec4 vec4i; // Signed integer
+typedef glm::ivec3 vec3i; // Signed integer
 typedef glm::ivec2 vec2i; // Signed integer
+typedef glm::uvec4 vec4u; // Unsigned integer
+typedef glm::uvec3 vec3u; // Unsigned integer
 typedef glm::uvec2 vec2u; // Unsigned integer
 
 typedef glm::quat quat;

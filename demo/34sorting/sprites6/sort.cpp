@@ -33,7 +33,7 @@ void mergesort(int lo, int hi, int stage, vector< vector<vec2i> > &indices)
 BufferObject gen_swapindex_buffer(int n)
 {
 	// Generate the indices
-	int num_stages = glm::round(glm::log2((float)n));
+	int num_stages = int(glm::log2((float)n));
 	int num_passes = num_stages * (num_stages + 1) / 2;
 	int num_indices = num_passes * n / 2;
 	vector< vector<vec2i> > indices(num_passes);

@@ -3,7 +3,7 @@
 //  Maintainer : ARM
 
 #version 430
-layout (local_size_x = 32) in;
+layout (local_size_x = 16) in;
 layout (std140, binding = 0) buffer PositionBuffer {
 	vec4 Position[];
 };
@@ -59,7 +59,7 @@ void main()
 {
 	uint index = gl_GlobalInvocationID.x;
     float lifetime = Status[index].w;
-    if (Position[index].y > 4.0)
+    if (Position[index].y > 1.0)
     {
         // Respawn particle
         vec4 info = SpawnInfo[index]; // x, y, z, lifetime
