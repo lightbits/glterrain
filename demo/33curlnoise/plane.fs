@@ -1,8 +1,8 @@
-#version 430
+#version 140
 
-in float vDistToCamera;
 in vec3 vPosition;
 in vec3 vNormal;
+in float dist;
 
 out vec4 outColor;
 
@@ -34,10 +34,7 @@ void main()
 {
 	vec3 N = normalize(vNormal);
 	outColor.rgb = lighting(N, color, lightColor, lightPos, vPosition);
-	outColor.rgb += sun(N, color, ambientColor, vec3(1.0, 0.8, 0.4) * 0.4, normalize(vec3(0.5, 1.0, 1.0)));
-
-	float fogAmount = exp(-vDistToCamera * 0.3 + 1.0);
-	outColor.rgb *= fogAmount;
+	outColor.rgb += sun(N, color, ambientColor, vec3(0.9, 0.92, 1.0) * 0.4, normalize(vec3(0.5, 1.0, 1.0)));
 	outColor.a = 1.0;
 
 	// shadow from particles

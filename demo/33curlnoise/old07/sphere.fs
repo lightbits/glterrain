@@ -10,9 +10,6 @@ uniform vec3 color;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform vec3 ambientColor;
-uniform mat4 projectionLight;
-uniform mat4 viewLight;
-uniform sampler2D shadowmap;
 
 vec3 lighting(vec3 N, vec3 D, vec3 Ld, vec3 Lp, vec3 P)
 {
@@ -39,12 +36,6 @@ void main()
 	float fogAmount = exp(-vDistToCamera * 0.3 + 1.0);
 	outColor.rgb *= fogAmount;
 	outColor.a = 1.0;
-
-	// shadow from particles
-	vec4 posFromLight = projectionLight * viewLight * vec4(vPosition, 1.0);
-	vec2 shadowTexel = posFromLight.xy * 0.5 + vec2(0.5);
-	float shadow = texture(shadowmap, shadowTexel).a;
-	outColor.rgb *= (1.0 - shadow);
 
 	// gamma correction
 	outColor.rgb = pow(outColor.rgb, vec3(1.0 / 2.2));

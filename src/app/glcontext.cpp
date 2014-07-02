@@ -25,6 +25,10 @@ bool GLContext::create(const VideoMode &mode, const char *title, bool decorated,
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, mode.FsaaSamples > 0 ? 1 : 0);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, mode.FsaaSamples);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
 	int x = centered ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED;
 	int y = centered ? SDL_WINDOWPOS_CENTERED : SDL_WINDOWPOS_UNDEFINED;
@@ -74,19 +78,25 @@ std::string GLContext::getDebugInfo() const
 	int depth_bits;
 	int stencil_bits;
 	int fsaa_samples;
+	int red_size, green_size, blue_size, alpha_size;
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &context_flags);
 	SDL_GL_GetAttribute(SDL_GL_ACCELERATED_VISUAL, &accelerated);
 	SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &double_buffer);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &depth_bits);
 	SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits);
 	SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &fsaa_samples);
-	ss << "Debug context: "	 << (context_flags & SDL_GL_CONTEXT_DEBUG_FLAG ? "yes" : "no") << std::endl;
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &red_size);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &green_size);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &blue_size);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &alpha_size);
+	ss << "Debug context: " << (context_flags & SDL_GL_CONTEXT_DEBUG_FLAG ? "yes" : "no") << std::endl;
 	ss << "HW accelerated: " << (accelerated ? "yes" : "no") << std::endl;
 	ss << "Doublebuffered: " << (double_buffer ? "yes" : "no") << std::endl;
 	ss << "Depth bits: "     << depth_bits << std::endl;
 	ss << "Stencil bits: "   << stencil_bits << std::endl;
 	ss << "FSAA samples: "   << fsaa_samples << std::endl;
-	ss << "Vendor: "         << glGetString(GL_VENDOR) << std::endl;
+	ss << "RGBA bits: " << red_size << " " << green_size << " " << blue_size << " " << alpha_size << std::endl;
+	ss << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
 	ss << "Renderer: "       << glGetString(GL_RENDERER) << std::endl;
 	ss << "GL ver.: "        << glGetString(GL_VERSION) << std::endl;
 	ss << "GLSL ver.: "	     << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 			double frame_t = ctx.getElapsedTime();
 			accumulator += dt;
 			int num_updates = 0;
-			while (accumulator >= tickrate && num_updates < 1)
+			while (accumulator >= tickrate && num_updates < 3)
 			{
 				accumulator -= tickrate;
 				update(gfx, ctx, tickrate);

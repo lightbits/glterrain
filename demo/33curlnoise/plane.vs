@@ -1,19 +1,21 @@
-#version 430
-in vec3 position;
+#version 140
 
-out vec3 vNormal;
+in vec3 position;
+in vec3 normal;
+
 out vec3 vPosition;
-out float vDistToCamera;
+out vec3 vNormal;
+out float dist;
 
 uniform mat4 projection;
-uniform mat4 view;
 uniform mat4 model;
+uniform mat4 view;
 
 void main()
-{
+{	
 	vPosition = (model * vec4(position, 1.0)).xyz;
+	vNormal = (model * vec4(normal, 0.0)).xyz;
 	vec4 viewPos = view * vec4(vPosition, 1.0);
-	vDistToCamera = length(viewPos);
-	vNormal = (model * vec4(position, 0.0)).xyz;
+	dist = length(viewPos.xyz);
 	gl_Position = projection * viewPos;
 }
