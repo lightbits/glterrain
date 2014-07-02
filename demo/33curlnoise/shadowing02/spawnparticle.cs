@@ -40,19 +40,19 @@ void main()
 	vec3 p;
 
     // Random offset
-	float seed = float(index) * 100.0 * time;
-    p.x = snoise(seed);
-    p.z = snoise(seed + 13.0);
-    p.y = snoise(seed + 127.0);
+    p.x = snoise((float(index) * 100.0 * time));
+    p.z = snoise((float(index) * 100.0 * time) + 13.0);
+    p.y = snoise((float(index) * 100.0 * time) + 127.0);
 
     // Normalize to get sphere distribution
-	p = (0.06 + 0.04 * snoise(seed + 491.0)) * normalize(p);
+    p = (0.06 + 0.04 * snoise(time * 2.0)) * normalize(p);
+	//p = (0.06 + 0.04 * snoise(float(index) * 0.001 * time * 2.0)) * normalize(p);
 
     // Particle respawns at emitter
     p += emitterPos;
 
     // New lifetime with slight variation
-    float newLifetime = (1.0 + 0.25 * snoise(seed)) * particleLifetime;
+    float newLifetime = (1.0 + 0.25 * snoise(index)) * particleLifetime;
 
     SpawnInfo[index] = vec4(p, newLifetime);
 }

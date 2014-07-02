@@ -134,7 +134,7 @@ float ramp(float r)
 
 float modulate(vec3 p)
 {   
-    return 1.0 - 0.8 * ramp(length(p - emitterPos) / regionLength);
+    return 1.0 - ramp(length(p) / regionLength);
 }
 
 float N1(vec3 p)
@@ -210,10 +210,10 @@ void main()
         v2 /= 2.0 * eps.x;
 
         // We introduce turbulence after the particle has lived for a while
-        float a1 = 1.0 - 0.8 * linramp(lifetime / particleLifetime);
+        float a1 = 1.0 - linramp(lifetime / particleLifetime);
 
         float a2 = 1.0 - ramp(length(p - spherePos) / regionLength);
-        vec3 v = 0.6 * a1 * v1 + 0.2 * a2 * v2;
+        vec3 v = 0.6 * a1 * v1 + 0.002 * a2 * v2;
         p += v * dt;
         Position[index] = vec4(p, status.w - dt);
     }

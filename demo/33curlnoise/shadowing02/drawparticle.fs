@@ -43,9 +43,9 @@ void main()
 	// r *= r;
 	outColor.a = exp(-r * 3.5);
 
-	// Smooth alphablending into and out of existence
-	float s = linramp(lifetime / particleLifetime);
-	outColor.a *= pow(1.0 - s, 0.25) * s;
+	// Lifetime color grading
+	float s = linramp(lifetime / 1.5);
+	outColor.a *= s;
 
 	// Required for front-to-back alpha blending
 	outColor.rgb *= outColor.a;

@@ -102,13 +102,13 @@ void initParticles(Renderer &gfx, Context &ctx)
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
 		vec3 p;
-		//p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		//p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
-		//p.z = 0.5 * (-1.0 + 2.0 * frand());
-		p.x = (-1.0 + 2.0 * frand());
-		p.y = (-1.0 + 2.0 * frand());
-		p.z = (-1.0 + 2.0 * frand());
-		p = 0.3f * frand() * glm::normalize(p);
+		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
+		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
+		p.z = 0.5 * (-1.0 + 2.0 * frand());
+		//p.x = 0.3 * (-1.0 + 2.0 * frand());
+		//p.y = 0.3 * (-1.0 + 2.0 * frand());
+		//p.z = 0.3 * (-1.0 + 2.0 * frand());
+		//p = 0.3f * frand() * glm::normalize(p);
 		//p += emitter_pos;
 		float lifetime = (1.0 + 0.25 * frand()) * particle_lifetime;
 		data[i] = vec4(p, lifetime);
@@ -125,7 +125,7 @@ void init(Renderer &gfx, Context &ctx)
 	emitter_pos = vec3(0.0, 0.0, 0.0);
 	sphere_pos = vec3(0.0, -0.5, 0.0);
 	sphere_radius = 0.2f;
-	particle_lifetime = 1.0f;
+	particle_lifetime = 1.5f;
 	light_pos = vec3(0.45, 0.45, 0.45);
 	light_col = vec3(0.7, 0.2, 0.1);
 	ambient_col = vec3(0.85, 0.95, 1.0) * 0.02f;
@@ -234,7 +234,7 @@ vec3 raycast(int x, int y, int w, int h)
 float sphere_v = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(-0.5f) * rotateY(PI / 4.0f);
+	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(-0.7f) * rotateY(PI / 4.0f);
 	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{
 		vec3 p = raycast(ctx.getMouseX(), ctx.getMouseY(), ctx.getWidth(), ctx.getHeight());
@@ -249,7 +249,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	emitter_pos.x = 0.8f * sin(t * 1.2f);
 	emitter_pos.z = 0.8f * cos(t * 0.7f);
 	emitter_pos.y = 0.8f * sin(t * 2.0f) * 0.2f;
-	mat_light = translate(0.0f, 0.0f, -2.5f) * rotateX(-PI / 2.0f) * rotateY(PI / 2.0f);
+	mat_light = translate(0.0f, 0.0f, -3.5f) * rotateX(-PI / 2.0f) * rotateY(PI / 2.0f);
 	light_pos = vec3((glm::inverse(mat_light) * vec4(0.0, 0.0, 0.0, 1.0)));
 
 	// Generate respawn info
@@ -265,11 +265,12 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	// Update particles
 	gfx.beginCustomShader(shader_update_particle);
 	gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
-	gfx.setUniform("emitterPos", emitter_pos);
+	//gfx.setUniform("seed", vec3(7.0, 113.0, 811.0));
 	gfx.setUniform("spherePos", sphere_pos);
+	//gfx.setUniform("sphereRadius", sphere_radius);
 	gfx.setUniform("particleLifetime", particle_lifetime);
 	gfx.setUniform("time", ctx.getElapsedTime());
-	gfx.setUniform("dt", 0.01f);
+	gfx.setUniform("dt", dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
@@ -281,20 +282,20 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
-	mat4 projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glDepthRange(0.0, 1.0);
 	gfx.clear(0x00000000, 1.0);
 
 	rt_shadowmap.begin();
 	gfx.clear(0x00000000, 1.0);
 	rt_shadowmap.end();
 
+	mat4 projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f);
+	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
-
+	glDepthFunc(GL_LEQUAL);
+	glDepthRange(0.0, 1.0);
 	const int BATCH_SIZE = 64;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
+	glPointSize(7.0f);
 	for (int i = 0; i < NUM_BATCHES; ++i)
 	{
 		// Render particles using shadow information
@@ -303,7 +304,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
 		gfx.setUniform("projection", mat_projection);
 		gfx.setUniform("view", mat_view);
-		gfx.setUniform("particleLifetime", particle_lifetime);
 		gfx.setUniform("projectionLight", projection_light);
 		gfx.setUniform("viewLight", mat_light);
 		gfx.setUniform("shadowmap", 0);
@@ -333,7 +333,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	//gfx.beginCustomShader(shader_drawmap);
 	//gfx.setUniform("tex", 0);
 	//quad.draw();
-
 	gfx.beginCustomShader(shader_plane);
 	gfx.setUniform("shadowmap", 0);
 	gfx.setUniform("projectionLight", projection_light);
@@ -345,15 +344,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("ambientColor", ambient_col);
 
 	// Floor
-	gfx.setUniform("color", vec3(0.63f, 0.71f, 0.30f));
+	gfx.setUniform("color", vec3(0.76f, 0.75f, 0.5f) * 0.5f);
 	gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(2.0f));
 	plane.draw();
-
-	gfx.setBlendState(BlendStates::Opaque);
-	gfx.beginCustomShader(shader_sphere);
-	gfx.setUniform("color", vec3(1.0f));
-	gfx.setUniform("projection", mat_projection);
-	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", translate(light_pos) * scale(0.05f));
-	sphere.draw();
 }
