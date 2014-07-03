@@ -3,12 +3,12 @@
 #include <common/noise.h>
 using namespace transform;
 const int WORK_GROUP_SIZE = 64;
-const int NUM_PARTICLES = 1 << 14;
+const int NUM_PARTICLES = 1 << 15;
 const int NUM_GROUPS = NUM_PARTICLES / WORK_GROUP_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_PARTICLES));
 const int NUM_PASSES = NUM_STAGES * (NUM_STAGES + 1) / 2;
 const int GROUPS_PER_PASS = (NUM_PARTICLES / 2) / WORK_GROUP_SIZE;
-const int SORT_PASSES_PER_FRAME = 105;
+const int SORT_PASSES_PER_FRAME = 120;
 
 ShaderProgram 
 	shader_update_particle,
@@ -277,7 +277,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 		}
 	}
 
-	float t = ctx.getElapsedTime() * 0.5f;
+	float t = ctx.getElapsedTime() * 1.0f;
 	emitter_pos.x = 0.8f * sin(t * 1.2f);
 	emitter_pos.z = 0.8f * cos(t * 0.7f);
 	emitter_pos.y = 0.8f * sin(t * 2.0f) * 0.2f;
@@ -294,20 +294,19 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	// Update particles
-	//gfx.beginCustomShader(shader_update_particle);
-	//gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
-	//gfx.setUniform("emitterPos", emitter_pos);
-	//gfx.setUniform("spherePos", sphere_pos);
-	//gfx.setUniform("particleLifetime", particle_lifetime);
-	//gfx.setUniform("time", ctx.getElapsedTime());
-	//gfx.setUniform("dt", 0.0167f);
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
-	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	gfx.beginCustomShader(shader_update_particle);
+	gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
+	gfx.setUniform("emitterPos", emitter_pos);
+	gfx.setUniform("spherePos", sphere_pos);
+	gfx.setUniform("particleLifetime", particle_lifetime);
+	gfx.setUniform("time", ctx.getElapsedTime());
+	gfx.setUniform("dt", 0.0167f);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
+	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	if (ctx.isKeyPressed('s'))
-		sort(gfx, ctx);
+	sort(gfx, ctx);
 }
 
 void render(Renderer &gfx, Context &ctx, double dt)
@@ -324,7 +323,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	glDepthMask(GL_FALSE);
 
-	const int BATCH_SIZE = 64;
+	const int BATCH_SIZE = 128;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
 	for (int i = 0; i < NUM_BATCHES; ++i)
 	{
@@ -332,15 +331,9 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		rt_shadowmap.bindTexture();
 		gfx.beginCustomShader(shader_draw_particle);
 		if (front_to_back)
-		{
 			gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-			gfx.setUniform("frontToBack", 1.0f);
-		}
 		else
-		{
-			gfx.setBlendState(BlendStates::AlphaBlend);
-			gfx.setUniform("frontToBack", 0.0f);
-		}
+			gfx.setBlendState(BlendState(true, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD));
 			
 		gfx.setUniform("projection", mat_projection);
 		gfx.setUniform("view", mat_view);
@@ -368,7 +361,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	}
 
 	//gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	//rt_shadowmap.bindTexture();
 	//gfx.setCullState(CullStates::CullClockwise);
 	////gfx.setBlendState(BlendStates::Opaque);
 	////gfx.beginCustomShader(shader_drawmap);
@@ -390,19 +382,23 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	//gfx.drawLine(vec3(0.0), light, Color::fromHex(0xff0000ff));
 	//gfx.drawLine(vec3(0.0), axis, Color::fromHex(0xff0000ff));
 
-	//gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	//gfx.beginCustomShader(shader_plane);
-	//gfx.setUniform("shadowmap", 0);
-	//gfx.setUniform("projectionLight", projection_light);
-	//gfx.setUniform("viewLight", mat_light);
-	//gfx.setUniform("projection", mat_projection);
-	//gfx.setUniform("view", mat_view);
-	//gfx.setUniform("lightPos", light_pos);
-	//gfx.setUniform("lightColor", light_col);
-	//gfx.setUniform("ambientColor", ambient_col);
+	if (front_to_back)
+		gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
+	else
+		gfx.setBlendState(BlendState(true, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD));
+	rt_shadowmap.bindTexture();
+	gfx.beginCustomShader(shader_plane);
+	gfx.setUniform("shadowmap", 0);
+	gfx.setUniform("projectionLight", projection_light);
+	gfx.setUniform("viewLight", mat_light);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+	gfx.setUniform("lightPos", light_pos);
+	gfx.setUniform("lightColor", light_col);
+	gfx.setUniform("ambientColor", ambient_col);
 
-	//// Floor
-	//gfx.setUniform("color", vec3(0.63f, 0.71f, 0.30f));
-	//gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(2.0f));
-	//plane.draw();
+	// Floor
+	gfx.setUniform("color", vec3(0.63f, 0.71f, 0.30f));
+	gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(2.0f));
+	plane.draw();
 }

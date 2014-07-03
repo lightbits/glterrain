@@ -46,7 +46,7 @@ void main()
     p.y = snoise(seed + 127.0);
 
     // Normalize to get sphere distribution
-	p = (0.06 + 0.04 * snoise(seed + 491.0)) * normalize(p);
+	p = (0.06 + 0.04 * snoise(seed)) * normalize(p);
 
     // Particle respawns at emitter
     p += emitterPos;
