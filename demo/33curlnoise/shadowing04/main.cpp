@@ -4,13 +4,13 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4, 4, 3), "Curlnoise", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 0, 4, 3), "Curlnoise", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
 	}
 	APP_LOG << ctx.getDebugInfo();
-
+	
 	Renderer gfx;
 	gfx.init(ctx);
 

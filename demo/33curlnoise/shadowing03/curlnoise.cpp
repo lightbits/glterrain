@@ -125,7 +125,7 @@ void init(Renderer &gfx, Context &ctx)
 	emitter_pos = vec3(0.0, 0.0, 0.0);
 	sphere_pos = vec3(0.0, -0.5, 0.0);
 	sphere_radius = 0.2f;
-	particle_lifetime = 1.0f;
+	particle_lifetime = 0.5f;
 	light_pos = vec3(0.45, 0.45, 0.45);
 	light_col = vec3(0.7, 0.2, 0.1);
 	ambient_col = vec3(0.85, 0.95, 1.0) * 0.02f;
@@ -193,34 +193,12 @@ in back-to-front order relative to the camera. We can perform the sorting over
 multiple frames. <SORT_PASSES_PER_FRAME> can be lowered to increase performance.
 */
 int pass = 0;
-bool front_to_back = false;
-vec3 axis;
 void sort(Renderer &gfx, Context &ctx)
 {
-	// Compute light axis
-	vec4 l = vec4(0.0, 0.0, 0.0, 1.0);
-	l = glm::inverse(mat_light) * l;
-	vec3 light = -glm::normalize(vec3(l));
-
-	// Compute view axis
-	vec4 v = vec4(0.0, 0.0, 0.0, 1.0);
-	v = glm::inverse(mat_view) * v;
-	vec3 view = -glm::normalize(vec3(v));
-
-	// We set the sorting axis as the half-angle vector between
-	// the light- and view-axis. The following calculations are 
-	// approximately correct.
-	if (glm::dot(light, view) < 0.0)
-	{
-		front_to_back = false;
-		std::cout << "yo";
-		axis = glm::normalize(light - view);
-	}
-	else
-	{
-		front_to_back = true;
-		axis = glm::normalize(light + view);
-	}
+	// compute sorting axis
+	vec4 p = vec4(0.0, 0.0, 0.0, 1.0);
+	p = glm::inverse(mat_light) * p;
+	vec3 axis = glm::normalize(vec3(0.0) - vec3(p));
 
 	gfx.beginCustomShader(shader_sort);
 	gfx.setUniform("axis", axis);
@@ -256,31 +234,22 @@ vec3 raycast(int x, int y, int w, int h)
 float sphere_v = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(-0.7f) * rotateY(PI / 4.0f);
+	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(-0.5f) * rotateY(PI / 4.0f);
 	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{
 		vec3 p = raycast(ctx.getMouseX(), ctx.getMouseY(), ctx.getWidth(), ctx.getHeight());
-
-		if (ctx.getMouseY() < 100)
-		{
-			float s = -1.0f + 2.0f * ctx.getMouseX() / ctx.getWidth();
-			s *= PI / 2.0f;
-			mat_light = translate(0.0f, 0.0f, -1.0f) * rotateX(s + -PI / 2.0f) * rotateY(PI / 2.0f);
-		}
-		else
-		{
-			p.x = clamp(p.x, -2.0f + sphere_radius, 2.0f - sphere_radius);
-			p.z = clamp(p.z, -2.0f + sphere_radius, 2.0f - sphere_radius);
-			sphere_pos.x = p.x;
-			sphere_pos.z = p.z;
-			sphere_pos.y = p.y;
-		}
+		p.x = clamp(p.x, -2.0f + sphere_radius, 2.0f - sphere_radius);
+		p.z = clamp(p.z, -2.0f + sphere_radius, 2.0f - sphere_radius);
+		sphere_pos.x = p.x;
+		sphere_pos.z = p.z;
+		sphere_pos.y = p.y;
 	}
 
-	float t = ctx.getElapsedTime() * 0.5f;
+	float t = ctx.getElapsedTime();
 	emitter_pos.x = 0.8f * sin(t * 1.2f);
 	emitter_pos.z = 0.8f * cos(t * 0.7f);
 	emitter_pos.y = 0.8f * sin(t * 2.0f) * 0.2f;
+	mat_light = translate(0.0f, 0.0f, -2.5f) * rotateX(-PI / 2.0f) * rotateY(PI / 2.0f);
 	light_pos = vec3((glm::inverse(mat_light) * vec4(0.0, 0.0, 0.0, 1.0)));
 
 	// Generate respawn info
@@ -294,17 +263,17 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	// Update particles
-	//gfx.beginCustomShader(shader_update_particle);
-	//gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
-	//gfx.setUniform("emitterPos", emitter_pos);
-	//gfx.setUniform("spherePos", sphere_pos);
-	//gfx.setUniform("particleLifetime", particle_lifetime);
-	//gfx.setUniform("time", ctx.getElapsedTime());
-	//gfx.setUniform("dt", 0.0167f);
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
-	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	gfx.beginCustomShader(shader_update_particle);
+	gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
+	gfx.setUniform("emitterPos", emitter_pos);
+	gfx.setUniform("spherePos", sphere_pos);
+	gfx.setUniform("particleLifetime", particle_lifetime);
+	gfx.setUniform("time", ctx.getElapsedTime());
+	gfx.setUniform("dt", 0.01f);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
+	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	if (ctx.isKeyPressed('s'))
 		sort(gfx, ctx);
@@ -331,17 +300,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		// Render particles using shadow information
 		rt_shadowmap.bindTexture();
 		gfx.beginCustomShader(shader_draw_particle);
-		if (front_to_back)
-		{
-			gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-			gfx.setUniform("frontToBack", 1.0f);
-		}
-		else
-		{
-			gfx.setBlendState(BlendStates::AlphaBlend);
-			gfx.setUniform("frontToBack", 0.0f);
-		}
-			
+		gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
 		gfx.setUniform("projection", mat_projection);
 		gfx.setUniform("view", mat_view);
 		gfx.setUniform("particleLifetime", particle_lifetime);
@@ -367,42 +326,34 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		rt_shadowmap.end();
 	}
 
-	//gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	//rt_shadowmap.bindTexture();
-	//gfx.setCullState(CullStates::CullClockwise);
-	////gfx.setBlendState(BlendStates::Opaque);
-	////gfx.beginCustomShader(shader_drawmap);
-	////gfx.setUniform("tex", 0);
-	////quad.draw();
-
-	//glDepthMask(GL_TRUE);
-	//gfx.beginCustomShader(shader_sphere);
-	//gfx.setUniform("color", vec3(1.0f));
-	//gfx.setUniform("projection", mat_projection);
-	//gfx.setUniform("view", mat_view);
-	//gfx.setUniform("model", translate(light_pos) * scale(0.02f));
-	//sphere.draw();
-
-	//// Debugging arrows
+	gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
+	rt_shadowmap.bindTexture();
+	gfx.setCullState(CullStates::CullClockwise);
 	//gfx.setBlendState(BlendStates::Opaque);
-	//gfx.setUniform("model", scale(0.5f));
-	//vec3 light = -glm::normalize(vec3(glm::inverse(mat_light) * vec4(0.0, 0.0, 0.0, 1.0)));
-	//gfx.drawLine(vec3(0.0), light, Color::fromHex(0xff0000ff));
-	//gfx.drawLine(vec3(0.0), axis, Color::fromHex(0xff0000ff));
+	//gfx.beginCustomShader(shader_drawmap);
+	//gfx.setUniform("tex", 0);
+	//quad.draw();
 
-	//gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	//gfx.beginCustomShader(shader_plane);
-	//gfx.setUniform("shadowmap", 0);
-	//gfx.setUniform("projectionLight", projection_light);
-	//gfx.setUniform("viewLight", mat_light);
-	//gfx.setUniform("projection", mat_projection);
-	//gfx.setUniform("view", mat_view);
-	//gfx.setUniform("lightPos", light_pos);
-	//gfx.setUniform("lightColor", light_col);
-	//gfx.setUniform("ambientColor", ambient_col);
+	gfx.beginCustomShader(shader_plane);
+	gfx.setUniform("shadowmap", 0);
+	gfx.setUniform("projectionLight", projection_light);
+	gfx.setUniform("viewLight", mat_light);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+	gfx.setUniform("lightPos", light_pos);
+	gfx.setUniform("lightColor", light_col);
+	gfx.setUniform("ambientColor", ambient_col);
 
-	//// Floor
-	//gfx.setUniform("color", vec3(0.63f, 0.71f, 0.30f));
-	//gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(2.0f));
-	//plane.draw();
+	// Floor
+	gfx.setUniform("color", vec3(0.63f, 0.71f, 0.30f));
+	gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(2.0f));
+	plane.draw();
+
+	gfx.setBlendState(BlendStates::Opaque);
+	gfx.beginCustomShader(shader_sphere);
+	gfx.setUniform("color", vec3(1.0f));
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+	gfx.setUniform("model", translate(light_pos) * scale(0.05f));
+	sphere.draw();
 }

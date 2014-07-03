@@ -6,7 +6,6 @@ in vec2 shadowTexel;
 
 uniform float particleLifetime;
 uniform sampler2D shadowmap;
-uniform float frontToBack;
 
 out vec4 outColor;
 
@@ -46,9 +45,8 @@ void main()
 
 	// Smooth alphablending into and out of existence
 	float s = linramp(lifetime / particleLifetime);
-	outColor.a *= (1.0 + pow(1.0 - s, 0.25)) * s;
+	outColor.a *= pow(1.0 - s, 0.25) * s;
 
 	// Required for front-to-back alpha blending
-	if (frontToBack > 0.5)
-		outColor.rgb *= outColor.a;
+	outColor.rgb *= outColor.a;
 }

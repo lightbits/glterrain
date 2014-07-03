@@ -134,22 +134,22 @@ float ramp(float r)
 
 float modulate(vec3 p)
 {   
-    return 1.0 - 0.8 * ramp(length(p - emitterPos) / regionLength);
+    return 1.0 - ramp(length(p) / regionLength);
 }
 
 float N1(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.x) + time * 0.05);
+	return modulate(p) * snoise(p + vec3(seed.x) + time * 0.1);
 }
 
 float N2(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.y) + time * 0.05);
+	return modulate(p) * snoise(p + vec3(seed.y) + time * 0.1);
 }
 
 float N3(vec3 p)
 {
-	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.05);
+	return modulate(p) * snoise(p + vec3(seed.z) + time * 0.1);
 }
 
 float linramp(float r)
@@ -213,7 +213,7 @@ void main()
         float a1 = 1.0 - linramp(lifetime / particleLifetime);
 
         float a2 = 1.0 - ramp(length(p - spherePos) / regionLength);
-        vec3 v = 0.6 * a1 * v1 + 0.2 * a2 * v2;
+        vec3 v = 0.6 * a1 * v1 + 0.002 * a2 * v2;
         p += v * dt;
         Position[index] = vec4(p, status.w - dt);
     }
