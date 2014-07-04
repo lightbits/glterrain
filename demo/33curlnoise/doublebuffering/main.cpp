@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(128, 128, 24, 0, 4, 4, 3), "Compute shader", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4, 4, 3), "Curlnoise", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
@@ -34,12 +34,14 @@ int main(int argc, char **argv)
 		{
 			double frame_t = ctx.getElapsedTime();
 			accumulator += dt;
-			while (accumulator >= tickrate)
+			int num_updates = 0;
+			while (accumulator >= tickrate && num_updates < 1)
 			{
-				update(gfx, ctx, tickrate);
 				accumulator -= tickrate;
+				num_updates++;
 			}
-			
+			update(gfx, ctx, tickrate);
+
 			render(gfx, ctx, dt);
 			ctx.display();
 			ctx.pollEvents();

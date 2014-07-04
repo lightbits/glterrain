@@ -1,0 +1,6 @@
+<shadow_radius>: Point size in shadowmap shader. Larger -> darker/grittier, smaller -> brighter shadows.
+Can also be affected by the light's distance from the scene
+
+<ambient_color>: The color of the shadowed region in the smoke
+
+<smoke_color>: ...
