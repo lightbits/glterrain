@@ -4,13 +4,13 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 0), "36 Blending", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 4, 4, 3), "Compute shader", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
 	}
 	APP_LOG << ctx.getDebugInfo();
-
+	
 	Renderer gfx;
 	gfx.init(ctx);
 
@@ -27,10 +27,19 @@ int main(int argc, char **argv)
 		init(gfx, ctx);
 
 		double dt = 0.0;
+		int updates_per_sec = 10;
+		double tickrate = 1.0 / updates_per_sec;
+		double accumulator = 0.0;
 		while (ctx.isOpen())
 		{
 			double frame_t = ctx.getElapsedTime();
-			update(gfx, ctx, dt);
+			accumulator += dt;
+			update(gfx, ctx, tickrate);
+			while (accumulator >= tickrate)
+			{
+				printf("\r%.2f\t", dt * 1000.0);
+				accumulator -= tickrate;
+			}			
 			
 			render(gfx, ctx, dt);
 			ctx.display();

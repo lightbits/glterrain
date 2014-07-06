@@ -28,6 +28,13 @@ void BufferObject::bufferSubData(GLintptr offset, GLsizeiptr size, const void *d
 	glBufferSubData(target, offset, size, data);
 }
 
+void BufferObject::swap(BufferObject &rhs)
+{
+	GLuint temp = handle;
+	handle = rhs.handle;
+	rhs.handle = temp;
+}
+
 void BufferObject::bind()
 {
 	glBindBuffer(target, handle);

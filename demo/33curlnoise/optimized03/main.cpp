@@ -30,19 +30,32 @@ int main(int argc, char **argv)
 		int updates_per_sec = 30;
 		double tickrate = 1.0 / updates_per_sec;
 		double accumulator = 0.0;
+		double update_time = 0.0;
+		double render_time = 0.0;
+		int num_updates_total = 0;
+		int num_frames_total = 0;
 		while (ctx.isOpen())
 		{
 			double frame_t = ctx.getElapsedTime();
 			accumulator += dt;
 			int num_updates = 0;
+
+			double now = ctx.getElapsedTime();
 			while (accumulator >= tickrate && num_updates < 1)
 			{
 				accumulator -= tickrate;
 				update(gfx, ctx, tickrate);
+				update_time += ctx.getElapsedTime() - now;
 				num_updates++;
+				num_updates_total++;
 			}
+			now = ctx.getElapsedTime();
 
 			render(gfx, ctx, dt);
+
+			num_frames_total++;
+			render_time += ctx.getElapsedTime() - now;
+
 			ctx.display();
 			ctx.pollEvents();
 
@@ -52,6 +65,16 @@ int main(int argc, char **argv)
 			if (checkGLErrors())
 				ctx.close();
 			dt = ctx.getElapsedTime() - frame_t;
+
+			if (num_frames_total > 60)
+			{
+				num_frames_total = 1;
+				num_updates_total = 1;
+				update_time = 0.0;
+				render_time = 0.0;
+			}
+
+			printf("\rupdate: %.2f\trender: %.2f", update_time * 1000.0 / num_updates_total, render_time * 1000.0 / num_frames_total);
 		}
 	}
 	catch (std::exception &e)

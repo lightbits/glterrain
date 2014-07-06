@@ -139,6 +139,8 @@ public:
 
 	/* Binds default window-system framebuffer */
 	void unbind();
+
+	GLuint getHandle() const { return handle; }
 private:
 	static Framebuffer *bound;
 	GLuint handle;	

@@ -23,7 +23,7 @@ float snoise(float x)
 //      Author : Simen Haugo
 //  Maintainer : ARM
 //
-layout (local_size_x = 16) in;
+layout (local_size_x = 64) in;
 
 layout (std140, binding = 0) buffer SpawnBuffer {
 	vec4 SpawnInfo[];

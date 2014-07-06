@@ -1,34 +1,42 @@
 #version 430
 
-layout (local_size_x = 64) in;
+layout (local_size_x = 16) in;
 
-layout (binding = 0) buffer IndexBuffer {
-	uint Index[];
+layout (std140, binding = 0) buffer PositionBuffer {
+	vec4 Position[];
 };
 
-layout (binding = 1) buffer KeyBuffer {
-	float Key[];
-};
-
-layout (std140, binding = 2) buffer ComparisonIndexBuffer {
+layout (std140, binding = 1) buffer ComparisonIndexBuffer {
 	ivec4 IndicesToCompare[];
 };
 
 uniform int offset;
 
+/*
+ * The elements will be sorted by decreasing distance along this axis in world-space.
+*/
+uniform vec3 axis;
+
+/*
+ * Compares the two coordinates by their distance along the axis vector.
+ * Returns true if lhs is further along the axis than rhs.
+ * 
+*/
+bool greater(vec4 lhs, vec4 rhs)
+{
+    float lhsZ = dot(lhs.xyz, axis);
+    float rhsZ = dot(rhs.xyz, axis);
+    return lhsZ > rhsZ;
+}
+
 void main()
 {
-	// ivec2 pair = ivec2(IndicesToCompare[gl_GlobalInvocationID.x + offset].xy);
-    ivec2 pair = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.x + offset);
-	float lhs = Key[pair.x];
-	float rhs = Key[pair.y];
-	if (lhs > rhs)
+	ivec2 pair = ivec2(IndicesToCompare[gl_GlobalInvocationID.x + offset].xy);
+	vec4 lhs = Position[pair.x];
+	vec4 rhs = Position[pair.y];
+	if (greater(lhs, rhs))
 	{
-        Key[pair.x] = rhs;
-        Key[pair.y] = lhs;
-        uint ix = Index[pair.x];
-        uint iy = Index[pair.y];
-        Index[pair.x] = iy;
-        Index[pair.y] = ix;
+		Position[pair.x] = rhs;
+		Position[pair.y] = lhs;
 	}
 }

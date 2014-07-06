@@ -37,16 +37,11 @@ void main()
 	outColor.rgb += sun(N, color, ambientColor, vec3(0.9, 0.92, 1.0) * 0.4, normalize(vec3(0.5, 1.0, 1.0)));
 	outColor.a = 1.0;
 
-	outColor.rgb *= 0.00001;
-	outColor.rgb += pow(color, vec3(2.2));
-
 	// shadow from particles
 	vec4 posFromLight = projectionLight * viewLight * vec4(vPosition, 1.0);
 	vec2 shadowTexel = posFromLight.xy * 0.5 + vec2(0.5);
 	float shadow = texture(shadowmap, shadowTexel).a;
 	outColor.rgb *= (1.0 - shadow);
-
-	outColor.rgb = mix(outColor.rgb, vec3(0.0), dist / 13.0);
 
 	// gamma correction
 	outColor.rgb = pow(outColor.rgb, vec3(1.0 / 2.2));

@@ -101,8 +101,16 @@ bool Texture2D::loadFromFile(const char *filename, GLint internalFormat)
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(data);
+
+	m_width = width;
+	m_height = height;
+	m_handle = tex;
 
 	// This breaks in OpenGL 4.
 	//tex = SOIL_load_OGL_texture(
@@ -118,15 +126,18 @@ bool Texture2D::loadFromFile(const char *filename, GLint internalFormat)
 	//}
 
 	// OK to do after we have loaded data
-	dispose();
+	//dispose();
 
 	// Retreive the actual dimensions
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	//glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width);
+	//glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height);
 
-	m_handle = tex;
+	//// Filter params must be set for the texture to work
+	//setTexParameteri(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+
+	//m_handle = tex;
 	
 	return true;
 }
@@ -173,6 +184,33 @@ Cubemap::Cubemap() : m_handle(0)
 
 }
 
+bool loadCubemapSide(std::string path, GLenum side_target)
+{
+	int width, height, channels;
+	unsigned char *data = SOIL_load_image(path.c_str(), &width, &height, &channels, 4);
+
+	if (data == NULL)
+	{
+		APP_LOG << "Failed to load texture (" << path.c_str() << "): " << SOIL_last_result() << '\n';
+		return false;
+	}
+
+	glTexImage2D (
+		side_target,
+		0,
+		GL_RGBA,
+		width,
+		height,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		data
+		);
+
+	SOIL_free_image_data(data);
+	return true;
+}
+
 bool Cubemap::loadFromFile(const char *path, const char *ext)
 {
 	std::string	front	= std::string(path) + "negz" + std::string(ext);
@@ -182,16 +220,22 @@ bool Cubemap::loadFromFile(const char *path, const char *ext)
 	std::string left	= std::string(path) + "negx" + std::string(ext);
 	std::string right	= std::string(path) + "posx" + std::string(ext);
 
-	m_handle = SOIL_load_OGL_cubemap(
-		right.c_str(), 
-		left.c_str(), 
-		top.c_str(), 
-		bottom.c_str(), 
-		back.c_str(), 
-		front.c_str(), 
-		SOIL_LOAD_RGB, 
-		SOIL_CREATE_NEW_ID, 
-		0);
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &m_handle);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
+	if (!loadCubemapSide(front,		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ||
+		!loadCubemapSide(back,		GL_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
+		!loadCubemapSide(top,		GL_TEXTURE_CUBE_MAP_POSITIVE_Y) ||
+		!loadCubemapSide(bottom,	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) ||
+		!loadCubemapSide(right,		GL_TEXTURE_CUBE_MAP_POSITIVE_X) ||
+		!loadCubemapSide(left,		GL_TEXTURE_CUBE_MAP_NEGATIVE_X))
+		return false;
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	if (m_handle == 0)
 	{

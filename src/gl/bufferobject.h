@@ -53,6 +53,8 @@ public:
 	void bind(GLenum target);
 	void unbind();
 
+	void swap(BufferObject &rhs);
+
 	GLuint getHandle() const;
 private:
 	//static std::unordered_map<GLenum, GLuint> bound_targets;

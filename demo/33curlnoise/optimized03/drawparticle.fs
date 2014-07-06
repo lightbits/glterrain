@@ -19,20 +19,9 @@ float linramp(float r)
 		return r;
 }
 
-float sampleShadowMap(vec2 texel)
-{
-	float s = 0.0f;
-	vec3 delta = vec3(1.0 / 256.0, 1.0 / 256.0, 0.0);
-	s += texture(shadowmap, texel + delta.xz).a;
-	s += texture(shadowmap, texel - delta.xz).a;
-	s += texture(shadowmap, texel + delta.zy).a;
-	s += texture(shadowmap, texel - delta.zy).a;
-	return s * 0.25;
-}
-
 void main()
 {
-	float shadow = sampleShadowMap(shadowTexel);
+	float shadow = texture(shadowmap, shadowTexel).a;
 	outColor.rgb = vec3(0.88, 0.78, 0.75) * (1.0 - shadow) + shadow * vec3(0.1, 0.12, 0.18);
 
 	// outColor.rgb *= exp(-distance * 0.8 + 1.5);
