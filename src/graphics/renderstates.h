@@ -16,7 +16,7 @@ Pixels can be drawn using a function that blends the incoming (source) RGBA valu
 */
 struct BlendState
 {
-	BlendState(bool enabled = false, GLenum sourceBlend = GL_ONE, GLenum destinationBlend = GL_ZERO, GLenum blendEquation = GL_ADD) : 
+	BlendState(bool enabled = false, GLenum sourceBlend = GL_ONE, GLenum destinationBlend = GL_ZERO, GLenum blendEquation = GL_FUNC_ADD) : 
 		Enabled(enabled), SourceBlend(sourceBlend), DestinationBlend(destinationBlend), BlendEquation(blendEquation) { }
 	bool Enabled;
 	GLenum SourceBlend; // Source factor
