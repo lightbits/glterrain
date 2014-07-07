@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(720, 480, 24, 0, 4, 4, 3), "Curlnoise", true, true))
+	if (!ctx.create(VideoMode(720, 480, 24, 0, 0, 4, 3, false, false), "Curlnoise", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 		init(gfx, ctx);
 
 		double dt = 0.0;
-		int updates_per_sec = 30;
+		int updates_per_sec = 60;
 		double tickrate = 1.0 / updates_per_sec;
 		double accumulator = 0.0;
 		while (ctx.isOpen())
@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 				accumulator -= tickrate;
 				update(gfx, ctx, tickrate);
 				num_updates++;
+				printf("%.2f\t\r", dt * 1000.0);
 			}
 
 			render(gfx, ctx, dt);

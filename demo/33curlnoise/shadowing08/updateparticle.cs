@@ -104,14 +104,11 @@ vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
 // Description : Curl noise implementation
 //      Author : Simen Haugo
 //  Maintainer : ARM
-layout (local_size_x = 64) in;
-layout (std140, binding = 0) buffer PositionReadBuffer {
-	vec4 PositionRead[];
+layout (local_size_x = 16) in;
+layout (std140, binding = 0) buffer PositionBuffer {
+	vec4 Position[];
 };
-layout (std140, binding = 1) buffer PositionWriteBuffer {
-	vec4 PositionWrite[];
-};
-layout (std140, binding = 2) buffer SpawnBuffer {
+layout (std140, binding = 1) buffer SpawnBuffer {
 	vec4 SpawnInfo[];
 };
 
@@ -181,12 +178,12 @@ float phi(vec3 p)
 void main()
 {
 	uint index = gl_GlobalInvocationID.x;
-    vec4 status = PositionRead[index];
+    vec4 status = Position[index];
     float lifetime = status.w;
     if (lifetime < 0.0)
     {
         // Respawn particle (note that lifetime is stored in w-component)
-        PositionWrite[index] = SpawnInfo[index];
+        Position[index] = SpawnInfo[index];
     }
     else
     {
@@ -218,6 +215,6 @@ void main()
         float a2 = 1.0 - ramp(length(p - spherePos) / regionLength);
         vec3 v = 0.6 * a1 * v1 + 0.2 * a2 * v2;
         p += v * dt;
-        PositionWrite[index] = vec4(p, status.w - dt);
+        Position[index] = vec4(p, status.w - dt);
     }
 }

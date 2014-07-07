@@ -1,6 +1,6 @@
 #version 430
 
-layout (local_size_x = 16) in;
+layout (local_size_x = 256) in;
 
 layout (std140, binding = 0) buffer DataBuffer {
 	vec4 Data[];

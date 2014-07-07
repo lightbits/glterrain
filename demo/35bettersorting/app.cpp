@@ -51,8 +51,8 @@ BufferObject
 	buffer_keys;
 mat4
 	mat_view;
-const int LOCAL_SIZE = 16;
-const int NUM_SPRITES = 1 << 16;
+const int LOCAL_SIZE = 256;
+const int NUM_SPRITES = 1 << 14;
 const int NUM_GROUPS = NUM_SPRITES / LOCAL_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_SPRITES));
 const int NUM_PASSES = NUM_STAGES * (NUM_STAGES + 1) / 2;
@@ -194,7 +194,18 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
-	gfx.clear(0x2a2a2aff, 1.0);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthRangef(0.0f, 1.0f);
+	glDepthFunc(GL_LEQUAL);
+	glClearDepthf(1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+
+
+	//gfx.clear(0x2a2a2aff, 1.0);
 	gfx.beginCustomShader(shader_sprite);
 	gfx.setBlendState(BlendStates::AlphaBlend);
 	gfx.setUniform("projection", glm::perspective(PI / 2.0f, 720.0f / 480.0f, 0.1f, 5.0f));
@@ -202,9 +213,8 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("model", mat4(1.0f));
 	buffer_pos.bind(GL_ARRAY_BUFFER);
 	gfx.setAttributefv("position", 4, 0, 0);
-	//glDrawArrays(GL_POINTS, 0, 4);
-	buffer_indices_read.bind(GL_ELEMENT_ARRAY_BUFFER);
-	glDrawElements(GL_POINTS, 512, GL_UNSIGNED_INT, 0);
+	buffer_indices_write.bind(GL_ELEMENT_ARRAY_BUFFER);
+	glDrawElements(GL_POINTS, 128, GL_UNSIGNED_INT, 0);
 
-	buffer_indices_read.swap(buffer_indices_write);
+	//buffer_indices_read.swap(buffer_indices_write);
 }

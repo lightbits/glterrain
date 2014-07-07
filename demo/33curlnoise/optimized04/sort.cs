@@ -1,12 +1,12 @@
 #version 430
 
-layout (local_size_x = 64) in;
+layout (local_size_x = 128) in;
 
-layout (binding = 0) buffer IndexBuffer {
+layout (std430, binding = 0) buffer IndexBuffer {
 	uint Index[];
 };
 
-layout (binding = 1) buffer KeyBuffer {
+layout (std430, binding = 1) buffer KeyBuffer {
 	float Key[];
 };
 

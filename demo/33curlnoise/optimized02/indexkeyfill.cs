@@ -4,17 +4,17 @@
 //      Author : Simen Haugo
 //  Maintainer : ARM
 //
-layout (local_size_x = 64) in;
+layout (local_size_x = 128) in;
 
 layout (std140, binding = 0) buffer PositionBuffer {
 	vec4 Position[];
 };
 
-layout (binding = 1) buffer IndexBuffer {
+layout (std430, binding = 1) buffer IndexBuffer {
     uint Index[];
 };
 
-layout (binding = 2) buffer KeyBuffer {
+layout (std430, binding = 2) buffer KeyBuffer {
     float Key[];
 };
 

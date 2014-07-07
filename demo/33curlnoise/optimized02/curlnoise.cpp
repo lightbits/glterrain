@@ -2,13 +2,13 @@
 #include "sort.h"
 #include <common/noise.h>
 using namespace transform;
-const int WORK_GROUP_SIZE = 64;
+const int WORK_GROUP_SIZE = 128;
 const int NUM_PARTICLES = 1 << 14;
 const int NUM_GROUPS = NUM_PARTICLES / WORK_GROUP_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_PARTICLES));
 const int NUM_PASSES = NUM_STAGES * (NUM_STAGES + 1) / 2;
 const int GROUPS_PER_PASS = (NUM_PARTICLES / 2) / WORK_GROUP_SIZE;
-const int SORT_PASSES_PER_FRAME = 120;
+const int SORT_PASSES_PER_FRAME = 105;
 
 ShaderProgram 
 	shader_update_particle,
@@ -264,7 +264,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	glDepthMask(GL_FALSE);
 
-	const int BATCH_SIZE = 512;
+	const int BATCH_SIZE = 256;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
 	position_buffer.bind(GL_ARRAY_BUFFER);
 	index_buffer.bind(GL_ELEMENT_ARRAY_BUFFER);
