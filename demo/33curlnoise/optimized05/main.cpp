@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 		init(gfx, ctx);
 
 		double dt = 0.0;
-		int updates_per_sec = 30;
+		int updates_per_sec = 60;
 		double tickrate = 1.0 / updates_per_sec;
 		double accumulator = 0.0;
 		while (ctx.isOpen())

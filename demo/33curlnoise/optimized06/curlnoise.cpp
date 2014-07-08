@@ -2,7 +2,7 @@
 #include "sort.h"
 #include <common/noise.h>
 using namespace transform;
-const int WORK_GROUP_SIZE = 128;
+const int WORK_GROUP_SIZE = 16;
 const int NUM_PARTICLES = 1 << 14;
 const int NUM_GROUPS = NUM_PARTICLES / WORK_GROUP_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_PARTICLES));
@@ -102,14 +102,14 @@ void initParticles(Renderer &gfx, Context &ctx)
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
 		vec3 p;
-		//p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		//p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
-		//p.z = 0.5 * (-1.0 + 2.0 * frand());
-		p.x = (-1.0 + 2.0 * frand());
-		p.y = (-1.0 + 2.0 * frand());
-		p.z = (-1.0 + 2.0 * frand());
-		p = 0.3f * frand() * glm::normalize(p);
-		p += emitter_pos;
+		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
+		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
+		p.z = 0.5 * (-1.0 + 2.0 * frand());
+		//p.x = (-1.0 + 2.0 * frand());
+		//p.y = (-1.0 + 2.0 * frand());
+		//p.z = (-1.0 + 2.0 * frand());
+		//p = 0.3f * frand() * glm::normalize(p);
+		//p += emitter_pos;
 		float lifetime = (1.0 + 0.25 * frand()) * particle_lifetime;
 		data[i] = vec4(p, lifetime);
 	}
@@ -294,28 +294,28 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	emitter_pos.y = 0.8f * sin(t * 2.0f) * 0.2f;
 	light_pos = vec3((glm::inverse(mat_light) * vec4(0.0, 0.0, 0.0, 1.0)));
 
-	// Generate respawn info
-	gfx.beginCustomShader(shader_spawn_particle);
-	gfx.setUniform("time", ctx.getElapsedTime());
-	gfx.setUniform("emitterPos", emitter_pos);
-	gfx.setUniform("particleLifetime", particle_lifetime);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
-	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//// Generate respawn info
+	//gfx.beginCustomShader(shader_spawn_particle);
+	//gfx.setUniform("time", ctx.getElapsedTime());
+	//gfx.setUniform("emitterPos", emitter_pos);
+	//gfx.setUniform("particleLifetime", particle_lifetime);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, spawn_buffer.getHandle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, position_buffer.getHandle());
+	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	// Update particles
-	gfx.beginCustomShader(shader_update_particle);
-	gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
-	gfx.setUniform("emitterPos", emitter_pos);
-	gfx.setUniform("spherePos", sphere_pos);
-	gfx.setUniform("particleLifetime", particle_lifetime);
-	gfx.setUniform("time", ctx.getElapsedTime());
-	gfx.setUniform("dt", 0.01f);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
-	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//// Update particles
+	//gfx.beginCustomShader(shader_update_particle);
+	//gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
+	//gfx.setUniform("emitterPos", emitter_pos);
+	//gfx.setUniform("spherePos", sphere_pos);
+	//gfx.setUniform("particleLifetime", particle_lifetime);
+	//gfx.setUniform("time", ctx.getElapsedTime());
+	//gfx.setUniform("dt", 0.0167f);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
+	//glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
+	//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	sort(gfx, ctx);
 }
@@ -334,7 +334,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	glDepthMask(GL_FALSE);
 
-	const int BATCH_SIZE = 128;
+	const int BATCH_SIZE = 512;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
 	for (int i = 0; i < NUM_BATCHES; ++i)
 	{
@@ -384,7 +384,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("color", vec3(0.6f, 0.5f, 0.45f));
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", translate(sphere_pos) * scale(0.1f));
+	gfx.setUniform("model", translate(sphere_pos) * scale(0.2f));
 	sphere.draw();
 
 	if (front_to_back)

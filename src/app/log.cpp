@@ -15,7 +15,7 @@ Log::~Log()
 		return;
 
 	file << buffer.str();
-	file.close();
+	file.close();	
 
 	if (debug)
 	{

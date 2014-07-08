@@ -2,7 +2,7 @@
 #include "sort.h"
 #include <common/noise.h>
 using namespace transform;
-const int WORK_GROUP_SIZE = 128;
+const int WORK_GROUP_SIZE = 64;
 const int NUM_PARTICLES = 1 << 14;
 const int NUM_GROUPS = NUM_PARTICLES / WORK_GROUP_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_PARTICLES));
@@ -109,7 +109,7 @@ void initParticles(Renderer &gfx, Context &ctx)
 		p.y = (-1.0 + 2.0 * frand());
 		p.z = (-1.0 + 2.0 * frand());
 		p = 0.3f * frand() * glm::normalize(p);
-		p += emitter_pos;
+		//p += emitter_pos;
 		float lifetime = (1.0 + 0.25 * frand()) * particle_lifetime;
 		data[i] = vec4(p, lifetime);
 	}
@@ -253,11 +253,10 @@ vec3 raycast(int x, int y, int w, int h)
 	return origin + t * dir;
 }
 
-float angle_x = -0.7f;
-float angle_y = 0.0f;
 float sphere_v = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
+	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(-0.7f) * rotateY(PI / 4.0f);
 	if (ctx.isMousePressed(SDL_BUTTON_LEFT))
 	{
 		vec3 p = raycast(ctx.getMouseX(), ctx.getMouseY(), ctx.getWidth(), ctx.getHeight());
@@ -276,17 +275,6 @@ void update(Renderer &gfx, Context &ctx, double dt)
 			sphere_pos.y = p.y;
 		}
 	}
-
-	if (ctx.isKeyPressed('a'))
-		angle_y -= dt;
-	else if (ctx.isKeyPressed('d'))
-		angle_y += dt;
-
-	if (ctx.isKeyPressed('w'))
-		angle_x -= dt;
-	else if (ctx.isKeyPressed('s'))
-		angle_x += dt;
-	mat_view = translate(0.0f, +0.2f, -2.5f) * rotateX(angle_x) * rotateY(angle_y);
 
 	float t = ctx.getElapsedTime() * 1.0f;
 	emitter_pos.x = 0.8f * sin(t * 1.2f);
@@ -311,7 +299,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("spherePos", sphere_pos);
 	gfx.setUniform("particleLifetime", particle_lifetime);
 	gfx.setUniform("time", ctx.getElapsedTime());
-	gfx.setUniform("dt", 0.01f);
+	gfx.setUniform("dt", 0.0167f);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
@@ -326,6 +314,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glDepthRange(0.0, 1.0);
+	glDepthMask(GL_TRUE);
 	gfx.clear(0x00000000, 1.0);
 
 	rt_shadowmap.begin();
@@ -378,20 +367,24 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	//gfx.setUniform("tex", 0);
 	//quad.draw();
 
-	//glDepthMask(GL_TRUE);
-	gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	gfx.beginCustomShader(shader_sphere);
-	gfx.setUniform("color", vec3(0.6f, 0.5f, 0.45f));
-	gfx.setUniform("projection", mat_projection);
-	gfx.setUniform("view", mat_view);
-	gfx.setUniform("model", translate(sphere_pos) * scale(0.1f));
-	sphere.draw();
-
 	if (front_to_back)
 		gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
 	else
 		gfx.setBlendState(BlendState(true, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD));
+
+	glDepthMask(GL_TRUE);
 	rt_shadowmap.bindTexture();
+	gfx.beginCustomShader(shader_sphere);
+	gfx.setUniform("shadowmap", 0);
+	gfx.setUniform("projectionLight", projection_light);
+	gfx.setUniform("viewLight", mat_light);
+	gfx.setUniform("projection", mat_projection);
+	gfx.setUniform("view", mat_view);
+
+	gfx.setUniform("color", glm::pow(vec3(0.49f, 0.61f, 0.34f), vec3(2.2f)));
+	gfx.setUniform("model", translate(sphere_pos) * scale(0.2f));
+	sphere.draw();
+
 	gfx.beginCustomShader(shader_plane);
 	gfx.setUniform("shadowmap", 0);
 	gfx.setUniform("projectionLight", projection_light);
@@ -403,7 +396,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("ambientColor", ambient_col);
 
 	// Floor
-	gfx.setUniform("color", vec3(0.58f, 0.53f, 0.46f) * 2.0f);
+	gfx.setUniform("color", glm::pow(vec3(0.48f, 0.26f, 0.184f), vec3(2.2f)));
 	gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(8.0f));
 	plane.draw();
 }

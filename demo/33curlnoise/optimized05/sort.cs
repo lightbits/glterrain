@@ -1,6 +1,6 @@
 #version 430
 
-layout (local_size_x = 128) in;
+layout (local_size_x = 64) in;
 
 layout (std140, binding = 0) buffer PositionBuffer {
 	vec4 Position[];

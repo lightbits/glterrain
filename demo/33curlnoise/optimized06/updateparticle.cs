@@ -104,7 +104,7 @@ vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
 // Description : Curl noise implementation
 //      Author : Simen Haugo
 //  Maintainer : ARM
-layout (local_size_x = 128) in;
+layout (local_size_x = 16) in;
 layout (std140, binding = 0) buffer PositionBuffer {
 	vec4 Position[];
 };
@@ -213,7 +213,7 @@ void main()
         float a1 = 1.0 - linramp(lifetime / particleLifetime);
 
         float a2 = 1.0 - ramp(length(p - spherePos) / regionLength);
-        vec3 v = 0.8 * a1 * v1 + 0.2 * a2 * v2;
+        vec3 v = 0.6 * a1 * v1 + 0.2 * a2 * v2;
         p += v * dt;
         Position[index] = vec4(p, status.w - dt);
     }
