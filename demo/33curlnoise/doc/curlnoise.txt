@@ -233,6 +233,9 @@ Ramp down tangential component of the potential function near the boundary.
 ## Rendering ##
 The particle's are rendered as alpha-blended point-sprites.
 
+To emulate the attenuation of light as it travels through the smoke, the particles are sorted
+from front-to-back relative to the light, and then drawn in additive batches to the shadow map.
+
 	[1]: http://en.wikipedia.org/wiki/Potential_flow
 	[2]: http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph2007-curlnoise.pdf
 	[3]: http://www.naic.edu/~phil/hardware/nvidia/doc/src/smokeParticles/doc/smokeParticles.pdf

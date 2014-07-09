@@ -334,7 +334,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	glDepthMask(GL_FALSE);
 
-	const int BATCH_SIZE = 128;
+	const int BATCH_SIZE = 256;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
 	for (int i = 0; i < NUM_BATCHES; ++i)
 	{
@@ -371,13 +371,6 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		rt_shadowmap.end();
 	}
 
-	//gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
-	//gfx.setCullState(CullStates::CullClockwise);
-	//gfx.setBlendState(BlendStates::Opaque);
-	//gfx.beginCustomShader(shader_drawmap);
-	//gfx.setUniform("tex", 0);
-	//quad.draw();
-
 	//glDepthMask(GL_TRUE);
 	gfx.setBlendState(BlendState(true, GL_ONE_MINUS_DST_ALPHA, GL_ONE, GL_FUNC_ADD));
 	gfx.beginCustomShader(shader_sphere);
@@ -393,7 +386,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 		gfx.setBlendState(BlendState(true, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD));
 	rt_shadowmap.bindTexture();
 	gfx.beginCustomShader(shader_plane);
-	gfx.setUniform("shadowmap", 0);
+	gfx.setUniform("shadowMap", 0);
 	gfx.setUniform("projectionLight", projection_light);
 	gfx.setUniform("viewLight", mat_light);
 	gfx.setUniform("projection", mat_projection);
@@ -403,7 +396,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("ambientColor", ambient_col);
 
 	// Floor
-	gfx.setUniform("color", vec3(0.58f, 0.53f, 0.46f) * 2.0f);
+	gfx.setUniform("color", glm::pow(vec3(0.48f, 0.26f, 0.18f), vec3(2.2f)));
 	gfx.setUniform("model", translate(0.0, -1.0, 0.0) * scale(8.0f));
 	plane.draw();
 }

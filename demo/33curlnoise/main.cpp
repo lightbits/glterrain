@@ -37,8 +37,8 @@ int main(int argc, char **argv)
 			int num_updates = 0;
 			while (accumulator >= tickrate && num_updates < 1)
 			{
-				accumulator -= tickrate;
 				update(gfx, ctx, tickrate);
+				accumulator -= tickrate;
 				num_updates++;
 				printf("%.2f\t\r", dt * 1000.0);
 			}

@@ -17,10 +17,6 @@ void main()
 	distance = length(viewPos.xyz);
 	lifetime = position.w;
 	gl_Position = projection * viewPos;
-	float scale = 4.0 - 0.5 * (distance - 0.1) / (5.0 - 0.1);
-
-	// Constant size pretty much eliminates flickering due to sorting
-	// gl_PointSize = 8.0;
 
 	// Project the particle position onto the corresponding location in the shadowmap
 	vec4 posFromLight = projectionLight * viewLight * vec4(position.xyz, 1.0);

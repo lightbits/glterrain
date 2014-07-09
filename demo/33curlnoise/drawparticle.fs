@@ -14,12 +14,10 @@ void main()
 	float shadow = texture(shadowmap, shadowTexel).a;
 	outColor.rgb = vec3(0.88, 0.78, 0.75) * (1.0 - shadow) + shadow * vec3(0.1, 0.12, 0.18);
 
-	// outColor.rgb *= exp(-distance * 0.8 + 1.5);
-
 	// Alpha blending
 	vec2 xy = 2.0 * gl_PointCoord.xy - vec2(1.0);
-	float r = xy.x * xy.x + xy.y * xy.y;
-	outColor.a = exp(-r * 3.5);
+	float r2 = dot(xy, xy);
+	outColor.a = exp2(-r2 * 5.0);
 
 	// Smooth alphablending into and out of existence
 	float s = clamp(lifetime / particleLifetime, 0.0, 1.0);
