@@ -213,16 +213,37 @@ new values for these, should the particle need to respawn.
 The std140 layout specifier tells OpenGL that we want a standardized alignment of the elements in the buffer - 
 i.e. not implementation-dependent.
 
+########################
+## Particle rendering ##
+########################
+We render the particles as point sprites with radial falloff to appear more transparent near the edges.
+
+
+The final accumulated shadow buffer can be used to shade the rest of the scene. It works
+
+ the attenuation of light as it travels through the smoke, the particles are sorted
+from front-to-back relative to the light, and then drawn in additive batches to the shadow map.
+
 #############
 ## Sorting ##
 #############
 
-To achieve order-correct alphablending and proper volumetric lighting, we sort the particles along an axis
-which is halfway between the eye's and the light's point of view. We calculate the sorting order by projecting
-the particle onto the axis with a simple dot product. 
+To achieve order-correct alphablending and proper volumetric lighting, as described in the next section, 
+we need a way to sort the particles. We can avoid sorting
 
-## Particle rendering ##
-We render the particles as point sprites with radial falloff to appear more transparent near the edges.
+By sorting along an axis which is halfway between the eye's and the 
+light's viewing axis, the order is approximately correct from both point of views. This way we avoid sorting twice.
+
+We attenuate the light by summing up opacity as we get deeper into the medium. This means that the particles
+should be sorted in front-to-back order from the light.
+
+
+After the shadow pass, correct alphablending is done by rendering the particles front-to-back, if the 
+light and eye are looking in the same direction, or back-to-front otherwise.
+
+The particles are sorted by increasing distance along the halfangle axis.
+
+
 
 ## Collision with objects ##
 Ramp down tangential component of the potential function near the boundary.
@@ -230,15 +251,15 @@ Ramp down tangential component of the potential function near the boundary.
 	float alpha = abs(ramp(distance / regionLength));
 	return alpha * psi + (1.0 - alpha) * dot(normal, psi) * normal;
 
-## Rendering ##
-The particle's are rendered as alpha-blended point-sprites.
-
-To emulate the attenuation of light as it travels through the smoke, the particles are sorted
-from front-to-back relative to the light, and then drawn in additive batches to the shadow map.
-
 	[1]: http://en.wikipedia.org/wiki/Potential_flow
 	[2]: http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph2007-curlnoise.pdf
 	[3]: http://www.naic.edu/~phil/hardware/nvidia/doc/src/smokeParticles/doc/smokeParticles.pdf
 	[4]: http://wili.cc/blog/opengl-cs.html
 	[5]: http://www.opengl.org/wiki/Compute_Shader
 	[6]: http://twvideo01.ubm-us.net/o1/vault/GDC2014/Presentations/Gareth_Thomas_Compute-based_GPU_Particle.pdf
+	[7]: http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
+	[8]: http://directtovideo.wordpress.com/2009/10/06/a-thoroughly-modern-particle-system/
+	[9]: http://www.codeproject.com/Articles/543451/Parallel-Radix-Sort-on-the-GPU-using-Cplusplus-AMP
+	[10]: http://www.heterogeneouscompute.org/wordpress/wp-content/uploads/2011/06/RadixSort.pdf
+
+
