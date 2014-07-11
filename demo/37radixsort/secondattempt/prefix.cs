@@ -1,12 +1,12 @@
 #version 430
 
-layout (local_size_x = 4) in;
-layout (std430, binding = 0) buffer KeyBuffer {
-	uint Key[];
+layout (local_size_x = 16) in;
+layout (std430, binding = 0) buffer InputArray {
+	uint Input[];
 };
 
-layout (std430, binding = 1) buffer PrefixSumBuffer {
-	uint PrefixSum[];
+layout (std430, binding = 1) buffer OutputArray {
+	uint Output[];
 };
 
 shared uint sharedData[gl_WorkGroupSize.x];
@@ -17,8 +17,8 @@ void main()
     const uint local_i = gl_LocalInvocationID.x;
     const uint steps = uint(log2(gl_WorkGroupSize.x)) + 1;
 
-    uint key = Key[global_i];
-    sharedData[local_i] = key;
+    const uint first = Input[global_i];
+    sharedData[local_i] = first;
     barrier();
 
     for (uint step = 0; step < steps; step++)
@@ -29,6 +29,5 @@ void main()
         barrier();
     }
 
-    // Subtract key to get exclusive prefix sum
-    PrefixSum[global_i] = sharedData[local_i] - key;
+    Output[global_i] = sharedData[local_i] - first;
 }
