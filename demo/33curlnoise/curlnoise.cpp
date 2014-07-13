@@ -334,7 +334,7 @@ void render(Renderer &gfx, Context &ctx, double dt)
 
 	glDepthMask(GL_FALSE);
 
-	const int BATCH_SIZE = 256;
+	const int BATCH_SIZE = 512;
 	const int NUM_BATCHES = NUM_PARTICLES / BATCH_SIZE;
 	for (int i = 0; i < NUM_BATCHES; ++i)
 	{

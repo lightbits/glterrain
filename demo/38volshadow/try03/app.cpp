@@ -28,6 +28,8 @@ GLuint
 
 int shadow_map_width = 512;
 int shadow_map_height = 512;
+int shadow_map_depth = 32;
+bool back_to_front = false;
 
 const int NUM_PARTICLES = 1 << 14;
 const int LOCAL_SIZE = 128;
@@ -35,6 +37,7 @@ const int NUM_GROUPS = NUM_PARTICLES / LOCAL_SIZE;
 const int NUM_STAGES = glm::round(glm::log2((float)NUM_PARTICLES));
 const int NUM_PASSES = NUM_STAGES * (NUM_STAGES + 1) / 2;
 const int GROUPS_PER_PASS = (NUM_PARTICLES / 2) / LOCAL_SIZE;
+const int BATCH_SIZE = NUM_PARTICLES / shadow_map_depth;
 
 VertexArray vao;
 
@@ -70,20 +73,20 @@ void free()
 void initShadowmap()
 {
 	glGenTextures(1, &shadow_map_tex);
-	glBindTexture(GL_TEXTURE_2D, shadow_map_tex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, shadow_map_width, shadow_map_height);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glBindTexture(	GL_TEXTURE_2D_ARRAY, shadow_map_tex);
+	glTexStorage3D(	GL_TEXTURE_2D_ARRAY, 1, GL_R8, shadow_map_width, shadow_map_height, shadow_map_depth);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glGenFramebuffers(1, &shadow_map_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0);
+	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0, 0);
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "whoops!";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void initParticles(Renderer &gfx, Context &ctx)
@@ -96,14 +99,14 @@ void initParticles(Renderer &gfx, Context &ctx)
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
 		vec3 p;
-		//p.z = 0.5f * (-1.0f + 2.0f * frand());
-		//p.x = 0.5f * (-1.0f + 2.0f * frand());
-		//p.y = 0.5f * (-1.0f + 2.0f * frand());
-		//p = 0.6f * frand() * glm::normalize(p);
+		//p.z = (-1.0f + 2.0f * frand());
+		//p.x = (-1.0f + 2.0f * frand());
+		//p.y = (-1.0f + 2.0f * frand());
 		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 4)) / 4.0);
+		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
 		p.y += 0.1 * frand();
 		p.z = 0.5 * (-1.0 + 2.0 * frand());
+		//p = 0.6f * frand() * glm::normalize(p);
 		position[i] = vec4(p, 1.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -112,11 +115,32 @@ void initParticles(Renderer &gfx, Context &ctx)
 
 void sort(Renderer &gfx, Context &ctx)
 {
-	vec4 lp = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	lp = glm::inverse(mat_view_light) * lp;
-	vec3 sort_axis = -glm::normalize(vec3(lp));
+	vec4 l = vec4(0.0, 0.0, 0.0, 1.0);
+	l = glm::inverse(mat_view_light) * l;
+	vec3 light = -glm::normalize(vec3(l));
+
+	// Compute view axis
+	vec4 v = vec4(0.0, 0.0, 0.0, 1.0);
+	v = glm::inverse(mat_view) * v;
+	vec3 view = -glm::normalize(vec3(v));
+
+	// We set the sorting axis as the half-angle vector between
+	// the light- and view-axis. The following calculations are 
+	// approximately correct.
+	vec3 axis;
+	if (glm::dot(light, view) < 0.0)
+	{
+		back_to_front = true;
+		axis = glm::normalize(light - view);
+	}
+	else
+	{
+		back_to_front = false;
+		axis = glm::normalize(light + view);
+	}
+
 	gfx.beginCustomShader(shader_sort);
-	gfx.setUniform("axis", sort_axis);
+	gfx.setUniform("axis", axis);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_position.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, buffer_comparison.getHandle());
 	for (int pass = 0; pass < NUM_PASSES; ++pass)
@@ -141,13 +165,25 @@ void init(Renderer &gfx, Context &ctx)
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 }
 
+float angle_x = -0.7f;
+float angle_y = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	mat_projection = glm::perspective(PI / 4.0f, float(ctx.getWidth()) / ctx.getHeight(), 0.1f, 10.0f);
-	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(-0.25f) * rotateY(ctx.getElapsedTime() * 0.02f);
+	if (ctx.isKeyPressed('a'))
+		angle_y -= dt;
+	else if (ctx.isKeyPressed('d'))
+		angle_y += dt;
 
-	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.4f, 3.6f);
-	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-1.24f);
+	if (ctx.isKeyPressed('w'))
+		angle_x -= dt;
+	else if (ctx.isKeyPressed('s'))
+		angle_x += dt;
+
+	mat_projection = glm::perspective(PI / 4.0f, float(ctx.getWidth()) / ctx.getHeight(), 0.1f, 10.0f);
+	mat_view = translate(0.0f, 0.0f, -2.5f) * rotateX(angle_x) * rotateY(angle_y);
+
+	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.0f, 3.0f);
+	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-PI / 2.0f);
 
 	sort(gfx, ctx);
 }
@@ -167,28 +203,40 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
 	glViewport(0, 0, shadow_map_width, shadow_map_height);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
+	for (int i = 0; i < shadow_map_depth; ++i)
+	{
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0, i);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_POINTS, i * BATCH_SIZE, BATCH_SIZE);
+	}
 
-	glBindTexture(GL_TEXTURE_2D, shadow_map_tex);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, shadow_map_tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, ctx.getWidth(), ctx.getHeight());
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	////Draw shadowmap
-	//glDisable(GL_BLEND);
-	//gfx.beginCustomShader(shader_texture);
-	//gfx.setUniform("tex", 0);
-	//quad.draw();
-
-	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // back to front
-	glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE); // front to back
+	
+	if (back_to_front)
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	else
+		glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 	gfx.beginCustomShader(shader_particle);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
 	gfx.setUniform("projectionLight", mat_projection_light);
 	gfx.setUniform("viewLight", mat_view_light);
-	gfx.setUniform("shadowMap0", 0);
+	gfx.setUniform("shadowMap", 0);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer_position.getHandle());
 	gfx.setAttributefv("position", 4, 0, 0);
-	glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
+	for (int i = 0; i < shadow_map_depth; i++)
+	{
+		gfx.setUniform("layer", i);
+		glDrawArrays(GL_POINTS, i * BATCH_SIZE, BATCH_SIZE);
+	}
+
+	glViewport(0, 0, 256, 256);
+	glDisable(GL_BLEND);
+	gfx.beginCustomShader(shader_texture);
+	gfx.setUniform("tex", 0);
+	gfx.setUniform("layer", shadow_map_depth * (0.5f + 0.5f * sin(ctx.getElapsedTime())));
+	quad.draw();
 }

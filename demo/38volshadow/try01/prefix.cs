@@ -12,7 +12,7 @@ void main()
     const uint local_i = gl_LocalInvocationID.z;
     const uint steps = uint(log2(gl_WorkGroupSize.x)) + 1;
 
-    sharedData[local_i] = imageLoad(texInput, global_i);
+    sharedData[local_i] = imageLoad(texInput, global_i).r;
     barrier();
 
     for (uint step = 0; step < steps; step++)
@@ -23,5 +23,5 @@ void main()
         barrier();
     }
 
-    imageStore(texOutput, global_i, ivec4(sharedData[local_i]));
+    imageStore(texOutput, global_i, uvec4(sharedData[local_i]));
 }

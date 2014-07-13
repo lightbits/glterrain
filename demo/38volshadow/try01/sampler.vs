@@ -13,6 +13,6 @@ void main()
 	for (int i = 0; i < 32; i++)
 	{
 		if (i <= slice)
-			sampleSum += texture(tex, vec3(position, i / 32.0));
+			sampleSum += texture(tex, vec3(position, i / 32.0)).r;
 	}
 }

@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 		{
 			double frame_t = ctx.getElapsedTime();
 			accumulator += dt;
-			update(gfx, ctx, tickrate);
 			while (accumulator >= tickrate)
 			{
+				update(gfx, ctx, tickrate);
 				printf("\r%.2f\t", dt * 1000.0);
 				accumulator -= tickrate;
 			}			

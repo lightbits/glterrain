@@ -96,14 +96,14 @@ void initParticles(Renderer &gfx, Context &ctx)
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
 		vec3 p;
-		//p.z = 0.5f * (-1.0f + 2.0f * frand());
-		//p.x = 0.5f * (-1.0f + 2.0f * frand());
-		//p.y = 0.5f * (-1.0f + 2.0f * frand());
+		p.z = 0.5f * (-1.0f + 2.0f * frand());
+		p.x = 0.5f * (-1.0f + 2.0f * frand());
+		p.y = 0.5f * (-1.0f + 2.0f * frand());
 		//p = 0.6f * frand() * glm::normalize(p);
-		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 4)) / 4.0);
-		p.y += 0.1 * frand();
-		p.z = 0.5 * (-1.0 + 2.0 * frand());
+		//p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
+		//p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 2)) / 2.0);
+		//p.y += 0.1 * frand();
+		//p.z = 0.5 * (-1.0 + 2.0 * frand());
 		position[i] = vec4(p, 1.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -147,7 +147,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(-0.25f) * rotateY(ctx.getElapsedTime() * 0.02f);
 
 	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.4f, 3.6f);
-	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-1.24f);
+	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-1.0f);
 
 	sort(gfx, ctx);
 }

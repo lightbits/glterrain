@@ -28,6 +28,7 @@ GLuint
 
 int shadow_map_width = 512;
 int shadow_map_height = 512;
+int shadow_map_depth = 32;
 
 const int NUM_PARTICLES = 1 << 14;
 const int LOCAL_SIZE = 128;
@@ -70,20 +71,20 @@ void free()
 void initShadowmap()
 {
 	glGenTextures(1, &shadow_map_tex);
-	glBindTexture(GL_TEXTURE_2D, shadow_map_tex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, shadow_map_width, shadow_map_height);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glBindTexture(	GL_TEXTURE_2D_ARRAY, shadow_map_tex);
+	glTexStorage3D(	GL_TEXTURE_2D_ARRAY, 1, GL_R8, shadow_map_width, shadow_map_height, shadow_map_depth);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glGenFramebuffers(1, &shadow_map_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0);
+	glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0, 0);
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "whoops!";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_3D, 0);
 }
 
 void initParticles(Renderer &gfx, Context &ctx)
@@ -95,16 +96,12 @@ void initParticles(Renderer &gfx, Context &ctx)
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	for (int i = 0; i < NUM_PARTICLES; ++i)
 	{
-		vec3 p;
-		//p.z = 0.5f * (-1.0f + 2.0f * frand());
-		//p.x = 0.5f * (-1.0f + 2.0f * frand());
-		//p.y = 0.5f * (-1.0f + 2.0f * frand());
-		//p = 0.6f * frand() * glm::normalize(p);
-		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 4)) / 4.0);
-		p.y += 0.1 * frand();
-		p.z = 0.5 * (-1.0 + 2.0 * frand());
-		position[i] = vec4(p, 1.0f);
+		float z = 0.7f * (-1.0f + 2.0f * frand());
+		float x = 0.7f * (-1.0f + 2.0f * frand());
+		float y = 0.7f * (-1.0f + 2.0f * frand());
+		vec3 p = vec3(x, y, z);
+		p = 0.7f * frand() * glm::normalize(p);
+		position[i] = vec4(p.x, p.y, p.z, 1.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 	buffer_position.unbind();
@@ -144,10 +141,10 @@ void init(Renderer &gfx, Context &ctx)
 void update(Renderer &gfx, Context &ctx, double dt)
 {
 	mat_projection = glm::perspective(PI / 4.0f, float(ctx.getWidth()) / ctx.getHeight(), 0.1f, 10.0f);
-	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(-0.25f) * rotateY(ctx.getElapsedTime() * 0.02f);
+	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(0.0f) * rotateY(ctx.getElapsedTime() * 0.2f);
 
-	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.4f, 3.6f);
-	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-1.24f);
+	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.0f, 3.0f);
+	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(-PI / 2.0f);
 
 	sort(gfx, ctx);
 }
@@ -167,17 +164,21 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
 	glViewport(0, 0, shadow_map_width, shadow_map_height);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
+	for (int i = 0; i < shadow_map_depth; ++i)
+	{
+		glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, shadow_map_tex, 0, i);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_POINTS, 0, (i + 1) * NUM_PARTICLES / shadow_map_depth);
+	}
 
-	glBindTexture(GL_TEXTURE_2D, shadow_map_tex);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, shadow_map_tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, ctx.getWidth(), ctx.getHeight());
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	////Draw shadowmap
 	//glDisable(GL_BLEND);
 	//gfx.beginCustomShader(shader_texture);
 	//gfx.setUniform("tex", 0);
+	//gfx.setUniform("layer", 31.0f * (0.5f + 0.5f * sin(ctx.getElapsedTime())));
 	//quad.draw();
 
 	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // back to front
@@ -187,8 +188,12 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	gfx.setUniform("view", mat_view);
 	gfx.setUniform("projectionLight", mat_projection_light);
 	gfx.setUniform("viewLight", mat_view_light);
-	gfx.setUniform("shadowMap0", 0);
+	gfx.setUniform("shadowMap", 0);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer_position.getHandle());
 	gfx.setAttributefv("position", 4, 0, 0);
-	glDrawArrays(GL_POINTS, 0, NUM_PARTICLES);
+	for (int i = 0; i < shadow_map_depth; ++i)
+	{
+		gfx.setUniform("layer", float(i));
+		glDrawArrays(GL_POINTS, i * NUM_PARTICLES / shadow_map_depth, NUM_PARTICLES / shadow_map_depth);
+	}
 }
