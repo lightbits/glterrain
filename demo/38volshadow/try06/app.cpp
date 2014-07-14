@@ -26,8 +26,6 @@ GLuint
 	shadow_map_fbo,
 	shadow_map_tex;
 
-bool back_to_front = false;
-
 int shadow_map_width = 512;
 int shadow_map_height = 512;
 
@@ -102,10 +100,10 @@ void initParticles(Renderer &gfx, Context &ctx)
 		//p.x = 0.5f * (-1.0f + 2.0f * frand());
 		//p.y = 0.5f * (-1.0f + 2.0f * frand());
 		//p = 0.6f * frand() * glm::normalize(p);
-		p.x = 0.5f * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
-		p.y = 0.5f * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 4)) / 4.0);
-		p.z = 0.5f * (-1.0 + 2.0 * frand());
-		p.y += 0.1f * frand();
+		p.x = 0.5 * (-1.0 + 2.0 * (i % (NUM_PARTICLES / 32)) / (NUM_PARTICLES / 32));
+		p.y = 0.5 * (-1.0 + 2.0 * (i / (NUM_PARTICLES / 4)) / 4.0);
+		p.y += 0.1 * frand();
+		p.z = 0.5 * (-1.0 + 2.0 * frand());
 		position[i] = vec4(p, 1.0f);
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -117,16 +115,6 @@ void sort(Renderer &gfx, Context &ctx)
 	vec4 lp = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	lp = glm::inverse(mat_view_light) * lp;
 	vec3 sort_axis = -glm::normalize(vec3(lp));
-
-	vec4 vp = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	vp = glm::inverse(mat_view) * vp;
-	vec3 view_axis = -glm::normalize(vec3(vp));
-
-	if (glm::dot(sort_axis, view_axis) < 0.0f)
-		back_to_front = true;
-	else
-		back_to_front = false;
-
 	gfx.beginCustomShader(shader_sort);
 	gfx.setUniform("axis", sort_axis);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_position.getHandle());
@@ -177,21 +165,13 @@ void updateShadowMap(Renderer &gfx, Context &ctx, double dt)
 	glViewport(0, 0, ctx.getWidth(), ctx.getHeight());
 }
 
-float angle_x = -PI / 2.0f;
-float angle_y = 0.0f;
 void update(Renderer &gfx, Context &ctx, double dt)
 {
-	if (ctx.isKeyPressed('a')) angle_y -= dt;
-	else if (ctx.isKeyPressed('d')) angle_y += dt;
-
-	if (ctx.isKeyPressed('w')) angle_x -= dt;
-	else if (ctx.isKeyPressed('s')) angle_x += dt;
-
 	mat_projection = glm::perspective(PI / 4.0f, float(ctx.getWidth()) / ctx.getHeight(), 0.1f, 10.0f);
-	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(-0.45f) * rotateY(ctx.getElapsedTime() * 0.002f + 0.6f);
+	mat_view = translate(0.0f, 0.0f, -3.0f) * rotateX(-0.25f) * rotateY(ctx.getElapsedTime() * 0.05f);
 
-	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 1.5f, 2.5f);
-	mat_view_light = translate(0.0f, 0.0f, -2.0f) * rotateX(angle_x) * rotateY(angle_y);
+	mat_projection_light = glm::ortho(-1.5f, 1.5f, -1.5f, 1.5f, 0.0f, 5.0f);
+	mat_view_light = translate(0.0f, 0.0f, -2.0f + sin(ctx.getElapsedTime())) * rotateX(-PI / 2.0f);
 
 	sort(gfx, ctx);
 
@@ -200,6 +180,7 @@ void update(Renderer &gfx, Context &ctx, double dt)
 
 void render(Renderer &gfx, Context &ctx, double dt)
 {
+
 	glBindTexture(GL_TEXTURE_2D, shadow_map_tex);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -209,12 +190,9 @@ void render(Renderer &gfx, Context &ctx, double dt)
 	//gfx.setUniform("tex", 0);
 	//quad.draw();
 
-	if (back_to_front)
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // back to front
-	else
-		glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE); // front to back
+	//glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // back to front
+	glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE); // front to back
 	gfx.beginCustomShader(shader_particle);
-	gfx.setUniform("debug", ctx.isKeyPressed('m') ? 1.0f : 0.0f);
 	gfx.setUniform("projection", mat_projection);
 	gfx.setUniform("view", mat_view);
 	gfx.setUniform("projectionLight", mat_projection_light);
