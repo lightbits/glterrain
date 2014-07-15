@@ -1,27 +1,29 @@
 #version 430
 
-layout (local_size_x = 128) in; // Must equal <num_blocks> in sort.cpp
-layout (std430, binding = 0) buffer ScanBuffer {
-	uvec4 Scan[];
+layout (local_size_x = 4) in; // Must equal block size
+layout (std430, binding = 0) buffer ScanBlockBuffer {
+	uint ScanBlock[];
 };
 
 layout (std430, binding = 1) buffer SumsBuffer {
-	uvec4 Sums[];
+	uint Sums[];
 };
 
-// The entire SUMS array must fit inside the shared data storage
-// If we set a block size of 256, we get N / 256 elements in the SUMS array.
-// So if N is 65536, we get another 256 elements in the SUMS array, which we
-// can perform a prefix sum on.
-shared uvec4 sharedData[gl_WorkGroupSize.x];
+layout (std430, binding = 2) buffer KeyBuffer {
+	uint Key[];
+};
+
+shared uint sharedData[gl_WorkGroupSize.x];
 
 void main()
 {
     const uint global_i = gl_GlobalInvocationID.x;
     const uint local_i = gl_LocalInvocationID.x;
+    const uint block_i = gl_WorkGroupID.x;
+    const uint block_size = gl_WorkGroupSize.x;
     const uint steps = uint(log2(gl_WorkGroupSize.x)) + 1;
 
-    uvec4 key = Sums[global_i];
+    uint key = Key[global_i];
     sharedData[local_i] = key;
     barrier();
 
@@ -34,5 +36,9 @@ void main()
     }
 
     // Subtract key to get exclusive prefix sum
-    Sums[global_i] = sharedData[local_i] - key;
+    ScanBlock[global_i] = sharedData[local_i] - key;
+    barrier();
+
+    // Store the last + 1 element of the scan in this block
+    Sums[block_i] = sharedData[block_size - 1];
 }

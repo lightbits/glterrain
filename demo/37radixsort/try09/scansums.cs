@@ -1,6 +1,6 @@
 #version 430
 
-layout (local_size_x = 128) in; // Must equal <num_blocks> in sort.cpp
+layout (local_size_x = 8) in; // Must equal <num_blocks> in app.cpp
 layout (std430, binding = 0) buffer ScanBuffer {
 	uvec4 Scan[];
 };
