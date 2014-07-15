@@ -184,5 +184,5 @@ void radix_sort(GLuint keys, GLuint sorted)
 	glGetQueryObjectui64v(queryID[1], GL_QUERY_RESULT, &stop);
 	printf("Time spent on the GPU: %f ms\t\r", (stop - start) / 1000000.0);
 
-	//print_data(sorted, GL_SHADER_STORAGE_BUFFER, 32);
+	print_data(sorted, GL_SHADER_STORAGE_BUFFER, 1024);
 }

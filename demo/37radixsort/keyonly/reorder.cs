@@ -1,6 +1,6 @@
 #version 430
 
-layout (local_size_x = 128) in; // Must equal <work_group_size> in reorder(...) func
+layout (local_size_x = 128) in; // Must equal <local_size_x> in reorder(...) func
 layout (std430, binding = 0) buffer ScanBuffer {
 	uvec4 Scan[];
 };

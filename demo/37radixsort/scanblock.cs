@@ -109,7 +109,7 @@ void main()
     // Interleave the flag bits
     uvec4 flag = uvec4(key == 0 ? 1 : 0, key == 1 ? 1 : 0, key == 2 ? 1 : 0, key == 3 ? 1 : 0);
     sharedData[local_i] = flag;
-    barrier(); // Wait for other threads to have done the same
+    barrier(); // Wait for other threads within the block to have done the same
 
     Flag[global_i] = flag; // Store this for later when shuffling the elements
     

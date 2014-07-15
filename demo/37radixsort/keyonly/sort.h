@@ -1,7 +1,3 @@
-/*
-http://www.codeproject.com/Articles/543451/Parallel-Radix-Sort-on-the-GPU-using-Cplusplus-AMP
-http://http.developer.nvidia.com/GPUGems3/gpugems3_ch39.html
-*/
 #ifndef SORT_H
 #define SORT_H
 #include <common/typedefs.h>
