@@ -1,18 +1,17 @@
 #include "sort.h"
 #include <gl/shaderprogram.h>
-#include <gl/bufferobject.h>
 
 ShaderProgram
 	shader_scanblock,
 	shader_scansums,
 	shader_applysums,
-	shader_reorder,
-	shader_genkeys;
+	shader_reorder;
 
 BufferObject
 	buf_scan,
 	buf_sums,
-	buf_flag;
+	buf_flag,
+	buf_sorted;
 
 bool loadComputeShader(ShaderProgram &shader, const string &computePath)
 {
@@ -26,15 +25,13 @@ bool sort_init()
 	if (!loadComputeShader(shader_scanblock,	"./demo/37radixsort/scanblock.cs") ||
 		!loadComputeShader(shader_scansums,		"./demo/37radixsort/scansums.cs") ||
 		!loadComputeShader(shader_applysums,	"./demo/37radixsort/applysums.cs") ||
-		!loadComputeShader(shader_reorder,		"./demo/37radixsort/reorder.cs") ||
-		!loadComputeShader(shader_genkeys,		"./demo/37radixsort/genkeys.cs"))
+		!loadComputeShader(shader_reorder,		"./demo/37radixsort/reorder.cs"))
 		return false;
 
 	if (!shader_scanblock.linkAndCheckStatus() ||
 		!shader_scansums.linkAndCheckStatus() ||
 		!shader_applysums.linkAndCheckStatus() ||
-		!shader_reorder.linkAndCheckStatus() ||
-		!shader_genkeys.linkAndCheckStatus())
+		!shader_reorder.linkAndCheckStatus())
 		return false;
 
 	uint32 *zeroes = new uint32[4 * num_keys];
@@ -43,6 +40,7 @@ bool sort_init()
 	buf_flag.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, num_keys * sizeof(vec4u), zeroes);
 	buf_scan.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, num_keys * sizeof(vec4u), zeroes);
 	buf_sums.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, num_blocks * sizeof(vec4u), zeroes);
+	buf_sorted.create(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, num_keys * sizeof(vec4), zeroes);
 
 	return true;
 }
@@ -58,29 +56,20 @@ void print_data(GLuint buffer, GLenum target, int size, int offset = 0, int stri
 	glBindBuffer(target, 0);
 }
 
-void gen_keys(GLuint input, GLuint keys)
-{
-	const uint32 local_size_x = 128;
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, input);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, keys);
-	shader_genkeys.begin();
-	glDispatchCompute(num_keys / local_size_x, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0);
-}
-
-void scan_block(int bit_offset, GLuint keys, GLuint scan, GLuint sums, GLuint flag)
+void scan_block(int bit_offset, vec3 axis, float z_min, float z_max, GLuint input, GLuint scan, GLuint sums, GLuint flag)
 {
 	//printf("keys: ");
 	//print_data(keys, GL_SHADER_STORAGE_BUFFER, num_keys);
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scan);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, sums);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, keys);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, input);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, flag);
 	shader_scanblock.begin();
 	shader_scanblock.setUniform("bitOffset", bit_offset);
+	shader_scanblock.setUniform("axis", axis);
+	shader_scanblock.setUniform("zMin", z_min);
+	shader_scanblock.setUniform("zMax", z_max);
 	glDispatchCompute(num_blocks, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
@@ -115,13 +104,16 @@ void scan_sums(GLuint scan, GLuint sums)
 	//printf("scan sums3: "); print_data(sums, GL_SHADER_STORAGE_BUFFER, num_blocks * 4, 3, 4);
 }
 
-void apply_sums(int bit_offset, GLuint keys, GLuint scan, GLuint sums)
+void apply_sums(int bit_offset, vec3 axis, float z_min, float z_max, GLuint input, GLuint scan, GLuint sums)
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scan);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, sums);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, keys);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, input);
 	shader_applysums.begin();
 	shader_applysums.setUniform("bitOffset", bit_offset);
+	shader_applysums.setUniform("axis", axis);
+	shader_applysums.setUniform("zMin", z_min);
+	shader_applysums.setUniform("zMax", z_max);
 	glDispatchCompute(num_blocks, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
@@ -134,11 +126,11 @@ void apply_sums(int bit_offset, GLuint keys, GLuint scan, GLuint sums)
 	//printf("final scan3: "); print_data(scan, GL_SHADER_STORAGE_BUFFER, num_keys * 4, 3, 4);
 }
 
-void reorder(GLuint keys, GLuint scan, GLuint flag, GLuint sorted)
+void reorder(GLuint input, GLuint scan, GLuint flag, GLuint sorted)
 {
 	const uint32 local_size_x = 128;
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scan);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, keys);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, input);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, flag);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, sorted);
 	shader_reorder.begin();
@@ -153,10 +145,10 @@ void reorder(GLuint keys, GLuint scan, GLuint flag, GLuint sorted)
 	//print_data(sorted, GL_SHADER_STORAGE_BUFFER, num_keys);
 }
 
-void radix_sort(GLuint keys, GLuint sorted)
+void radix_sort(BufferObject input, vec3 axis, float z_min, float z_max)
 {
 	//print_data(keys, GL_SHADER_STORAGE_BUFFER, num_keys);
-
+	
 	// To measure time
 	glFinish();
 	GLuint64 start, stop;
@@ -166,13 +158,14 @@ void radix_sort(GLuint keys, GLuint sorted)
 
 	for (int i = 0; i < 8; i++)
 	{
-		scan_block(i * 2, keys, buf_scan.getHandle(), buf_sums.getHandle(), buf_flag.getHandle());
+		scan_block(i * 2, axis, z_min, z_max, input.getHandle(), buf_scan.getHandle(), buf_sums.getHandle(), buf_flag.getHandle());
 		scan_sums(buf_scan.getHandle(), buf_sums.getHandle());
-		apply_sums(i * 2, keys, buf_scan.getHandle(), buf_sums.getHandle());
-		reorder(keys, buf_scan.getHandle(), buf_flag.getHandle(), sorted);
+		apply_sums(i * 2, axis, z_min, z_max, input.getHandle(), buf_scan.getHandle(), buf_sums.getHandle());
+		reorder(input.getHandle(), buf_scan.getHandle(), buf_flag.getHandle(), buf_sorted.getHandle());
 
-		if (i < 8 - 1)
-			std::swap(keys, sorted);
+		// swap for the next digit stage
+		// the <input> buffer will in the end hold the latest sorted data
+		input.swap(buf_sorted);
 	}
 
 	glQueryCounter(queryID[1], GL_TIMESTAMP);
@@ -184,5 +177,5 @@ void radix_sort(GLuint keys, GLuint sorted)
 	glGetQueryObjectui64v(queryID[1], GL_QUERY_RESULT, &stop);
 	printf("Time spent on the GPU: %f ms\t\r", (stop - start) / 1000000.0);
 
-	print_data(sorted, GL_SHADER_STORAGE_BUFFER, 1024);
+	//print_data(sorted, GL_SHADER_STORAGE_BUFFER, 1024);
 }

@@ -1,26 +1,5 @@
 #version 430
 
-layout (local_size_x = 128) in; // Must equal <block_size> in sort.cpp
-layout (std430, binding = 0) buffer ScanBuffer {
-	uvec4 Scan[];
-};
-
-layout (std430, binding = 1) buffer SumsBuffer {
-	uvec4 Sums[];
-};
-
-layout (std430, binding = 2) buffer KeyBuffer {
-	uint Key[];
-};
-
-layout (std430, binding = 3) buffer FlagBuffer {
-	uvec4 Flag[];
-};
-
-shared uvec4 sharedData[gl_WorkGroupSize.x];
-
-uniform int bitOffset;
-
 /*
  * The main idea of the sorting algorithm is based on counting.
  * For example, say that we need to put the number 3 in sorted order,
@@ -69,29 +48,64 @@ uniform int bitOffset;
 
 /*
  * For efficiency, we perform the prefix sum in blocks.
- * For example, with blocks of 4-by-4 elements, the prefix sum of
+ * For example, with blocks of 4-by-4 elements, calculating the prefix sum of
  *  0 0 0 1 0 1 0 0
  * is done by first scanning each block individually
  *  0 0 0 0 | 0 0 1 1
  *  
  * To merge these two we need to add the sum of elements in the first block,
- * to each element in the second block. With more than two blocks,
- * we need to accumulate the sum we need to add, as we go along (also a prefix sum)
- * 
- * So we store the sum (which is the last element of the inclusive prefix sum of the block):
+ * to each element in the second block. So first we compute the sums
  *  1 | 1
- * These sums are stored in the <SUMS> array, and are applied at a later stage.
- *  
- * Taking the prefix sum of this array gives us:
+ * then we take the prefix sum of this again!
  *  0 | 1
- *  
- * So 0 should be added to each element in the first block,
- * and 1 should be added to each element in the second.
+ * Finally we add sums[i] to each element in block[i], and so on
+ *  0 0 0 0 (+ 0) | 0 0 1 1 (+ 1)
+ *  0 0 0 0 | 1 1 2 2
  * 
- * Because we need to perform four prefix sums (as we use 2-bit radices),
- * the sums array is a uvec4 array. The xyzw components correspond to the digit 0, 1, 2 and 3
- * scan arrays, respectively.
+ * Because we need to perform four prefix sums, the sums array is a uvec4 array.
+ * The xyzw components correspond to the digit 0, 1, 2 and 3
+ * scan arrays, respectively. Storing it as a vector allows us to use vector math
+ * to operate on each array in single expressions.
 */
+
+layout (local_size_x = 128) in; // Must equal <block_size> in sort.cpp
+layout (std430, binding = 0) buffer ScanBuffer {
+	uvec4 Scan[];
+};
+
+layout (std430, binding = 1) buffer SumsBuffer {
+	uvec4 Sums[];
+};
+
+layout (std430, binding = 2) buffer InputBuffer {
+	vec4 Input[];
+};
+
+layout (std430, binding = 3) buffer FlagBuffer {
+	uvec4 Flag[];
+};
+
+shared uvec4 sharedData[gl_WorkGroupSize.x];
+
+uniform int bitOffset;
+uniform vec3 axis;
+uniform float zMin;
+uniform float zMax;
+
+/*
+ * The particles are sorting by increasing distance along the sorting axis.
+ * We find the distance by a simple dot product. But the sorting algorithm
+ * needs integer keys (16-bit in this case), so we convert the distance from
+ * the range [zMin, zMax] -> [0, 65535].
+ * Finally we extract the current working digit (2-bit in this case) from the key.
+*/
+uint decodeKey(uint index)
+{
+	float z = dot(Input[index].xyz, axis);
+	z = 65535.0 * clamp( (z - zMin) / (zMax - zMin), 0.0, 1.0 );
+	return (uint(z) >> bitOffset) & 3;
+}
+
 void main()
 {
     const uint global_i = gl_GlobalInvocationID.x;
@@ -99,21 +113,19 @@ void main()
     const uint block_size = gl_WorkGroupSize.x;
     const uint local_i = gl_LocalInvocationID.x;
     const uint steps = uint(log2(gl_WorkGroupSize.x)) + 1;
-    const uint radix = 4;
 
-    uint key = Key[global_i];
-    
-    // Mask out the current digit
-    key = (key >> bitOffset) & (radix - 1);
+	uint key = decodeKey(global_i);
 
-    // Interleave the flag bits
     uvec4 flag = uvec4(key == 0 ? 1 : 0, key == 1 ? 1 : 0, key == 2 ? 1 : 0, key == 3 ? 1 : 0);
     sharedData[local_i] = flag;
-    barrier(); // Wait for other threads within the block to have done the same
 
-    Flag[global_i] = flag; // Store this for later when shuffling the elements
+	// Wait for other threads within the block to have done the same
+    barrier(); 
+
+	// This is used later to determine how to rearrange the input
+    Flag[global_i] = flag;
     
-    // The prefix sum routine
+    // The prefix sum routine works on shared memory for efficiency!
     for (uint step = 0; step < steps; step++)
     {
         uint rd_id = (1 << step) * (local_i >> step) - 1;
@@ -126,7 +138,7 @@ void main()
     Scan[global_i] = sharedData[local_i] - flag;
     barrier();
 
-    // Store the sum of all elements in the current block
+    // Store the sum of all elements of this block to the sums array
     // (which is equal to the last element in the inclusive prefix sum)
     Sums[block_i] = sharedData[block_size - 1];
 }

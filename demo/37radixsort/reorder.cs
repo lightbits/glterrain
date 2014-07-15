@@ -1,22 +1,5 @@
 #version 430
 
-layout (local_size_x = 128) in; // Must equal <local_size_x> in reorder(...) func
-layout (std430, binding = 0) buffer ScanBuffer {
-	uvec4 Scan[];
-};
-
-layout (std430, binding = 2) buffer KeyBuffer {
-	uint Key[];
-};
-
-layout (std430, binding = 3) buffer FlagBuffer {
-	uvec4 Flag[];
-};
-
-layout (std430, binding = 4) buffer SortedKeyBuffer {
-	uint SortedKey[];
-};
-
 /*
  * Finally, we shuffle the elements to their correct positions.
  * The new position is given by the prefix
@@ -44,12 +27,29 @@ layout (std430, binding = 4) buffer SortedKeyBuffer {
  * So the first element should be reordered to position 2 in the sorted array.
 */
 
+layout (local_size_x = 128) in; // Must equal <local_size_x> in reorder(...) func
+layout (std430, binding = 0) buffer ScanBuffer {
+	uvec4 Scan[];
+};
+
+layout (std430, binding = 2) buffer InputBuffer {
+	vec4 Input[];
+};
+
+layout (std430, binding = 3) buffer FlagBuffer {
+	uvec4 Flag[];
+};
+
+layout (std430, binding = 4) buffer SortedInputBuffer {
+	vec4 SortedInput[];
+};
+
 void main()
 {
     uint global_i = gl_GlobalInvocationID.x;
-    uint key = Key[global_i];
+    vec4 position = Input[global_i];
     uvec4 scan = Scan[global_i]; // Serves as the offset
     uvec4 flag = Flag[global_i]; // Used to decide which element to reorder
     uint offset = uint(dot(scan, flag));
-    SortedKey[offset] = key;
+    SortedInput[offset] = position;
 }

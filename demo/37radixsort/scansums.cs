@@ -9,10 +9,6 @@ layout (std430, binding = 1) buffer SumsBuffer {
 	uvec4 Sums[];
 };
 
-// The entire SUMS array must fit inside the shared data storage
-// If we set a block size of 256, we get N / 256 elements in the SUMS array.
-// So if N is 65536, we get another 256 elements in the SUMS array, which we
-// can perform a prefix sum on.
 shared uvec4 sharedData[gl_WorkGroupSize.x];
 
 void main()
