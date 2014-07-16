@@ -50,12 +50,12 @@ See hellocompute.cs for further explanation of the indices.
 ShaderProgram 
 	shader_display,
 	shader_compute;
-Texture2D tex;
+Texture2D tex, tex_noise;
 VertexArray vao;
 BufferObject vbo;
 
-const int TEXTURE_SIZE_X = 128;
-const int TEXTURE_SIZE_Y = 128;
+const int TEXTURE_SIZE_X = 512;
+const int TEXTURE_SIZE_Y = 512;
 const int NUM_GROUPS_X = 16;
 const int NUM_GROUPS_Y = 16;
 
@@ -69,6 +69,9 @@ bool load()
 
 	if (!shader_display.linkAndCheckStatus() ||
 		!shader_compute.linkAndCheckStatus())
+		return false;
+
+	if (!tex_noise.loadFromFile("./data/textures/rgbanoise.png"))
 		return false;
 
 	return true;
@@ -105,7 +108,9 @@ void init(Renderer &gfx, Context &ctx)
 	// Use the compute shader to work magic on the texture
 	gfx.beginCustomShader(shader_compute);
 	gfx.setUniform("tex", 0);
+	gfx.setUniform("texNoise", 1);
 	glBindImageTexture(0, tex.getHandle(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+	glBindImageTexture(1, tex_noise.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 	glDispatchCompute(
 		TEXTURE_SIZE_X / NUM_GROUPS_X,
 		TEXTURE_SIZE_Y / NUM_GROUPS_Y,
@@ -121,7 +126,7 @@ void init(Renderer &gfx, Context &ctx)
 	glBindImageTexture(0, tex.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
 	gfx.drawVertexBuffer(GL_TRIANGLES, 6);
 
-	ctx.screenshot("compute03.png");
+	//ctx.screenshot("compute03.png");
 }
 
 void update(Renderer &gfx, Context &ctx, double dt)

@@ -4,13 +4,13 @@
 int main(int argc, char **argv)
 {
 	GLContext ctx;
-	if (!ctx.create(VideoMode(128, 128, 24, 0, 4, 4, 3), "Compute shader", true, true))
+	if (!ctx.create(VideoMode(512, 512, 24, 0, 4, 4, 3), "Compute shader", true, true))
 	{
 		APP_LOG << "Failed to open context\n";
 		return EXIT_FAILURE;
 	}
 	APP_LOG << ctx.getDebugInfo();
-
+	
 	Renderer gfx;
 	gfx.init(ctx);
 

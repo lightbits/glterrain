@@ -262,4 +262,3 @@ Ramp down tangential component of the potential function near the boundary.
 	[9]: http://www.codeproject.com/Articles/543451/Parallel-Radix-Sort-on-the-GPU-using-Cplusplus-AMP
 	[10]: http://www.heterogeneouscompute.org/wordpress/wp-content/uploads/2011/06/RadixSort.pdf
 
-

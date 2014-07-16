@@ -313,18 +313,16 @@ void update(Renderer &gfx, Context &ctx, double dt)
 	// Update particles
 	gfx.beginCustomShader(shader_update_particle);
 	gfx.setUniform("seed", vec3(13.0, 59.0, 449.0));
+	gfx.setUniform("emitterPos", emitter_pos);
 	gfx.setUniform("spherePos", sphere_pos);
 	gfx.setUniform("particleLifetime", particle_lifetime);
 	gfx.setUniform("time", ctx.getElapsedTime());
-	//gfx.setUniform("texNoise", 0);
 	gfx.setUniform("dt", 0.01f);
-	//glBindImageTexture(0, tex_noise.getHandle(), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, position_buffer.getHandle());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spawn_buffer.getHandle());
 	glDispatchCompute(NUM_PARTICLES / WORK_GROUP_SIZE, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-	if (ctx.isKeyPressed('s'))
 	sort(gfx, ctx);
 }
 
